@@ -3,151 +3,175 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PRO PANEL v2 - FAMILIADA</title>
+    <title>PANEL STUDIO PRO - PEŁNA BAZA</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root { --bg: #0f172a; --card: #1e293b; --accent: #8b5cf6; --success: #10b981; --danger: #ef4444; --gold: #f59e0b; --text: #f8fafc; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; }
-        .card { background: var(--card); border-radius: 20px; padding: 20px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.05); }
-        h2 { font-size: 1.1rem; text-align: center; color: var(--accent); margin: 0 0 15px 0; }
-        h4 { font-size: 0.8rem; color: #94a3b8; text-transform: uppercase; margin: 0 0 10px 0; }
-        input, select { width: 100%; padding: 12px; background: #0f172a; border: 2px solid #334155; color: white; border-radius: 12px; font-size: 16px; box-sizing: border-box; margin-bottom: 10px; }
-        .btn { border: none; border-radius: 12px; padding: 14px; font-weight: bold; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; width: 100%; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 10px; }
+        .card { background: var(--card); border-radius: 20px; padding: 15px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.05); }
+        h4 { font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; margin: 0 0 10px 0; letter-spacing: 1px; }
+        input, select { width: 100%; padding: 12px; background: #0f172a; border: 2px solid #334155; color: white; border-radius: 12px; margin-bottom: 8px; box-sizing: border-box; font-size: 16px; }
+        .btn { border: none; border-radius: 12px; padding: 14px; font-weight: bold; cursor: pointer; transition: 0.2s; width: 100%; color: white; display: flex; align-items: center; justify-content: center; }
         .btn:active { transform: scale(0.95); }
-        .btn-primary { background: var(--accent); color: white; }
-        .btn-green { background: var(--success); color: white; }
-        .btn-red { background: var(--danger); color: white; }
+        .btn-violet { background: var(--accent); }
+        .btn-green { background: var(--success); }
+        .btn-red { background: var(--danger); }
         .btn-outline { background: transparent; border: 2px solid #334155; color: white; }
         .btn-gold { background: var(--gold); color: black; }
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .grid-round { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin-bottom: 10px; }
-        .ans-row { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); padding: 10px; margin: 5px 0; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); }
-        .strike-zone { background: linear-gradient(135deg, #ef4444, #991b1b); height: 80px; font-size: 40px; margin: 15px 0; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3); }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        .ans-row { display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); padding: 10px; margin: 5px 0; border-radius: 10px; border: 1px solid #334155; }
+        .strike-zone { background: linear-gradient(135deg, #ef4444, #991b1b); height: 80px; font-size: 40px; margin: 15px 0; }
         .active-team { border: 3px solid var(--gold) !important; box-shadow: 0 0 15px var(--gold); }
-        #panel-id-display { color: var(--gold); text-align: center; font-size: 0.9rem; font-weight: bold; margin-top: 10px; }
-        .final-item { background: rgba(0,0,0,0.2); padding: 10px; border-radius: 12px; margin-bottom: 10px; }
+        #timer-box { text-align: center; font-size: 30px; color: var(--danger); font-weight: bold; padding: 10px; }
     </style>
 </head>
 <body>
     <div id="setup" class="card">
-        <h2>KONFIGURACJA</h2>
-        <input type="text" id="tv-id" placeholder="Wpisz ID z ekranu TV">
-        <button onclick="connectToTV()" class="btn btn-primary">POŁĄCZ Z EKRANEM</button>
-        <div id="panel-id-display">Generowanie ID Panelu...</div>
+        <h2 style="text-align:center; color:var(--accent)">KONFIGURACJA</h2>
+        <input type="text" id="tv-id" placeholder="Wpisz ID z TV">
+        <button onclick="connectToTV()" class="btn btn-violet">POŁĄCZ STUDIO</button>
+        <p id="my-id" style="text-align:center; font-size: 10px; margin-top:10px;"></p>
     </div>
 
     <div id="controls" style="display:none">
-        <div class="card grid-2">
-            <button onclick="sendToTV({type:'START_INTRO'})" class="btn btn-green">▶ START</button>
-            <button onclick="sendToTV({type:'SHOW_CREDITS'})" class="btn btn-outline">NAPISY</button>
+        <div class="card">
+            <h4>Nazwy Drużyn</h4>
+            <div class="grid-2">
+                <input type="text" id="nameA" value="DRUŻYNA A" onchange="updateNames()">
+                <input type="text" id="nameB" value="DRUŻYNA B" onchange="updateNames()">
+            </div>
         </div>
 
         <div class="card">
-            <h4>Rundy i Grzybki</h4>
-            <div class="grid-round">
-                <button onclick="setR(1)" class="btn btn-outline">x1</button>
-                <button onclick="setR(2)" class="btn btn-outline">x2</button>
-                <button onclick="setR(3)" class="btn btn-outline">x3</button>
-                <button onclick="setR('final')" class="btn btn-gold">FIN</button>
-            </div>
-            <div class="grid-2">
-                <button onclick="controlBuzzers('UNLOCK')" class="btn btn-green" style="font-size: 1.2rem;">🔓 ODBLOKUJ</button>
-                <button onclick="controlBuzzers('LOCK')" class="btn btn-red">🔒 ZABLOKUJ</button>
+            <h4>Soundboard</h4>
+            <div class="grid-3">
+                <button onclick="playSound('Brawa')" class="btn btn-outline" style="font-size:10px;">👏 BRAWA</button>
+                <button onclick="playSound('Smiech')" class="btn btn-outline" style="font-size:10px;">😂 ŚMIECH</button>
+                <button onclick="toggleNapiecie()" id="napBtn" class="btn btn-outline" style="font-size:10px;">🎵 NAPIĘCIE</button>
             </div>
         </div>
 
+        <div class="card">
+            <h4>Stoper Finałowy</h4>
+            <div id="timer-box">00</div>
+            <div class="grid-2">
+                <button onclick="startTimer(20)" class="btn btn-red">START 20s</button>
+                <button onclick="startTimer(25)" class="btn btn-red">START 25s</button>
+            </div>
+            <button onclick="stopTimer()" class="btn btn-outline" style="margin-top:8px;">STOP / RESET</button>
+        </div>
+
+        <div class="card">
+            <div class="grid-3">
+                <button onclick="setR(1)" class="btn btn-outline">x1</button>
+                <button onclick="setR(2)" class="btn btn-outline">x2</button>
+                <button onclick="setR('final')" class="btn btn-gold">FINAŁ</button>
+            </div>
+            <button onclick="controlBuzzers('UNLOCK')" class="btn btn-green" style="margin-top:10px;">🔓 ODBLOKUJ GRZYBKI</button>
+        </div>
+
         <div id="normal-game" class="card">
-            <h4>Pytania</h4>
+            <h4>Pytania Normalne</h4>
             <select id="q-select" onchange="loadQ()"></select>
-            <button onclick="sendQ()" class="btn btn-primary">WYŚLIJ NA TV</button>
+            <button onclick="sendQ()" class="btn btn-violet" style="margin-bottom:10px;">WYŚLIJ PYTANIE NA TV</button>
             <div id="ans-list"></div>
         </div>
 
         <div id="final-game" class="card" style="display:none">
-            <h4>Finał</h4>
+            <h4>Pytania Finałowe</h4>
             <select id="f-select" onchange="loadFinal()"></select>
             <div id="f-inputs"></div>
         </div>
 
         <div class="card">
             <div class="grid-2">
-                <button onclick="setTeam('A')" id="btnA" class="btn btn-outline" style="border-color: var(--danger)">TEAM A</button>
-                <button onclick="setTeam('B')" id="btnB" class="btn btn-outline" style="border-color: var(--success)">TEAM B</button>
+                <button onclick="setTeam('A')" id="btnA" class="btn btn-outline">DRUŻYNA A</button>
+                <button onclick="setTeam('B')" id="btnB" class="btn btn-outline">DRUŻYNA B</button>
             </div>
-            <button onclick="sendToTV({type:'STRIKE'}); if(activeTeam) strikes[activeTeam]++; sync();" class="btn btn-red strike-zone">✖</button>
+            <button onclick="sendStrike()" class="btn btn-red strike-zone">✖</button>
             <div class="grid-2">
                 <input type="number" id="scA" value="0" onchange="sync()">
                 <input type="number" id="scB" value="0" onchange="sync()">
             </div>
-            <button onclick="strikes={A:0, B:0}; sync();" class="btn btn-outline" style="margin-top:10px; font-size:0.7rem">RESET BŁĘDÓW (X)</button>
+            <button onclick="strikes={A:0,B:0}; sync();" class="btn btn-outline" style="margin-top:10px; font-size:10px;">RESET BŁĘDÓW</button>
         </div>
     </div>
 
     <script>
-        let peer = new Peer();
-        let tvConn, buzzerConns = [], activeTeam = null, strikes = {A:0, B:0}, currentAnswers = [], multiplier = 1;
+        let peer = new Peer(), tvConn, buzzerConns = [], activeTeam = null, strikes = {A:0, B:0}, multiplier = 1, timerInterval, napiecieOn = false, currentAnswers = [];
 
+        // --- OGROMNA BAZA PYTAŃ ---
         const db = [
             { q: "Więcej niż jedno zwierzę?", a: [["Owce", 32], ["Lama", 21], ["Stado", 15], ["Wataha", 10], ["Para", 5]] },
             { q: "Polska potrawa wigilijna?", a: [["Barszcz", 45], ["Karp", 30], ["Pierogi", 15], ["Uszka", 8], ["Kutia", 2]] },
-            { q: "Przedmiot w szkole?", a: [["Matematyka", 40], ["Polski", 25], ["WF", 15], ["Historia", 10], ["Biologia", 5]] },
+            { q: "Przedmiot szkolny?", a: [["Matematyka", 40], ["Polski", 25], ["WF", 15], ["Historia", 10], ["Biologia", 5]] },
+            { q: "Coś, co pije się rano?", a: [["Kawa", 50], ["Herbata", 25], ["Woda", 10], ["Sok", 8], ["Mleko", 7]] },
             { q: "Zwierzę na literę K?", a: [["Kot", 48], ["Koń", 22], ["Krowa", 15], ["Kura", 10], ["Kangur", 5]] },
-            { q: "Coś, co ma kółka?", a: [["Samochód", 50], ["Rower", 25], ["Wózek", 12], ["Hulajnoga", 8]] },
-            { q: "Co robimy w lesie?", a: [["Spacerujemy", 42], ["Grzyby", 38], ["Biegamy", 10], ["Odpoczywamy", 7]] },
-            { q: "Owoc cytrusowy?", a: [["Cytryna", 40], ["Pomarańcza", 35], ["Mandarynka", 15], ["Grejpfrut", 8]] },
-            { q: "Zajęcie na wakacje?", a: [["Pływanie", 40], ["Opalanie", 30], ["Zwiedzanie", 15], ["Góry", 10]] },
-            { q: "Co pijemy rano?", a: [["Kawa", 45], ["Herbata", 30], ["Woda", 15], ["Sok", 10]] },
+            { q: "Co można robić w lesie?", a: [["Spacerować", 45], ["Zbierać grzyby", 35], ["Biegać", 10], ["Odpoczywać", 7], ["Krzyczeć", 3]] },
+            { q: "Coś, co ma kółka?", a: [["Samochód", 45], ["Rower", 25], ["Wózek", 15], ["Hulajnoga", 10], ["Traktor", 5]] },
+            { q: "Owoc cytrusowy?", a: [["Cytryna", 40], ["Pomarańcza", 35], ["Mandarynka", 15], ["Grejpfrut", 8], ["Limonka", 2]] },
+            { q: "Coś, co kojarzy się z zimą?", a: [["Śnieg", 40], ["Mróz", 25], ["Sanki", 15], ["Narty", 10], ["Choinka", 10]] },
+            { q: "Sprzęt w kuchni?", a: [["Lodówka", 40], ["Kuchenka", 30], ["Mikser", 15], ["Zmywarka", 10], ["Czajnik", 5]] },
             { q: "Element pogody?", a: [["Deszcz", 40], ["Słońce", 35], ["Wiatr", 15], ["Śnieg", 10]] },
-            { q: "Coś na literę B?", a: [["Banan", 30], ["Buty", 25], ["Buda", 15], ["Biały", 10]] },
-            { q: "Kwiat na randkę?", a: [["Róża", 60], ["Tulipan", 20], ["Goździk", 10], ["Lilie", 5]] },
-            { q: "Sprzęt w kuchni?", a: [["Lodówka", 40], ["Kuchenka", 30], ["Mikser", 15], ["Zmywarka", 10]] },
-            { q: "Słodki deser?", a: [["Lody", 45], ["Ciasto", 30], ["Czekolada", 15], ["Budyń", 10]] },
-            { q: "Coś, co lata?", a: [["Ptak", 50], ["Samolot", 30], ["Mucha", 15], ["Balon", 5]] }
+            { q: "Czym podróżujemy?", a: [["Samochód", 40], ["Pociąg", 25], ["Autobus", 15], ["Samolot", 15], ["Statek", 5]] },
+            { q: "Zajęcie na wakacjach?", a: [["Pływanie", 35], ["Opalanie", 30], ["Zwiedzanie", 20], ["Góry", 10], ["Spanie", 5]] },
+            { q: "Kwiat na randkę?", a: [["Róża", 60], ["Tulipan", 20], ["Goździk", 10], ["Lilie", 5], ["Fiołek", 5]] },
+            { q: "Coś słodkiego?", a: [["Czekolada", 35], ["Lody", 30], ["Ciasto", 20], ["Cukierki", 10], ["Pączek", 5]] },
+            { q: "Dyscyplina sportowa?", a: [["Piłka nożna", 45], ["Siatkówka", 20], ["Bieganie", 15], ["Pływanie", 10], ["Tenis", 10]] },
+            { q: "Zwierzę hodowlane?", a: [["Krowa", 35], ["Świnia", 30], ["Kura", 20], ["Owca", 10], ["Koń", 5]] },
+            { q: "Co kładziemy na kanapkę?", a: [["Szynka", 40], ["Ser", 35], ["Pomidor", 15], ["Masło", 5], ["Ogórek", 5]] },
+            { q: "Coś, co lata?", a: [["Ptak", 45], ["Samolot", 35], ["Mucha", 10], ["Balon", 5], ["Helikopter", 5]] },
+            { q: "Część garderoby?", a: [["Spodnie", 35], ["Koszulka", 30], ["Buty", 20], ["Kurtka", 10], ["Czapka", 5]] },
+            { q: "Miasto w Polsce?", a: [["Warszawa", 40], ["Kraków", 30], ["Gdańsk", 15], ["Wrocław", 10], ["Poznań", 5]] },
+            { q: "Coś czerwonego?", a: [["Pomidor", 40], ["Serce", 25], ["Krew", 15], ["Róża", 10], ["Straż", 10]] },
+            { q: "Instrument muzyczny?", a: [["Gitara", 40], ["Pianino", 30], ["Perkusja", 15], ["Skrzypce", 10], ["Flet", 5]] },
+            { q: "Zawód medyczny?", a: [["Lekarz", 50], ["Pielęgniarka", 30], ["Ratownik", 10], ["Dentysta", 10]] },
+            { q: "Drzewo liściaste?", a: [["Dąb", 40], ["Brzoza", 30], ["Klon", 15], ["Lipka", 10], ["Buk", 5]] },
+            { q: "Gdzie trzymamy pieniądze?", a: [["Portfel", 45], ["Bank", 35], ["Skarbonka", 10], ["Skarpeta", 10]] },
+            { q: "Coś, co świeci?", a: [["Słońce", 45], ["Żarówka", 30], ["Księżyc", 15], ["Latarka", 10]] },
+            { q: "Coś do pisania?", a: [["Długopis", 45], ["Ołówek", 30], ["Marker", 15], ["Kreda", 10]] },
+            { q: "Ssak wodny?", a: [["Delfin", 45], ["Wieloryb", 35], ["Foka", 15], ["Mors", 5]] },
+            { q: "Przyprawa kuchenna?", a: [["Sól", 40], ["Pieprz", 35], ["Papryka", 15], ["Oregano", 10]] }
         ];
 
         const finalDb = [
-            { n: "Finał 1: Wakacje", qs: ["Miejsce?", "W walizce?", "Napój?", "Pojazd?", "Na plażę?"], q: ["Morze", "Ubrania", "Woda", "Samolot", "Ręcznik"], p: [45, 30, 20, 15, 10] },
-            { n: "Finał 2: Dom", qs: ["Pokój?", "Mebel?", "Kuchnia?", "Ściana?", "Zwierzę?"], q: ["Salon", "Kanapa", "Lodówka", "Obraz", "Pies"], p: [40, 35, 25, 10, 5] },
-            { n: "Finał 3: Natura", qs: ["Drzewo?", "Zwierzę?", "Kwiat?", "Pogoda?", "Góry?"], q: ["Dąb", "Jeleń", "Tulipan", "Deszcz", "Rysy"], p: [35, 25, 20, 15, 5] },
-            { n: "Finał 4: Zawody", qs: ["Mundur?", "Szkoła?", "Szpital?", "Biuro?", "Fizyczna?"], q: ["Policjant", "Nauczyciel", "Lekarz", "Informatyk", "Budowlaniec"], p: [40, 30, 20, 5, 5] },
-            { n: "Finał 5: Jedzenie", qs: ["Biały napój?", "Obiad?", "Słodycz?", "Pizza?", "Chleb?"], q: ["Mleko", "Ziemniaki", "Czekolada", "Ser", "Chleb"], p: [50, 25, 10, 10, 5] }
+            { n: "Finał 1: Wakacje", qs: ["Gdzie?", "W walizce?", "Napój?", "Pojazd?", "Atrakcja?"], q: ["Morze", "Ubrania", "Woda", "Samolot", "Plaża"], p: [40, 30, 15, 10, 5] },
+            { n: "Finał 2: Dom", qs: ["Pokój?", "Mebel?", "Kuchnia?", "Ściana?", "Zwierzę?"], q: ["Salon", "Kanapa", "Lodówka", "Obraz", "Pies"], p: [45, 25, 15, 10, 5] },
+            { n: "Finał 3: Szkoła", qs: ["Przedmiot?", "Przybory?", "Przerwa?", "Ocena?", "Nauczyciel?"], q: ["Matematyka", "Długopis", "Jedzenie", "Piątka", "Polski"], p: [40, 30, 15, 10, 5] },
+            { n: "Finał 4: Sport", qs: ["Dyscyplina?", "Sprzęt?", "Miejsce?", "Wynik?", "Gwiazda?"], q: ["Piłka Nożna", "Piłka", "Stadion", "Gol", "Lewandowski"], p: [50, 20, 15, 10, 5] },
+            { n: "Finał 5: Natura", qs: ["Zwierzę?", "Drzewo?", "Kwiat?", "Pogoda?", "Góra?"], q: ["Lew", "Dąb", "Róża", "Słońce", "Rysy"], p: [40, 30, 15, 10, 5] },
+            { n: "Finał 6: Jedzenie", qs: ["Zupa?", "Owoc?", "Warzywo?", "Napój?", "Deser?"], q: ["Rosół", "Jabłko", "Marchew", "Woda", "Lody"], p: [45, 25, 15, 10, 5] }
         ];
 
-        peer.on('open', id => document.getElementById('panel-id-display').innerText = "TWÓJ ID PANELU: " + id);
+        // --- LOGIKA DZIAŁANIA ---
+        peer.on('open', id => document.getElementById('my-id').innerText = "ID TWOJEGO PANELU: " + id);
         
         peer.on('connection', conn => {
-            // Dodaj tylko jeśli jeszcze nie ma tego ID
-            if(!buzzerConns.find(c => c.peer === conn.peer)) {
-                buzzerConns.push(conn);
-            }
+            if(!buzzerConns.find(c => c.peer === conn.peer)) buzzerConns.push(conn);
             conn.on('data', m => { 
                 if(m.type === 'BUZZ') {
-                    sendToTV(m);
-                    controlBuzzers('LOCK'); // Natychmiastowa blokada wszystkich po strzale
+                    m.teamName = document.getElementById('name' + m.team).value;
+                    sendToTV(m); 
+                    controlBuzzers('LOCK');
                 }
-            });
-            conn.on('close', () => {
-                buzzerConns = buzzerConns.filter(c => c.peer !== conn.peer);
             });
         });
 
-        function broadcast(m) {
-            buzzerConns = buzzerConns.filter(c => c.open); // Czyść nieaktywne
-            buzzerConns.forEach(c => c.send(m));
-        }
-
-        function controlBuzzers(state) { broadcast({type: state}); }
-
         function connectToTV() {
-            const id = document.getElementById('tv-id').value;
-            if(!id) return alert("Wpisz ID!");
-            tvConn = peer.connect(id);
+            const tid = document.getElementById('tv-id').value;
+            tvConn = peer.connect(tid);
             tvConn.on('open', () => {
                 document.getElementById('setup').style.display='none';
                 document.getElementById('controls').style.display='block';
+                updateNames();
+                
+                // Załadowanie listy pytań normalnych
                 const qs = document.getElementById('q-select');
                 qs.innerHTML = '<option value="">-- WYBIERZ PYTANIE --</option>';
                 db.forEach((d, i) => qs.innerHTML += `<option value="${i}">${d.q}</option>`);
+                
+                // Załadowanie listy finałów
                 const fs = document.getElementById('f-select');
                 fs.innerHTML = '<option value="">-- WYBIERZ FINAŁ --</option>';
                 finalDb.forEach((f, i) => fs.innerHTML += `<option value="${i}">${f.n}</option>`);
@@ -155,74 +179,82 @@
         }
 
         function sendToTV(m) { if(tvConn && tvConn.open) tvConn.send(m); }
+        function broadcast(m) { buzzerConns = buzzerConns.filter(c => c.open); buzzerConns.forEach(c => c.send(m)); }
+        function controlBuzzers(state) { broadcast({type: state}); }
+        function updateNames() { sendToTV({type:'UPDATE_NAMES', a: document.getElementById('nameA').value, b: document.getElementById('nameB').value}); }
+        function playSound(f) { sendToTV({type:'SOUND', file:f, action:'play'}); }
+        
+        function toggleNapiecie() { 
+            napiecieOn = !napiecieOn; 
+            sendToTV({type:'SOUND', file:'Napiecie', action: napiecieOn?'play':'stop'}); 
+            document.getElementById('napBtn').className = napiecieOn ? "btn btn-green" : "btn btn-outline"; 
+        }
+        
+        function startTimer(s) {
+            stopTimer(); let tl = s;
+            sendToTV({type:'TIMER', val:tl, visible:true});
+            document.getElementById('timer-box').innerText = tl;
+            timerInterval = setInterval(() => {
+                tl--; document.getElementById('timer-box').innerText = tl;
+                sendToTV({type:'TIMER', val:tl, visible:true});
+                if(tl <= 0) { stopTimer(); playSound('No'); }
+            }, 1000);
+        }
+        
+        function stopTimer() { clearInterval(timerInterval); sendToTV({type:'TIMER', val:0, visible:false}); document.getElementById('timer-box').innerText = "00"; }
         
         function setR(r) { 
             multiplier = (typeof r === 'number') ? r : 1; 
-            document.getElementById('normal-game').style.display = (r === 'final') ? 'none' : 'block'; 
-            document.getElementById('final-game').style.display = (r === 'final') ? 'block' : 'none'; 
-            sendToTV({type: 'NEXT_ROUND', round: r}); 
-            strikes = {A:0, B:0}; 
+            document.getElementById('normal-game').style.display = (r==='final'?'none':'block');
+            document.getElementById('final-game').style.display = (r==='final'?'block':'none');
+            sendToTV({type:'NEXT_ROUND', round:r}); 
+            strikes={A:0,B:0}; 
             sync(); 
-            controlBuzzers('LOCK'); // Zablokuj na start nowej rundy
+            controlBuzzers('LOCK');
         }
 
-        function loadQ() { 
-            const val = document.getElementById('q-select').value; 
-            if(val==="") return; 
-            const d = db[val]; currentAnswers = d.a; 
-            let list = document.getElementById('ans-list'); list.innerHTML = ""; 
-            d.a.forEach((a, i) => { 
-                list.innerHTML += `<div class="ans-row"><span>${a[0]} (${a[1]})</span><button onclick="reveal(${i})" class="btn btn-gold" style="width:80px; padding:5px; font-size:0.7rem">ODKRYJ</button></div>`; 
-            }); 
+        function loadQ() {
+            const v = document.getElementById('q-select').value; if(v==="") return;
+            currentAnswers = db[v].a;
+            let list = document.getElementById('ans-list'); list.innerHTML = "";
+            currentAnswers.forEach((a, i) => {
+                list.innerHTML += `<div class="ans-row"><span>${a[0]} (${a[1]})</span><button onclick="reveal(${i})" class="btn btn-gold" style="width:70px; padding:5px; font-size:10px;">ODKRYJ</button></div>`;
+            });
         }
 
-        function sendQ() { const val = document.getElementById('q-select').value; if(val==="") return; sendToTV({type:'SETUP', q: db[val].q, a: currentAnswers.map(x=>({t:x[0], p:x[1]}))}); }
+        function sendQ() { const v = document.getElementById('q-select').value; if(v==="") return; sendToTV({type:'SETUP', q: db[v].q, a: currentAnswers.map(x=>({t:x[0], p:x[1]}))}); }
         
         function reveal(i) { 
             let pts = currentAnswers[i][1] * multiplier; 
-            sendToTV({type:'REVEAL', index:i, text:currentAnswers[i][0], pts: pts}); 
+            sendToTV({type:'REVEAL', index:i, text:currentAnswers[i][0], pts:pts}); 
             if(activeTeam) { 
                 let s = document.getElementById('sc'+activeTeam); 
                 s.value = parseInt(s.value) + pts; 
                 sync(); 
             } 
         }
-
-        function loadFinal() { 
-            const val = document.getElementById('f-select').value; 
-            if(val==="") return; 
-            const f = finalDb[val]; 
-            const div = document.getElementById('f-inputs'); 
-            div.innerHTML = ""; 
-            for(let p=1; p<=2; p++) { 
-                div.innerHTML += `<div class="final-item"><h4>Gracz ${p}</h4>`; 
-                for(let i=0; i<5; i++) { 
-                    div.innerHTML += `<div style="display:grid; grid-template-columns: 1fr 50px 45px 45px; gap:5px; margin-top:10px;">
-                        <span style="font-size:10px; grid-column:span 4; color:var(--accent)">${f.qs[i]}</span>
-                        <input id="f-t-${p}-${i}" value="${p==1?f.q[i]:''}" placeholder="Odp">
-                        <input id="f-p-${p}-${i}" value="${p==1?f.p[i]:''}" style="width:45px">
+        
+        function loadFinal() {
+            const v = document.getElementById('f-select').value; if(v==="") return;
+            const f = finalDb[v]; const div = document.getElementById('f-inputs'); div.innerHTML = "";
+            for(let p=1; p<=2; p++) {
+                div.innerHTML += `<div class="card" style="background:rgba(0,0,0,0.3)"><h4>Gracz ${p}</h4>`;
+                for(let i=0; i<5; i++) {
+                    div.innerHTML += `<div style="display:grid; grid-template-columns: 1fr 50px 45px 45px; gap:5px; margin-top:5px;">
+                        <input id="f-t-${p}-${i}" value="${p==1?f.q[i]:''}" placeholder="${f.qs[i]}">
+                        <input id="f-p-${p}-${i}" value="${p==1?f.p[i]:''}" style="width:45px" placeholder="Pkt">
                         <button onclick="rf(${p},${i},'t')" class="btn btn-outline" style="padding:5px">T</button>
                         <button onclick="rf(${p},${i},'p')" class="btn btn-green" style="padding:5px">P</button>
-                    </div>`; 
-                } 
-                div.innerHTML += `</div>`; 
-            } 
+                    </div>`;
+                }
+                div.innerHTML += `</div>`;
+            }
         }
 
-        function rf(p, r, k) { 
-            const val = document.getElementById(`f-${k}-${p}-${r}`).value; 
-            sendToTV({type:'FINAL_REVEAL', p:p, r:r, k:k, v:val}); 
-        }
-
-        function setTeam(t) { 
-            activeTeam = t; 
-            document.getElementById('btnA').className = t==='A' ? 'btn btn-outline active-team' : 'btn btn-outline'; 
-            document.getElementById('btnB').className = t==='B' ? 'btn btn-outline active-team' : 'btn btn-outline'; 
-        }
-
-        function sync() { 
-            sendToTV({type:'UPDATE', scA:document.getElementById('scA').value, scB:document.getElementById('scB').value, strikes:strikes}); 
-        }
+        function rf(p,r,k) { const v = document.getElementById(`f-${k}-${p}-${r}`).value; sendToTV({type:'FINAL_REVEAL', p:p, r:r, k:k, v:v}); }
+        function sendStrike() { sendToTV({type:'STRIKE'}); if(activeTeam) { strikes[activeTeam]++; sync(); } }
+        function setTeam(t) { activeTeam = t; document.getElementById('btnA').className = t==='A' ? "btn btn-outline active-team" : "btn btn-outline"; document.getElementById('btnB').className = t==='B' ? "btn btn-outline active-team" : "btn btn-outline"; }
+        function sync() { sendToTV({type:'UPDATE', scA:document.getElementById('scA').value, scB:document.getElementById('scB').value, strikes:strikes}); }
     </script>
 </body>
 </html>
