@@ -2,32 +2,48 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>PANEL STEROWANIA PRO</title>
+    <title>PANEL PRO - STEROWANIE</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        body { font-family: sans-serif; background: #121212; color: white; padding: 20px; }
-        .card { background: #1e1e1e; padding: 15px; border-radius: 10px; margin-bottom: 10px; border: 1px solid #333; }
-        button { padding: 12px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; width: 100%; margin: 5px 0; }
-        input, select { width: 100%; padding: 12px; background: #2a2a2a; border: 1px solid #444; color: white; border-radius: 6px; box-sizing: border-box; }
-        .ans-btn { background: #3498db; color: white; display: flex; justify-content: space-between; }
-        .strike-btn { background: #e74c3c; height: 100px; font-size: 40px; }
+        body { font-family: 'Segoe UI', sans-serif; background: #121212; color: white; padding: 20px; }
+        .card { background: #1e1e1e; padding: 20px; border-radius: 12px; margin-bottom: 10px; border: 1px solid #333; }
+        button { padding: 15px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; width: 100%; margin: 5px 0; }
+        input, select { width: 100%; padding: 12px; margin: 10px 0; background: #2a2a2a; border: 1px solid #444; color: white; border-radius: 6px; box-sizing: border-box; }
+        .ans-btn { background: #3498db; color: white; display: flex; justify-content: space-between; font-size: 18px; }
+        .ans-btn:hover { background: #2980b9; }
+        .strike-btn { background: #e74c3c; color: white; font-size: 40px; height: 120px; }
+        .strike-btn:hover { background: #c0392b; }
     </style>
 </head>
 <body>
+
     <div class="card">
-        <input type="text" id="tv-id" placeholder="WPISZ KOD Z TELEWIZORA">
+        <label>KOD Z TELEWIZORA:</label>
+        <input type="text" id="tv-id" placeholder="np. peerjs-abc-123">
         <button onclick="connect()" style="background: #f1c40f; color: black;">POŁĄCZ ZE STUDIEM</button>
+        <div id="status" style="text-align:center; margin-top:10px; color: #777;">ROZŁĄCZONO</div>
     </div>
 
-    <div id="controls" style="display:none">
-        <div class="card" style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-            <div><input type="text" id="nA" value="DRUŻYNA A" onchange="sync()"><input type="number" id="sA" value="0" onchange="sync()"></div>
-            <div><input type="text" id="nB" value="DRUŻYNA B" onchange="sync()"><input type="number" id="sB" value="0" onchange="sync()"></div>
+    <div id="ui" style="display:none">
+        <div class="card" style="display:grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <div>
+                <label>DRUŻYNA A</label>
+                <input type="text" id="nA" value="DRUŻYNA A" onchange="sync()">
+                <input type="number" id="sA" value="0" onchange="sync()">
+            </div>
+            <div>
+                <label>DRUŻYNA B</label>
+                <input type="text" id="nB" value="DRUŻYNA B" onchange="sync()">
+                <input type="number" id="sB" value="0" onchange="sync()">
+            </div>
         </div>
+
         <div class="card">
+            <label>WYBIERZ PYTANIE:</label>
             <select id="q-sel" onchange="loadQ()"></select>
-            <button onclick="sendQ()" style="background: #2ecc71; margin-top: 10px;">WYŚLIJ PYTANIE NA TABLICĘ</button>
+            <button onclick="sendQ()" style="background: #2ecc71; color: white;">WYŚLIJ PYTANIE NA TABLICĘ</button>
         </div>
+
         <div id="ans-list" class="card"></div>
         <button class="strike-btn" onclick="strike()">✖ BŁĄD (X)</button>
     </div>
@@ -37,7 +53,34 @@
         const db = [
             { q: "Więcej niż jedno zwierzę?", a: [["Stado", 45], ["Para", 25], ["Owce", 15], ["Lama", 5]] },
             { q: "Coś na kanapkę?", a: [["Ser", 40], ["Szynka", 35], ["Pomidor", 15], ["Masło", 10]] },
-            { q: "Zwierzę na literę K?", a: [["Kot", 48], ["Koń", 22], ["Krowa", 15]] }
+            { q: "Zwierzę na literę K?", a: [["Kot", 48], ["Koń", 22], ["Krowa", 15]] },
+            { q: "Co pijemy rano?", a: [["Kawa", 50], ["Herbata", 25], ["Woda", 10]] },
+            { q: "Dzień tygodnia na S?", a: [["Sobota", 70], ["Środa", 30]] },
+            { q: "Owoc cytrusowy?", a: [["Cytryna", 45], ["Pomarańcza", 35], ["Mandarynka", 15]] },
+            { q: "Co rośnie w lesie?", a: [["Grzyby", 60], ["Jagody", 25], ["Drzewa", 15]] },
+            { q: "Przedmiot w piórniku?", a: [["Długopis", 50], ["Ołówek", 25], ["Gumka", 15]] },
+            { q: "Część garderoby na zimę?", a: [["Kurtka", 45], ["Czapka", 30], ["Szalik", 20]] },
+            { q: "Urządzenie w kuchni?", a: [["Lodówka", 40], ["Kuchenka", 30], ["Mikser", 20]] },
+            { q: "Polskie miasto na K?", a: [["Kraków", 60], ["Katowice", 20], ["Kielce", 10]] },
+            { q: "Środek transportu?", a: [["Samolot", 45], ["Pociąg", 30], ["Autobus", 20]] },
+            { q: "Co słodkiego?", a: [["Czekolada", 40], ["Lody", 30], ["Ciastko", 20]] },
+            { q: "Dyscyplina z piłką?", a: [["Nożna", 60], ["Siatkówka", 20], ["Koszykówka", 15]] },
+            { q: "Ptak, który nie lata?", a: [["Struś", 55], ["Pingwin", 35], ["Kura", 10]] },
+            { q: "Instrument muzyczny?", a: [["Gitara", 45], ["Pianino", 35], ["Trąbka", 15]] },
+            { q: "Coś czerwonego?", a: [["Pomidor", 50], ["Róża", 25], ["Serce", 15]] },
+            { q: "Gdzie trzymamy pieniądze?", a: [["Portfel", 60], ["Bank", 30], ["Skarbonka", 10]] },
+            { q: "Zwierzę domowe?", a: [["Pies", 55], ["Kot", 35], ["Chomik", 10]] },
+            { q: "Co świeci na niebie?", a: [["Słońce", 60], ["Księżyc", 30], ["Gwiazdy", 10]] },
+            { q: "Przedmiot szkolny?", a: [["Matematyka", 45], ["WF", 35], ["Polski", 15]] },
+            { q: "Coś okrągłego?", a: [["Piłka", 50], ["Koło", 30], ["Talerz", 20]] },
+            { q: "Zawód medyczny?", a: [["Lekarz", 60], ["Pielęgniarka", 30], ["Ratownik", 10]] },
+            { q: "Czym piszemy?", a: [["Długopis", 60], ["Ołówek", 30], ["Kreda", 10]] },
+            { q: "Gdzie na wakacje?", a: [["Morze", 55], ["Góry", 35], ["Wieś", 10]] },
+            { q: "Co w piekarni?", a: [["Chleb", 65], ["Bułki", 25], ["Pączek", 10]] },
+            { q: "Zwierzę na farmie?", a: [["Krowa", 45], ["Świnia", 30], ["Kura", 25]] },
+            { q: "Co do picia na gorąco?", a: [["Herbata", 50], ["Kawa", 40], ["Kakao", 10]] },
+            { q: "Element pogody?", a: [["Deszcz", 40], ["Słońce", 40], ["Śnieg", 20]] },
+            { q: "Co ma rogi?", a: [["Krowa", 50], ["Diabeł", 25], ["Koza", 15], ["Jeleń", 10]] }
         ];
 
         window.onload = () => {
@@ -47,7 +90,12 @@
 
         function connect() {
             conn = peer.connect(document.getElementById('tv-id').value);
-            conn.on('open', () => { document.getElementById('controls').style.display = 'block'; sync(); });
+            conn.on('open', () => { 
+                document.getElementById('ui').style.display='block'; 
+                document.getElementById('status').innerText = "POŁĄCZONO";
+                document.getElementById('status').style.color = "#2ecc71";
+                sync(); 
+            });
         }
 
         function loadQ() {
