@@ -20,7 +20,7 @@
         .row { display: flex; justify-content: space-between; font-size: 48px; height: 70px; padding: 0 25px; align-items: center; background: #000066; border: 2px solid #555; }
         #final-board { display: none; width: 1100px; grid-template-columns: 1fr 1fr; gap: 50px; }
         .f-col { display: flex; flex-direction: column; gap: 10px; }
-        .f-row { display: flex; justify-content: space-between; background: #000066; padding: 0 25px; font-size: 45px; height: 65px; border: 2px solid #555; align-items: center; }
+        .f-row { display: flex; justify-content: space-between; background: #000066; padding: 0 25px; font-size: 45px; height: 65px; border: 2px solid #555; align-items: center; color: var(--gold); }
         .f-pts { color: white; min-width: 75px; text-align: right; border-left: 3px solid #555; padding-left: 15px; }
         #strike-pop { display: none; position: fixed; inset: 0; justify-content: center; align-items: center; background: rgba(255,0,0,0.3); z-index: 12000; }
         #strike-pop span { font-size: 700px; color: #ff0000; font-weight: bold; text-shadow: 20px 20px 0 #000; }
@@ -51,19 +51,20 @@
 
     <div id="main">
         <div id="normal-view">
-            <div id="question">ZACZEKAJ NA START...</div>
+            <div id="question">POWODZENIA!</div>
             <div class="board" id="board"></div>
         </div>
         <div id="final-board">
             <div class="f-col" id="f-p1"></div>
             <div class="f-col" id="f-p2"></div>
-            <div class="f-sum-box" style="grid-column: span 2; text-align:center; font-size:60px;">SUMA: <span id="f-total">0</span></div>
+            <div class="f-sum-box" style="grid-column: span 2; text-align:center; font-size:80px; color:white; margin-top:20px;">SUMA: <span id="f-total">0</span></div>
         </div>
     </div>
     <div id="strike-pop"><span>X</span></div>
 
     <script>
         const peer = new Peer();
+        let fSum = 0;
         peer.on('open', id => document.getElementById('game-id-display').innerText = "ID TV: " + id);
         peer.on('connection', conn => {
             conn.on('data', m => {
@@ -74,13 +75,59 @@
                     b.style.display = 'block'; document.getElementById('sndRunda').play(); setTimeout(()=> b.style.display='none', 3000);
                 }
                 if(m.type === 'STRIKE') { document.getElementById('strike-pop').style.display='flex'; document.getElementById('sndNo').play(); setTimeout(()=>document.getElementById('strike-pop').style.display='none', 1200); }
-                if(m.type === 'SETUP') { document.getElementById('question').innerText = m.q; const b = document.getElementById('board'); b.innerHTML = ""; m.a.forEach((ans, i) => { b.innerHTML += `<div class="row" id="r-${i}"><span>${i+1}. ....................</span><span>--</span></div>`; }); }
-                if(m.type === 'REVEAL') { document.getElementById('sndOk').play(); const r = document.getElementById(`r-${m.index}`); r.style.color="var(--gold)"; r.innerHTML=`<span>${m.index+1}. ${m.text}</span><span>${m.pts}</span>`; }
-                if(m.type === 'UPDATE') { document.getElementById('sA').innerText=m.scA; document.getElementById('sB').innerText=m.scB; document.getElementById('xA').innerText="X".repeat(m.strikes.A); document.getElementById('xB').innerText="X".repeat(m.strikes.B); }
-                if(m.type === 'NEXT_ROUND') { document.getElementById('sndRunda').play(); document.getElementById('r-display').innerText = m.round === 'final' ? "FINAŁ" : "RUNDA " + m.round; if(m.round==='final'){document.getElementById('normal-view').style.display='none'; document.getElementById('final-board').style.display='grid'; renderFinalSlots();} }
+                if(m.type === 'SETUP') { 
+                    document.getElementById('question').innerText = m.q; 
+                    const b = document.getElementById('board'); b.innerHTML = ""; 
+                    m.a.forEach((ans, i) => { b.innerHTML += `<div class="row" id="r-${i}"><span>${i+1}. ....................</span><span>--</span></div>`; }); 
+                }
+                if(m.type === 'REVEAL') { 
+                    document.getElementById('sndOk').play(); 
+                    const r = document.getElementById(`r-${m.index}`); 
+                    r.style.color="var(--gold)"; 
+                    r.innerHTML=`<span>${m.index+1}. ${m.text}</span><span>${m.pts}</span>`; 
+                }
+                if(m.type === 'FINAL_REVEAL') {
+                    const target = document.getElementById(`f${m.p}-${m.k}-${m.r}`);
+                    if(target) {
+                        target.innerText = m.v;
+                        if(m.k === 'p') { 
+                            document.getElementById('sndOk').play(); 
+                            fSum += parseInt(m.v) || 0; 
+                            document.getElementById('f-total').innerText = fSum; 
+                        }
+                    }
+                }
+                if(m.type === 'UPDATE') { 
+                    document.getElementById('sA').innerText=m.scA; 
+                    document.getElementById('sB').innerText=m.scB; 
+                    document.getElementById('xA').innerText="X".repeat(m.strikes.A); 
+                    document.getElementById('xB').innerText="X".repeat(m.strikes.B); 
+                }
+                if(m.type === 'NEXT_ROUND') { 
+                    document.getElementById('sndRunda').play(); 
+                    document.getElementById('r-display').innerText = m.round === 'final' ? "FINAŁ" : "RUNDA " + m.round; 
+                    if(m.round==='final'){
+                        document.getElementById('normal-view').style.display='none'; 
+                        document.getElementById('final-board').style.display='grid'; 
+                        fSum = 0; document.getElementById('f-total').innerText = "0";
+                        renderFinalSlots();
+                    } else {
+                        document.getElementById('normal-view').style.display='block';
+                        document.getElementById('final-board').style.display='none';
+                        document.getElementById('board').innerHTML = "";
+                        document.getElementById('question').innerText = "RUNDA " + m.round;
+                    }
+                }
             });
         });
-        function renderFinalSlots() { const p1 = document.getElementById('f-p1'); const p2 = document.getElementById('f-p2'); p1.innerHTML = ""; p2.innerHTML = ""; for(let i=0; i<5; i++) { p1.innerHTML += `<div class="f-row"><span id="f1-t-${i}"></span><span class="f-pts" id="f1-p-${i}"></span></div>`; p2.innerHTML += `<div class="f-row"><span id="f2-t-${i}"></span><span class="f-pts" id="f2-p-${i}"></span></div>`; } }
+        function renderFinalSlots() { 
+            const p1 = document.getElementById('f-p1'); const p2 = document.getElementById('f-p2'); 
+            p1.innerHTML = ""; p2.innerHTML = ""; 
+            for(let i=0; i<5; i++) { 
+                p1.innerHTML += `<div class="f-row"><span id="f1-t-${i}"></span><span class="f-pts" id="f1-p-${i}"></span></div>`; 
+                p2.innerHTML += `<div class="f-row"><span id="f2-t-${i}"></span><span class="f-pts" id="f2-p-${i}"></span></div>`; 
+            } 
+        }
     </script>
 </body>
 </html>
