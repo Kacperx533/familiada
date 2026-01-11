@@ -8,15 +8,18 @@
     <style>
         body { font-family: sans-serif; background: #121212; color: white; padding: 15px; margin: 0; }
         .card { background: #1e1e1e; padding: 15px; border-radius: 12px; margin-bottom: 10px; border: 1px solid #444; }
-        button { border-radius: 8px; border: none; font-weight: bold; cursor: pointer; }
-        .btn-start { width: 100%; height: 60px; background: #2e7d32; color: white; font-size: 20px; margin-bottom: 10px; }
-        .btn-strike { width: 100%; height: 80px; background: #b00020; color: white; font-size: 40px; }
+        button { border-radius: 8px; border: none; font-weight: bold; cursor: pointer; transition: 0.1s; }
+        button:active { transform: scale(0.95); }
+        .btn-start { width: 100%; height: 50px; background: #2e7d32; color: white; font-size: 18px; margin-bottom: 5px; }
+        .btn-reset { width: 100%; height: 40px; background: #b00020; color: white; font-size: 14px; margin-bottom: 10px; }
+        .btn-strike { width: 100%; height: 80px; background: #b00020; color: white; font-size: 40px; margin-top: 10px; }
         .btn-round { background: #333; color: white; padding: 10px; }
-        .btn-round.active { background: #ffb300; color: black; }
         .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin-bottom: 10px; }
-        input, select { width: 100%; padding: 12px; margin: 5px 0; background: #2c2c2c; color: white; border: 1px solid #444; border-radius: 8px; }
-        #hint-box { margin-top: 10px; padding: 10px; background: #000; border: 1px dashed #ffb300; color: #ffb300; font-size: 14px; }
+        input, select { width: 100%; padding: 12px; margin: 5px 0; background: #2c2c2c; color: white; border: 1px solid #444; border-radius: 8px; font-size: 16px; }
+        #hint-box { margin-top: 10px; padding: 12px; background: #000; border: 1px dashed #ffb300; color: #ffb300; font-size: 14px; min-height: 40px; line-height: 1.4; }
         .ans-row { display: flex; justify-content: space-between; align-items: center; background: #333; padding: 10px; margin: 5px 0; border-radius: 5px; }
+        .final-ctrl { display: grid; grid-template-columns: 1fr 60px 45px 45px; gap: 5px; margin-bottom: 5px; }
+        h4 { color: #ffb300; margin: 10px 0 5px 0; font-size: 12px; }
     </style>
 </head>
 <body>
@@ -28,26 +31,43 @@
 
     <div id="game-controls" style="display:none">
         <button class="btn-start" onclick="startCzolowka()">▶ ODPAL CZOŁÓWKĘ (MP4)</button>
+        <button class="btn-reset" onclick="resetGame()">⚠ RESET TABLICY</button>
 
         <div class="card">
             <div class="grid">
-                <button class="btn-round" onclick="setR(1)">R1</button>
-                <button class="btn-round" onclick="setR(2)">R2</button>
-                <button class="btn-round" onclick="setR(3)">R3</button>
-                <button class="btn-round" onclick="setR('final')" style="background:violet">FIN</button>
+                <button class="btn-round" id="r1-b" onclick="setR(1)">R1</button>
+                <button class="btn-round" id="r2-b" onclick="setR(2)">R2</button>
+                <button class="btn-round" id="r3-b" onclick="setR(3)">R3</button>
+                <button class="btn-round" id="rf-b" onclick="setR('final')" style="background:violet; color:black">FIN</button>
             </div>
-            <select id="q-select" onchange="loadQ()"><option value="">-- WYBIERZ PYTANIE --</option></select>
-            <button onclick="sendQ()" style="width:100%; padding:10px; background: #bb86fc; color:black">WYŚLIJ NA TV</button>
+            
+            <div id="normal-setup">
+                <select id="q-select" onchange="loadQ()"><option value="">-- WYBIERZ PYTANIE --</option></select>
+                <button onclick="sendQ()" style="width:100%; padding:12px; background: #bb86fc; color:black">WYŚLIJ NA TV</button>
+            </div>
+
+            <div id="final-setup" style="display:none">
+                <select id="f-select" onchange="loadFinal()"><option value="">-- WYBIERZ ZESTAW FINAŁOWY --</option></select>
+                <button onclick="initFinal()" style="width:100%; padding:12px; background: #6200ee; color:white">WŁĄCZ FINAŁ NA TV</button>
+                <div id="final-ctrl-grid"></div>
+            </div>
         </div>
 
-        <div class="card">
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                <button id="btnA" onclick="setTeam('A')" style="height:50px; background:#cf6679">TEAM A</button>
-                <button id="btnB" onclick="setTeam('B')" style="height:50px; background:#03dac6">TEAM B</button>
+        <div id="play-area">
+            <div class="card">
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                    <button id="btnA" onclick="setTeam('A')" style="height:50px; background:#cf6679; color:white">TEAM A</button>
+                    <button id="btnB" onclick="setTeam('B')" style="height:50px; background:#03dac6; color:black">TEAM B</button>
+                </div>
+                <div id="ans-list"></div>
+                <button class="btn-strike" onclick="strike()">X</button>
+                <div id="hint-box">Ściągawka pojawi się tutaj...</div>
             </div>
-            <div id="ans-list"></div>
-            <button class="btn-strike" onclick="strike()">X</button>
-            <div id="hint-box">Ściągawka pojawi się tutaj...</div>
+            
+            <div class="card">
+                PKT A: <input type="number" id="scA" value="0" style="width:80px" onchange="sync()">
+                PKT B: <input type="number" id="scB" value="0" style="width:80px" onchange="sync()">
+            </div>
         </div>
     </div>
 
@@ -56,7 +76,33 @@
 
         const db = [
             { q: "Polska potrawa:", a: [["Pierogi", 48], ["Bigos", 35], ["Schabowy", 22], ["Żurek", 14], ["Gołąbki", 9]] },
-            { q: "Zwierzę na K:", a: [["Kot", 45], ["Koń", 32], ["Krowa", 21], ["Kangur", 15]] }
+            { q: "Zwierzę na K:", a: [["Kot", 45], ["Koń", 32], ["Krowa", 21], ["Kangur", 15], ["Kura", 9]] },
+            { q: "Coś z kółkami:", a: [["Samochód", 45], ["Rower", 38], ["Wózek", 24], ["Hulajnoga", 16], ["Traktor", 11]] },
+            { q: "Przedmiot w piórniku:", a: [["Długopis", 50], ["Ołówek", 35], ["Gumka", 22], ["Linijka", 18], ["Temperówka", 11]] },
+            { q: "Co robimy nad wodą?", a: [["Pływamy", 42], ["Opalamy się", 36], ["Ryby", 25], ["Grillujemy", 14], ["Spacer", 10]] },
+            { q: "Dodatek do chleba:", a: [["Dżem", 46], ["Miód", 31], ["Ser", 28], ["Szynka", 25], ["Masło", 20]] },
+            { q: "Sport z piłką:", a: [["Nożna", 55], ["Siatkówka", 34], ["Koszykówka", 26], ["Ręczna", 15], ["Tenis", 9]] },
+            { q: "Pijemy rano:", a: [["Kawa", 44], ["Herbata", 38], ["Sok", 22], ["Woda", 12], ["Mleko", 9]] },
+            { q: "Zimowy sport:", a: [["Narty", 48], ["Łyżwy", 32], ["Snowboard", 24], ["Sanki", 15], ["Hokej", 11]] },
+            { q: "Rośnie w lesie:", a: [["Drzewa", 52], ["Grzyby", 41], ["Jagody", 26], ["Mech", 14], ["Paprocie", 9]] },
+            { q: "Garderoba na zimę:", a: [["Kurtka", 45], ["Czapka", 38], ["Szalik", 31], ["Rękawiczki", 22], ["Kalesony", 7]] },
+            { q: "Klawiszowy instrument:", a: [["Pianino", 48], ["Fortepian", 35], ["Keyboard", 26], ["Akordeon", 14], ["Organy", 9]] },
+            { q: "AGD w kuchni:", a: [["Lodówka", 55], ["Kuchenka", 34], ["Zmywarka", 28], ["Mikrofala", 19], ["Czajnik", 12]] },
+            { q: "Imię dla psa:", a: [["Burek", 38], ["Azor", 32], ["Reksio", 25], ["Bella", 18], ["Luna", 14]] },
+            { q: "Kojarzy się z Paryżem:", a: [["Wieża Eiffla", 62], ["Bagietka", 28], ["Luwr", 15], ["Croissant", 12], ["Moda", 9]] },
+            { q: "Rodzaj pogody:", a: [["Słońce", 44], ["Deszcz", 35], ["Wiatr", 21], ["Chmury", 14], ["Śnieg", 10]] },
+            { q: "Robimy w kinie:", a: [["Film", 65], ["Popcorn", 38], ["Picie", 15], ["Randka", 10], ["Spanie", 5]] },
+            { q: "Cytrus:", a: [["Cytryna", 45], ["Pomarańcza", 38], ["Mandarynka", 26], ["Grejpfrut", 14], ["Limonka", 9]] },
+            { q: "W łazience:", a: [["Wanna", 42], ["Prysznic", 36], ["Umywalkka", 31], ["Lustro", 24], ["Pralka", 18]] },
+            { q: "Miesiąc letni:", a: [["Lipiec", 48], ["Sierpień", 45], ["Czerwiec", 32], ["Wrzesień", 5]] }
+        ];
+
+        const finalDb = [
+            { n: "FINAŁ 1: Codzienność", qs: ["Co w portfelu?", "Na wagę?", "Prezent?", "Płatność?", "Gotówka?"], q: ["Pieniądze", "Owoce", "Rower", "Karta", "Bankomat"], p: [46, 32, 28, 41, 55] },
+            { n: "FINAŁ 2: Dom", qs: ["Mebel w salonie?", "W kuchni?", "Przed snem?", "Zwierzę?", "W łazience?"], q: ["Kanapa", "Lodówka", "Mycie", "Pies", "Mydło"], p: [52, 48, 35, 62, 21] },
+            { n: "FINAŁ 3: Natura", qs: ["Drzewo?", "Ptak?", "Kwiat?", "Góra w PL?", "Rzeka w PL?"], q: ["Dąb", "Wróbel", "Róża", "Giewont", "Wisła"], p: [38, 45, 31, 28, 55] },
+            { n: "FINAŁ 4: Transport", qs: ["Środek lokomocji?", "Ma kółka?", "Lata?", "Pływa?", "Syrena?"], q: ["Auto", "Rower", "Samolot", "Statek", "Karetka"], p: [42, 36, 51, 29, 33] },
+            { n: "FINAŁ 5: Szkoła", qs: ["Przedmiot?", "W piórniku?", "Przerwa?", "Biblioteka?", "Nauczyciel?"], q: ["Matma", "Długopis", "Kanapka", "Książka", "Dziennik"], p: [44, 52, 26, 58, 15] }
         ];
 
         function connect() {
@@ -65,13 +111,18 @@
                 document.getElementById('conn-screen').style.display = 'none';
                 document.getElementById('game-controls').style.display = 'block';
                 db.forEach((d, i) => document.getElementById('q-select').innerHTML += `<option value="${i}">${d.q}</option>`);
+                finalDb.forEach((f, i) => document.getElementById('f-select').innerHTML += `<option value="${i}">${f.n}</option>`);
             });
         }
 
         function startCzolowka() { conn.send({type: 'START_INTRO'}); }
+        function resetGame() { if(confirm("RESET TABLICY?")) { conn.send({type: 'RESET'}); location.reload(); } }
         
         function setR(r) {
             currentRound = r; strikes = {A:0, B:0};
+            document.getElementById('normal-setup').style.display = r === 'final' ? 'none' : 'block';
+            document.getElementById('final-setup').style.display = r === 'final' ? 'block' : 'none';
+            document.getElementById('ans-list').innerHTML = "";
             conn.send({type: 'NEXT_ROUND', round: r});
             sync();
         }
@@ -79,29 +130,54 @@
         function loadQ() {
             const d = db[document.getElementById('q-select').value];
             currentAnswers = d.a.map(x => ({t: x[0], p: x[1]}));
-            document.getElementById('hint-box').innerHTML = "PYTANIE: " + d.q;
+            document.getElementById('hint-box').innerHTML = "<strong>PYTANIE:</strong> " + d.q;
         }
 
         function sendQ() {
             conn.send({type: 'SETUP', q: db[document.getElementById('q-select').value].q, a: currentAnswers});
             const list = document.getElementById('ans-list'); list.innerHTML = "";
             currentAnswers.forEach((a, i) => {
-                list.innerHTML += `<div class="ans-row"><span>${a.t}</span><button onclick="reveal(${i})">ODKRYJ</button></div>`;
+                list.innerHTML += `<div class="ans-row"><span>${a.t} (${a.p})</span><button onclick="reveal(${i})" style="padding:8px; background:gray; color:white">ODKRYJ</button></div>`;
             });
         }
 
+        function loadFinal() {
+            const f = finalDb[document.getElementById('f-select').value];
+            let h = "<strong>PYTANIA FINAŁOWE:</strong><br>"; f.qs.forEach((q,i)=> h += (i+1)+". "+q+"<br>"); 
+            document.getElementById('hint-box').innerHTML = h;
+            const grid = document.getElementById('final-ctrl-grid'); grid.innerHTML = "";
+            for(let p=1; p<=2; p++) {
+                grid.innerHTML += `<h4>GRACZ ${p}</h4>`;
+                for(let r=0; r<5; r++) {
+                    grid.innerHTML += `<div class="final-ctrl">
+                        <input type="text" id="f-t-${p}-${r}" value="${f.q[r]}">
+                        <input type="number" id="f-p-${p}-${r}" value="${f.p[r]}">
+                        <button onclick="revF(${p},${r},'t')" style="background:#555; color:white">T</button>
+                        <button onclick="revF(${p},${r},'p')" style="background:gold">P</button>
+                    </div>`;
+                }
+            }
+        }
+
+        function initFinal() { conn.send({type: 'FINAL_INIT'}); }
+        function revF(p, r, k) { conn.send({type: 'FINAL_REVEAL', player: p, row: r, kind: k, val: document.getElementById(`f-${k}-${p}-${r}`).value}); }
+        
         function reveal(i) {
             conn.send({type: 'REVEAL', index: i, text: currentAnswers[i].t, pts: currentAnswers[i].p});
-            // (Logika dodawania punktów...)
+            if(activeTeam) {
+                let s = document.getElementById('sc'+activeTeam);
+                s.value = parseInt(s.value) + currentAnswers[i].p;
+                sync();
+            }
         }
 
-        function strike() { 
-            conn.send({type: 'STRIKE'}); 
-            if(activeTeam) { strikes[activeTeam]++; sync(); }
+        function strike() { conn.send({type: 'STRIKE'}); if(activeTeam) { strikes[activeTeam]++; sync(); } }
+        function setTeam(t) { 
+            activeTeam = t;
+            document.getElementById('btnA').style.border = t === 'A' ? '3px solid white' : 'none';
+            document.getElementById('btnB').style.border = t === 'B' ? '3px solid white' : 'none';
         }
-
-        function setTeam(t) { activeTeam = t; }
-        function sync() { conn.send({type: 'UPDATE', scA: 0, scB: 0, strikes: strikes, round: currentRound}); }
+        function sync() { conn.send({type: 'UPDATE', scA: document.getElementById('scA').value, scB: document.getElementById('scB').value, strikes: strikes, round: currentRound}); }
     </script>
 </body>
 </html>
