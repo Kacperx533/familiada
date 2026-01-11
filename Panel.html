@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>PANEL PRO - 30 PYTAŃ</title>
+    <title>PANEL STEROWANIA PRO</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         body { font-family: sans-serif; background: #121212; color: white; padding: 20px; }
@@ -16,7 +16,7 @@
 <body>
     <div class="card">
         <input type="text" id="tv-id" placeholder="WPISZ KOD Z TELEWIZORA">
-        <button onclick="connect()" style="background: #f1c40f; color: black;">POŁĄCZ</button>
+        <button onclick="connect()" style="background: #f1c40f; color: black;">POŁĄCZ ZE STUDIEM</button>
     </div>
 
     <div id="controls" style="display:none">
@@ -26,10 +26,10 @@
         </div>
         <div class="card">
             <select id="q-sel" onchange="loadQ()"></select>
-            <button onclick="sendQ()" style="background: #2ecc71; margin-top: 10px;">WYŚLIJ NA TABLICĘ</button>
+            <button onclick="sendQ()" style="background: #2ecc71; margin-top: 10px;">WYŚLIJ PYTANIE NA TABLICĘ</button>
         </div>
         <div id="ans-list" class="card"></div>
-        <button class="strike-btn" onclick="strike()">✖ BŁĄD</button>
+        <button class="strike-btn" onclick="strike()">✖ BŁĄD (X)</button>
     </div>
 
     <script>
@@ -37,34 +37,7 @@
         const db = [
             { q: "Więcej niż jedno zwierzę?", a: [["Stado", 45], ["Para", 25], ["Owce", 15], ["Lama", 5]] },
             { q: "Coś na kanapkę?", a: [["Ser", 40], ["Szynka", 35], ["Pomidor", 15], ["Masło", 10]] },
-            { q: "Zwierzę na literę K?", a: [["Kot", 48], ["Koń", 22], ["Krowa", 15], ["Kangur", 5]] },
-            { q: "Co pijemy rano?", a: [["Kawa", 50], ["Herbata", 25], ["Woda", 10], ["Mleko", 8]] },
-            { q: "Owoc cytrusowy?", a: [["Cytryna", 45], ["Pomarańcza", 35], ["Mandarynka", 15]] },
-            { q: "Przedmiot w piórniku?", a: [["Długopis", 50], ["Ołówek", 25], ["Gumka", 15]] },
-            { q: "Polskie miasto na K?", a: [["Kraków", 60], ["Katowice", 20], ["Kielce", 10]] },
-            { q: "Co zbieramy w lesie?", a: [["Grzyby", 65], ["Jagody", 20], ["Chrust", 10]] },
-            { q: "Część ubrania na zimę?", a: [["Kurtka", 45], ["Czapka", 30], ["Szalik", 15]] },
-            { q: "Instrument muzyczny?", a: [["Gitara", 40], ["Pianino", 30], ["Perkusja", 15]] },
-            { q: "Urządzenie w kuchni?", a: [["Lodówka", 40], ["Kuchenka", 30], ["Mikser", 15]] },
-            { q: "Co ma koła?", a: [["Samochód", 45], ["Rower", 30], ["Wózek", 15]] },
-            { q: "Co kupujemy w piekarni?", a: [["Chleb", 60], ["Bułki", 30], ["Pączek", 10]] },
-            { q: "Dzień tygodnia na S?", a: [["Sobota", 70], ["Środa", 30]] },
-            { q: "Ptak, który nie lata?", a: [["Struś", 50], ["Pingwin", 40], ["Kura", 10]] },
-            { q: "Co słodkiego?", a: [["Czekolada", 40], ["Lody", 30], ["Ciasto", 20]] },
-            { q: "Dyscyplina z piłką?", a: [["Nożna", 55], ["Siatkówka", 20], ["Ręczna", 10]] },
-            { q: "Coś czerwonego?", a: [["Pomidor", 45], ["Serce", 25], ["Róża", 15]] },
-            { q: "Zawód medyczny?", a: [["Lekarz", 55], ["Pielęgniarka", 35], ["Ratownik", 10]] },
-            { q: "Środek transportu?", a: [["Samolot", 40], ["Pociąg", 30], ["Statek", 20]] },
-            { q: "Gdzie trzymamy pieniądze?", a: [["Portfel", 55], ["Bank", 35], ["Skarbonka", 10]] },
-            { q: "Co rośnie w ogrodzie?", a: [["Kwiaty", 40], ["Trawa", 30], ["Jabłoń", 20]] },
-            { q: "Zwierzę domowe?", a: [["Pies", 55], ["Kot", 35], ["Chomik", 10]] },
-            { q: "Przedmiot szkolny?", a: [["Matematyka", 45], ["WF", 30], ["Polski", 25]] },
-            { q: "Co świeci na niebie?", a: [["Słońce", 60], ["Księżyc", 30], ["Gwiazdy", 10]] },
-            { q: "Czym piszemy?", a: [["Długopis", 50], ["Kreda", 20], ["Pióro", 15]] },
-            { q: "Mięso na obiad?", a: [["Kurczak", 45], ["Schabowy", 35], ["Mielony", 15]] },
-            { q: "Gdzie jeździmy na wakacje?", a: [["Morze", 50], ["Góry", 40], ["Wieś", 10]] },
-            { q: "Warzywo do zupy?", a: [["Marchew", 40], ["Pietruszka", 30], ["Seler", 20]] },
-            { q: "Coś okrągłego?", a: [["Piłka", 45], ["Koło", 35], ["Talerz", 10]] }
+            { q: "Zwierzę na literę K?", a: [["Kot", 48], ["Koń", 22], ["Krowa", 15]] }
         ];
 
         window.onload = () => {
