@@ -8,50 +8,38 @@
     <style>
         :root { --bg: #000033; --gold: #f1c40f; --red: #ff4757; --blue: #2e86de; }
         body { font-family: 'VT323', monospace; background: var(--bg); color: var(--gold); margin: 0; overflow: hidden; text-transform: uppercase; }
-        
-        /* WARSTWA WIDEO */
         #video-layer { position: fixed; inset: 0; background: black; z-index: 10000; display: none; }
         video { width: 100%; height: 100%; object-fit: cover; }
-
-        /* ŻÓŁTY EKRAN FAMILIADA */
-        #intro-screen { 
-            position: fixed; inset: 0; background: var(--gold); display: none; 
-            flex-direction: column; justify-content: center; align-items: center; z-index: 9999; 
-        }
-        #intro-text { font-size: 180px; color: #000066; font-weight: bold; text-shadow: 10px 10px 0 rgba(0,0,0,0.1); }
-
-        /* EKRAN ŁĄCZENIA */
+        #intro-screen { position: fixed; inset: 0; background: var(--gold); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; }
+        #intro-text { font-size: 180px; color: #000066; font-weight: bold; }
         #overlay { position: fixed; inset: 0; background: black; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 11000; }
         #game-id-display { color: white; font-size: 40px; border: 2px dashed var(--gold); padding: 20px; margin-bottom: 20px; }
-
-        /* TABLICA I WYNIKI */
         .header { display: flex; justify-content: space-between; align-items: center; padding: 20px 50px; background: rgba(0,0,0,0.5); border-bottom: 4px solid #444; }
         .score-box { font-size: 90px; color: white; padding: 10px 30px; border: 4px solid #fff; min-width: 120px; text-align: center; }
         #main { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 75vh; }
-        #question { font-size: 55px; color: white; margin-bottom: 25px; height: 65px; text-align: center; }
+        #question { font-size: 50px; color: white; margin-bottom: 25px; height: 65px; text-align: center; width: 90%; }
         .board { width: 900px; display: flex; flex-direction: column; gap: 12px; }
         .row { display: flex; justify-content: space-between; font-size: 48px; height: 70px; padding: 0 25px; align-items: center; background: #000066; border: 2px solid #555; }
         .revealed { color: var(--gold); }
-        
-        /* CZERWONY X */
         #strike-pop { display: none; position: fixed; inset: 0; justify-content: center; align-items: center; background: rgba(255,0,0,0.3); z-index: 12000; }
         #strike-pop span { font-size: 700px; color: #ff0000; font-weight: bold; text-shadow: 20px 20px 0 #000; }
-
-        /* FINAŁ */
+        
+        /* POPRAWIONY FINAŁ */
         #final-board { display: none; width: 1100px; grid-template-columns: 1fr 1fr; gap: 50px; }
+        .f-col { display: flex; flex-direction: column; gap: 10px; }
         .f-row { display: flex; justify-content: space-between; background: #000066; padding: 5px 25px; font-size: 45px; height: 65px; border: 2px solid #555; align-items: center; }
+        .f-pts { color: white; min-width: 75px; text-align: right; border-left: 3px solid #555; padding-left: 15px; height: 100%; display: flex; align-items: center; justify-content: flex-end; }
+        .f-sum-box { grid-column: span 2; text-align:center; font-size:80px; color:white; margin-top:20px; border: 4px solid var(--gold); background: black; padding: 10px; }
     </style>
 </head>
 <body>
-
     <div id="overlay">
         <div id="game-id-display">ŁĄCZENIE...</div>
-        <button onclick="document.getElementById('overlay').style.display='none'" style="padding:15px 30px; font-size:25px; cursor:pointer; background:var(--gold); border:none; border-radius:10px;">ODBLOKUJ EKRAN TV</button>
+        <button onclick="document.getElementById('overlay').style.display='none'" style="padding:15px 30px; font-size:25px; background:var(--gold); border:none; cursor:pointer;">ODBLOKUJ EKRAN TV</button>
     </div>
-
     <div id="video-layer"><video id="myVideo" src="czolowka.mp4"></video></div>
     <div id="intro-screen"><div id="intro-text">FAMILIADA</div></div>
-
+    
     <audio id="sndOk" src="ok.mp3"></audio>
     <audio id="sndNo" src="zle.mp3"></audio>
     <audio id="sndRunda" src="runda.mp3"></audio>
@@ -66,34 +54,35 @@
 
     <div id="main">
         <div id="normal-view">
-            <div id="question">POŁĄCZ PANEL I KLIKNIJ START</div>
+            <div id="question">ZACZEKAJ NA START...</div>
             <div class="board" id="board"></div>
         </div>
+        
         <div id="final-board">
-            <div id="f-p1"></div><div id="f-p2"></div>
-            <div style="grid-column: span 2; text-align:center; font-size:80px; color:white; margin-top:20px">SUMA: <span id="f-total">0</span></div>
+            <div class="f-col" id="f-p1"></div>
+            <div class="f-col" id="f-p2"></div>
+            <div class="f-sum-box">SUMA: <span id="f-total">0</span></div>
         </div>
     </div>
-
+    
     <div id="strike-pop"><span>X</span></div>
 
     <script>
         const peer = new Peer();
         const video = document.getElementById('myVideo');
-        const vLayer = document.getElementById('video-layer');
-        const iScreen = document.getElementById('intro-screen');
+        let fSum = 0;
 
         peer.on('open', id => document.getElementById('game-id-display').innerText = "ID GRY: " + id);
 
         peer.on('connection', conn => {
             conn.on('data', m => {
                 if(m.type === 'START_INTRO') {
-                    vLayer.style.display = 'block';
+                    document.getElementById('video-layer').style.display = 'block';
                     video.play();
                     video.onended = () => {
-                        vLayer.style.display = 'none';
-                        iScreen.style.display = 'flex';
-                        setTimeout(() => { iScreen.style.display = 'none'; }, 3000);
+                        document.getElementById('video-layer').style.display = 'none';
+                        document.getElementById('intro-screen').style.display = 'flex';
+                        setTimeout(() => document.getElementById('intro-screen').style.display = 'none', 3000);
                     };
                 }
                 if(m.type === 'STRIKE') {
@@ -104,9 +93,7 @@
                 if(m.type === 'SETUP') {
                     document.getElementById('question').innerText = m.q;
                     const b = document.getElementById('board'); b.innerHTML = "";
-                    m.a.forEach((ans, i) => {
-                        b.innerHTML += `<div class="row" id="r-${i}"><span>${i+1}. ....................</span><span>--</span></div>`;
-                    });
+                    m.a.forEach((ans, i) => { b.innerHTML += `<div class="row" id="r-${i}"><span>${i+1}. ....................</span><span>--</span></div>`; });
                 }
                 if(m.type === 'REVEAL') {
                     document.getElementById('sndOk').play();
@@ -114,21 +101,60 @@
                     r.classList.add('revealed');
                     r.innerHTML = `<span>${m.index+1}. ${m.text}</span><span>${m.pts}</span>`;
                 }
+                
+                // OBSŁUGA PRZEŁĄCZANIA RUND
                 if(m.type === 'NEXT_ROUND') {
                     document.getElementById('sndRunda').play();
                     document.getElementById('r-display').innerText = m.round === 'final' ? "FINAŁ" : "RUNDA " + m.round;
-                    document.getElementById('normal-view').style.display = m.round === 'final' ? 'none' : 'block';
-                    document.getElementById('final-board').style.display = m.round === 'final' ? 'grid' : 'none';
+                    
+                    if(m.round === 'final') {
+                        document.getElementById('normal-view').style.display = 'none';
+                        document.getElementById('final-board').style.display = 'grid';
+                        // Automatycznie czyścimy pola finałowe przy wejściu w rundę
+                        clearFinalBoard();
+                    } else {
+                        document.getElementById('normal-view').style.display = 'block';
+                        document.getElementById('final-board').style.display = 'none';
+                        document.getElementById('board').innerHTML = "";
+                        document.getElementById('question').innerText = "RUNDA " + m.round;
+                    }
+                }
+
+                if(m.type === 'FINAL_INIT') {
+                    clearFinalBoard();
+                }
+
+                if(m.type === 'FINAL_REVEAL') {
+                    const target = document.getElementById(`f${m.player}-${m.kind}-${m.row}`);
+                    if(target) {
+                        target.innerText = m.val;
+                        if(m.kind === 'p') { 
+                            document.getElementById('sndOk').play(); 
+                            fSum += parseInt(m.val) || 0; 
+                            document.getElementById('f-total').innerText = fSum; 
+                        }
+                    }
                 }
                 if(m.type === 'UPDATE') {
-                    document.getElementById('sA').innerText = m.scA;
+                    document.getElementById('sA').innerText = m.scA; 
                     document.getElementById('sB').innerText = m.scB;
-                    document.getElementById('xA').innerText = "X".repeat(m.strikes.A);
+                    document.getElementById('xA').innerText = "X".repeat(m.strikes.A); 
                     document.getElementById('xB').innerText = "X".repeat(m.strikes.B);
                 }
-                // (Dodatkowe funkcje finału jak w poprzednim kodzie...)
+                if(m.type === 'RESET') { location.reload(); }
             });
         });
+
+        function clearFinalBoard() {
+            fSum = 0; 
+            document.getElementById('f-total').innerText = "0";
+            document.getElementById('f-p1').innerHTML = ""; 
+            document.getElementById('f-p2').innerHTML = "";
+            for(let i=0; i<5; i++) {
+                document.getElementById('f-p1').innerHTML += `<div class="f-row"><span id="f1-t-${i}"></span><span class="f-pts" id="f1-p-${i}"></span></div>`;
+                document.getElementById('f-p2').innerHTML += `<div class="f-row"><span id="f2-t-${i}"></span><span class="f-pts" id="f2-p-${i}"></span></div>`;
+            }
+        }
     </script>
 </body>
 </html>
