@@ -3,131 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PANEL STEROWANIA - MOBILE</title>
+    <title>PANEL STEROWANIA</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        :root {
-            --bg: #121212;
-            --card: #1e1e1e;
-            --accent: #bb86fc;
-            --red: #cf6679;
-            --blue: #03dac6;
-            --gold: #ffb300;
-            --text: #e1e1e1;
-        }
-        body { 
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
-            background: var(--bg); 
-            color: var(--text); 
-            margin: 0; 
-            padding: 15px;
-            user-select: none;
-        }
-        h3 { margin-top: 0; color: var(--accent); font-size: 1.1rem; }
-        .card { 
-            background: var(--card); 
-            padding: 15px; 
-            border-radius: 12px; 
-            margin-bottom: 15px; 
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-        }
-        input, select { 
-            width: 100%; 
-            padding: 12px; 
-            margin: 8px 0; 
-            background: #2c2c2c; 
-            color: white; 
-            border: 1px solid #444; 
-            border-radius: 8px;
-            font-size: 16px; 
-            box-sizing: border-box;
-        }
+        :root { --bg: #121212; --card: #1e1e1e; --accent: #bb86fc; --red: #cf6679; --blue: #03dac6; --gold: #ffb300; --text: #e1e1e1; }
+        body { font-family: sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; }
+        .card { background: var(--card); padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #444; }
+        button { padding: 12px; font-weight: bold; border-radius: 8px; border: none; cursor: pointer; }
+        input, select { width: 100%; padding: 12px; margin: 8px 0; background: #2c2c2c; color: white; border: 1px solid #444; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
         .btn-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-        button { 
-            padding: 12px; 
-            font-weight: bold; 
-            border-radius: 8px; 
-            border: none; 
-            cursor: pointer; 
-            transition: transform 0.1s, opacity 0.2s;
-            font-size: 14px;
-        }
-        button:active { transform: scale(0.95); }
-        
         .btn-round { background: #333; color: white; }
         .btn-round.active { background: var(--gold); color: black; }
-        .btn-main { background: var(--accent); color: black; width: 100%; margin-top: 10px; font-size: 16px; }
-        
-        .team-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 15px 0; }
-        .btn-team { height: 60px; font-size: 18px; opacity: 0.4; border: 2px solid transparent; }
+        .btn-main { background: var(--accent); color: black; width: 100%; margin-top: 10px; }
+        .team-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 10px 0; }
+        .btn-team { height: 50px; opacity: 0.4; }
         #btnA { background: var(--red); color: white; }
         #btnB { background: var(--blue); color: black; }
-        .active-team { opacity: 1 !important; border-color: white !important; box-shadow: 0 0 15px rgba(255,255,255,0.2); }
-
-        .ans-row { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            background: #2c2c2c; 
-            margin: 8px 0; 
-            padding: 10px 15px; 
-            border-radius: 8px;
-            border-left: 4px solid var(--accent);
-        }
-        .btn-reveal { background: #444; color: white; padding: 8px 15px; }
-        .btn-strike { 
-            background: #b00020; 
-            color: white; 
-            width: 100%; 
-            height: 80px; 
-            font-size: 40px; 
-            margin-top: 10px;
-            box-shadow: 0 4px 10px rgba(176,0,32,0.4);
-        }
-        .score-row { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
-        .score-input { text-align: center; font-weight: bold; font-size: 20px; }
+        .active-team { opacity: 1 !important; border: 2px solid white; }
+        .ans-row { display: flex; justify-content: space-between; align-items: center; background: #2c2c2c; margin: 5px 0; padding: 10px; border-radius: 8px; }
+        .btn-strike { background: #b00020; color: white; width: 100%; height: 60px; font-size: 30px; margin-top: 10px; }
+        .final-row { display: grid; grid-template-columns: 1fr 60px 40px 40px; gap: 5px; margin-bottom: 8px; }
     </style>
 </head>
 <body>
 
     <div id="conn-screen" class="card">
-        <h3>POŁĄCZENIE Z TV</h3>
-        <input type="text" id="join-id" placeholder="Wpisz ID widoczne na TV">
-        <button onclick="connect()" class="btn-main" style="background:#4CAF50; color:white">POŁĄCZ URZĄDZENIA</button>
+        <h3>POŁĄCZENIE</h3>
+        <input type="text" id="join-id" placeholder="Wpisz ID z komputera">
+        <button onclick="connect()" class="btn-main" style="background:#4CAF50; color:white">POŁĄCZ</button>
     </div>
 
     <div id="game-controls" style="display:none">
         <div class="card">
-            <h3>RUNDA</h3>
             <div class="btn-grid">
                 <button class="btn-round" onclick="setR(1)">R1</button>
                 <button class="btn-round" onclick="setR(2)">R2</button>
                 <button class="btn-round" onclick="setR(3)">R3</button>
                 <button class="btn-round" onclick="setR('final')" style="background:violet; color:black">FIN</button>
             </div>
-            <select id="q-select" onchange="loadQ()">
-                <option value="">-- Wybierz pytanie --</option>
-            </select>
-            <button onclick="sendQ()" class="btn-main">WYŚLIJ PYTANIE NA EKRAN</button>
+            
+            <div id="normal-setup">
+                <select id="q-select" onchange="loadQ()"><option value="">-- Wybierz pytanie --</option></select>
+                <button onclick="sendQ()" class="btn-main">WYŚLIJ PYTANIE</button>
+            </div>
+
+            <div id="final-setup" style="display:none">
+                <select id="f-select" onchange="loadFinal()"><option value="">-- Wybierz zestaw finałowy --</option></select>
+                <button onclick="initFinal()" class="btn-main" style="background: #6200ee; color:white">URUCHOM WIDOK FINAŁU</button>
+                <div id="final-ctrl-grid" style="margin-top:15px"></div>
+            </div>
         </div>
 
-        <div class="card">
-            <h3>KONTROLA GRY</h3>
-            <div class="team-grid">
-                <button id="btnA" class="btn-team" onclick="setTeam('A')">TEAM A</button>
-                <button id="btnB" class="btn-team" onclick="setTeam('B')">TEAM B</button>
+        <div id="play-area">
+            <div class="card">
+                <div class="team-grid">
+                    <button id="btnA" class="btn-team" onclick="setTeam('A')">TEAM A</button>
+                    <button id="btnB" class="btn-team" onclick="setTeam('B')">TEAM B</button>
+                </div>
+                <div id="ans-control-list"></div>
+                <button onclick="strike()" class="btn-strike">X</button>
             </div>
-            <div id="ans-control-list"></div>
-            <button onclick="strike()" class="btn-strike">X</button>
-        </div>
-        
-        <div class="card">
-            <h3>WYNIKI PUNKTOWE</h3>
-            <div class="score-row">
-                <span>A:</span><input type="number" id="scA" value="0" class="score-input" onchange="sync()">
-                <span>B:</span><input type="number" id="scB" value="0" class="score-input" onchange="sync()">
+            
+            <div class="card">
+                A: <input type="number" id="scA" value="0" style="width:70px" onchange="sync()">
+                B: <input type="number" id="scB" value="0" style="width:70px" onchange="sync()">
             </div>
-            <button onclick="initFinal()" class="btn-main" style="background: #6200ee; color:white">URUCHOM FINAŁ (WIDOK)</button>
         </div>
     </div>
 
@@ -136,12 +76,13 @@
         let conn;
         let activeTeam = null, strikes = {A:0, B:0}, currentRound = 1, currentAnswers = [];
 
-        // TWOJA BAZA PYTAŃ
         const db = [
             { q: "Polska potrawa:", a: [["Pierogi", 48], ["Bigos", 35], ["Schabowy", 22], ["Żurek", 14], ["Gołąbki", 9]] },
-            { q: "Coś z kółkami:", a: [["Samochód", 45], ["Rower", 38], ["Wózek", 24], ["Hulajnoga", 16], ["Traktor", 11]] },
-            { q: "Zwierzę w lesie:", a: [["Jeleń", 39], ["Dzik", 28], ["Lis", 22], ["Wilk", 15], ["Zając", 8]] },
-            { q: "Coś czerwonego:", a: [["Pomidor", 44], ["Serce", 31], ["Róża", 25], ["Krew", 14], ["Papryka", 8]] }
+            { q: "Coś z kółkami:", a: [["Samochód", 45], ["Rower", 38], ["Wózek", 24], ["Hulajnoga", 16], ["Traktor", 11]] }
+        ];
+
+        const finalDb = [
+            { n: "ZESTAW 1", qs: ["Pieniądze?", "Na wagę?", "Prezent?", "Płatność?", "Gotówka?"], q: ["Portfel", "Owoce", "Rower", "Karta", "Bankomat"], p: [46, 42, 38, 49, 55] }
         ];
 
         function connect() {
@@ -150,76 +91,67 @@
             conn.on('open', () => {
                 document.getElementById('conn-screen').style.display = 'none';
                 document.getElementById('game-controls').style.display = 'block';
-                const select = document.getElementById('q-select');
-                db.forEach((d, i) => select.innerHTML += `<option value="${i}">${d.q}</option>`);
+                db.forEach((d, i) => document.getElementById('q-select').innerHTML += `<option value="${i}">${d.q}</option>`);
+                finalDb.forEach((f, i) => document.getElementById('f-select').innerHTML += `<option value="${i}">${f.n}</option>`);
             });
-            conn.on('close', () => alert("Rozłączono!"));
         }
 
-        function setR(r) { 
-            currentRound = r; 
-            strikes = {A:0, B:0}; 
-            document.querySelectorAll('.btn-round').forEach(b => b.classList.remove('active'));
-            event.target.classList.add('active');
-            conn.send({type: 'NEXT_ROUND', round: r}); 
-            sync(); 
+        function setR(r) {
+            currentRound = r; strikes = {A:0, B:0};
+            document.getElementById('normal-setup').style.display = (r === 'final') ? 'none' : 'block';
+            document.getElementById('final-setup').style.display = (r === 'final') ? 'block' : 'none';
+            document.getElementById('play-area').style.display = (r === 'final') ? 'none' : 'block';
+            conn.send({type: 'NEXT_ROUND', round: r});
+            sync();
         }
 
         function loadQ() {
-            const val = document.getElementById('q-select').value;
-            if(val === "") return;
-            const d = db[val];
+            const d = db[document.getElementById('q-select').value];
             currentAnswers = d.a.map(x => ({t: x[0], p: x[1]}));
         }
 
         function sendQ() {
-            const val = document.getElementById('q-select').value;
-            if(val === "") return;
-            conn.send({type: 'SETUP', q: db[val].q, a: currentAnswers});
-            const list = document.getElementById('ans-control-list'); 
-            list.innerHTML = "";
+            conn.send({type: 'SETUP', q: db[document.getElementById('q-select').value].q, a: currentAnswers});
+            const list = document.getElementById('ans-control-list'); list.innerHTML = "";
             currentAnswers.forEach((a, i) => { 
-                list.innerHTML += `<div class="ans-row">
-                    <span>${a.t} (${a.p})</span>
-                    <button class="btn-reveal" onclick="reveal(${i})">ODKRYJ</button>
-                </div>`; 
+                list.innerHTML += `<div class="ans-row"><span>${a.t}</span><button onclick="reveal(${i})">ODKRYJ</button></div>`;
             });
+        }
+
+        function loadFinal() {
+            const f = finalDb[document.getElementById('f-select').value];
+            const grid = document.getElementById('final-ctrl-grid'); grid.innerHTML = "";
+            for(let p=1; p<=2; p++) {
+                grid.innerHTML += `<h4>GRACZ ${p}</h4>`;
+                for(let r=0; r<5; r++) {
+                    grid.innerHTML += `
+                    <div class="final-row">
+                        <input type="text" id="f-t-${p}-${r}" value="${f.q[r]}" style="margin:0">
+                        <input type="number" id="f-p-${p}-${r}" value="${f.p[r]}" style="margin:0">
+                        <button onclick="revF(${p},${r},'t')" style="background:gray; color:white">T</button>
+                        <button onclick="revF(${p},${r},'p')" style="background:gold">P</button>
+                    </div>`;
+                }
+            }
         }
 
         function reveal(i) {
             conn.send({type: 'REVEAL', index: i});
             if(activeTeam) {
-                const s = document.getElementById('sc' + activeTeam);
-                s.value = parseInt(s.value) + currentAnswers[i].p;
+                document.getElementById('sc' + activeTeam).value = parseInt(document.getElementById('sc' + activeTeam).value) + currentAnswers[i].p;
                 sync();
             }
         }
 
-        function setTeam(t) { 
-            activeTeam = t; 
-            document.getElementById('btnA').classList.toggle('active-team', t==='A'); 
-            document.getElementById('btnB').classList.toggle('active-team', t==='B'); 
+        function revF(p, r, k) {
+            const val = document.getElementById(`f-${k}-${p}-${r}`).value;
+            conn.send({type: 'FINAL_REVEAL', player: p, row: r, kind: k, val: val});
         }
 
-        function strike() { 
-            if(activeTeam) { 
-                strikes[activeTeam]++; 
-                conn.send({type: 'STRIKE'}); 
-                sync(); 
-            } 
-        }
-
+        function setTeam(t) { activeTeam = t; document.getElementById('btnA').className = (t==='A'?'btn-team active-team':'btn-team'); document.getElementById('btnB').className = (t==='B'?'btn-team active-team':'btn-team'); }
+        function strike() { conn.send({type: 'STRIKE'}); strikes[activeTeam]++; sync(); }
         function initFinal() { conn.send({type: 'FINAL_INIT'}); }
-
-        function sync() { 
-            conn.send({
-                type: 'UPDATE', 
-                scA: document.getElementById('scA').value, 
-                scB: document.getElementById('scB').value, 
-                strikes: strikes, 
-                round: currentRound
-            }); 
-        }
+        function sync() { conn.send({type: 'UPDATE', scA: document.getElementById('scA').value, scB: document.getElementById('scB').value, strikes: strikes, round: currentRound}); }
     </script>
 </body>
 </html>
