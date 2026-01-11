@@ -16,20 +16,22 @@
         input, select { width: 100%; padding: 10px; margin: 5px 0; background: #2c2c2c; color: white; border: 1px solid #444; border-radius: 8px; box-sizing: border-box; }
         #hint-box { padding: 10px; background: #000; border: 1px dashed #ffb300; color: #ffb300; font-size: 13px; }
         .ans-row { display: flex; justify-content: space-between; align-items: center; background: #333; padding: 8px; margin: 4px 0; border-radius: 5px; }
-        .final-ctrl { display: grid; grid-template-columns: 1fr 50px 40px 40px; gap: 4px; margin-bottom: 4px; }
-        h4 { color: #ffb300; margin: 8px 0 4px 0; font-size: 11px; }
     </style>
 </head>
 <body>
     <div id="conn-screen" class="card">
-        <input type="text" id="join-id" placeholder="WPISZ ID Z TV">
-        <button onclick="connect()" style="width:100%; padding:15px; background: #4CAF50; color:white; font-weight:bold">POŁĄCZ Z TV</button>
+        <input type="text" id="join-id" placeholder="ID GRY Z TV">
+        <button onclick="connect()" style="width:100%; padding:15px; background: #4CAF50; color:white; font-weight:bold">POŁĄCZ</button>
     </div>
 
     <div id="game-controls" style="display:none">
         <button class="btn-start" onclick="startCzolowka()">▶ START (CZOŁÓWKA)</button>
         <button class="btn-credits" onclick="showCredits()">🎬 KONIEC (NAPISY MP4)</button>
-        <button onclick="resetGame()" style="width:100%; height:30px; background:#444; color:white; margin-bottom:10px">RESET GRY</button>
+        
+        <div class="card" style="display:grid; grid-template-columns: 1fr 1fr; gap:5px;">
+            <button onclick="broadcast({type:'UNLOCK'})" style="background:green; color:white; padding:10px;">ODBLOKUJ GRZYBKI</button>
+            <button onclick="broadcast({type:'LOCK'})" style="background:red; color:white; padding:10px;">ZABLOKUJ GRZYBKI</button>
+        </div>
 
         <div class="card">
             <div class="grid">
@@ -39,10 +41,6 @@
             <div id="normal-setup">
                 <select id="q-select" onchange="loadQ()"><option value="">-- WYBIERZ PYTANIE --</option></select>
                 <button onclick="sendQ()" style="width:100%; padding:10px; background: #bb86fc">WYŚLIJ PYTANIE</button>
-            </div>
-            <div id="final-setup" style="display:none">
-                <select id="f-select" onchange="loadFinal()"><option value="">-- WYBIERZ ZESTAW --</option></select>
-                <div id="final-ctrl-grid"></div>
             </div>
         </div>
 
@@ -55,7 +53,6 @@
             <button class="btn-strike" onclick="strike()">X (BŁĄD)</button>
             <div id="hint-box">...</div>
         </div>
-
         <div class="card">
             PKT A: <input type="number" id="scA" value="0" style="width:60px" onchange="sync()">
             PKT B: <input type="number" id="scB" value="0" style="width:60px" onchange="sync()">
@@ -63,68 +60,33 @@
     </div>
 
     <script>
-        let peer = new Peer(), conn, activeTeam = null, strikes = {A:0, B:0}, currentAnswers = [];
-        const db = [
-            { q: "Polska potrawa:", a: [["Pierogi", 48], ["Bigos", 35], ["Schabowy", 22], ["Żurek", 14], ["Gołąbki", 9]] },
-            { q: "Zwierzę na K:", a: [["Kot", 45], ["Koń", 32], ["Krowa", 21], ["Kangur", 15], ["Kura", 9]] },
-            { q: "Coś z kółkami:", a: [["Samochód", 45], ["Rower", 38], ["Wózek", 24], ["Hulajnoga", 16], ["Traktor", 11]] },
-            { q: "W piórniku:", a: [["Długopis", 50], ["Ołówek", 35], ["Gumka", 22], ["Linijka", 18]] },
-            { q: "Nad wodą?", a: [["Pływamy", 42], ["Opalamy się", 36], ["Ryby", 25], ["Spacer", 10]] },
-            { q: "Dodatek do chleba:", a: [["Dżem", 46], ["Miód", 31], ["Ser", 28], ["Szynka", 25], ["Masło", 20]] },
-            { q: "Sport z piłką:", a: [["Nożna", 55], ["Siatkówka", 34], ["Koszykówka", 26], ["Tenis", 9]] },
-            { q: "Pijemy rano:", a: [["Kawa", 44], ["Herbata", 38], ["Sok", 22], ["Woda", 12], ["Mleko", 9]] },
-            { q: "Zimowy sport:", a: [["Narty", 48], ["Łyżwy", 32], ["Snowboard", 24], ["Sanki", 15]] },
-            { q: "Rośnie w lesie:", a: [["Drzewa", 52], ["Grzyby", 41], ["Jagody", 26], ["Mech", 14]] },
-            { q: "Garderoba na zimę:", a: [["Kurtka", 45], ["Czapka", 38], ["Szalik", 31], ["Rękawiczki", 22]] },
-            { q: "Instrument klawiszowy:", a: [["Pianino", 48], ["Fortepian", 35], ["Keyboard", 26], ["Akordeon", 14]] },
-            { q: "AGD w kuchni:", a: [["Lodówka", 55], ["Kuchenka", 34], ["Zmywarka", 28], ["Czajnik", 12]] },
-            { q: "Imię dla psa:", a: [["Burek", 38], ["Azor", 32], ["Reksio", 25], ["Luna", 14]] },
-            { q: "Kojarzy się z Paryżem:", a: [["Eiffel", 62], ["Bagietka", 28], ["Luwr", 15], ["Croissant", 12]] },
-            { q: "Rodzaj pogody:", a: [["Słońce", 44], ["Deszcz", 35], ["Wiatr", 21], ["Chmury", 14]] },
-            { q: "W kinie:", a: [["Film", 65], ["Popcorn", 38], ["Picie", 15], ["Randka", 10]] },
-            { q: "Cytrus:", a: [["Cytryna", 45], ["Pomarańcza", 38], ["Mandarynka", 26], ["Grejpfrut", 14]] },
-            { q: "W łazience:", a: [["Wanna", 42], ["Prysznic", 36], ["Lustro", 24], ["Pralka", 18]] },
-            { q: "Miesiąc letni:", a: [["Lipiec", 48], ["Sierpień", 45], ["Czerwiec", 32], ["Wrzesień", 5]] }
-        ];
-        const finalDb = [
-            { n: "FINAŁ 1", qs: ["Co w portfelu?", "Na wagę?", "Prezent?", "Płatność?", "Gotówka?"], q: ["Pieniądze", "Owoce", "Rower", "Karta", "Bankomat"], p: [46, 32, 28, 41, 55] },
-            { n: "FINAŁ 2", qs: ["Mebel?", "Kuchnia?", "Przed snem?", "Zwierzę?", "Łazienka?"], q: ["Kanapa", "Lodówka", "Mycie", "Pies", "Mydło"], p: [52, 48, 35, 62, 21] },
-            { n: "FINAŁ 3", qs: ["Drzewo?", "Ptak?", "Kwiat?", "Góra?", "Rzeka?"], q: ["Dąb", "Wróbel", "Róża", "Giewont", "Wisła"], p: [38, 45, 31, 28, 55] },
-            { n: "FINAŁ 4", qs: ["Lokomocja?", "Ma kółka?", "Lata?", "Pływa?", "Syrena?"], q: ["Auto", "Rower", "Samolot", "Statek", "Karetka"], p: [42, 36, 51, 29, 33] },
-            { n: "FINAŁ 5", qs: ["Przedmiot?", "Piórnik?", "Przerwa?", "Biblioteka?", "Nauczyciel?"], q: ["Matma", "Długopis", "Kanapka", "Książka", "Dziennik"], p: [44, 52, 26, 58, 15] }
-        ];
+        let peer = new Peer(), connections = [], activeTeam = null, strikes = {A:0, B:0}, currentAnswers = [];
+        const db = [{ q: "Polska potrawa:", a: [["Pierogi", 48], ["Bigos", 35], ["Schabowy", 22], ["Żurek", 14]] }];
 
         function connect() {
-            conn = peer.connect(document.getElementById('join-id').value);
-            conn.on('open', () => {
+            const id = document.getElementById('join-id').value;
+            const c = peer.connect(id);
+            c.on('open', () => {
+                connections.push(c);
                 document.getElementById('conn-screen').style.display = 'none';
                 document.getElementById('game-controls').style.display = 'block';
                 db.forEach((d, i) => document.getElementById('q-select').innerHTML += `<option value="${i}">${d.q}</option>`);
-                finalDb.forEach((f, i) => document.getElementById('f-select').innerHTML += `<option value="${i}">${f.n}</option>`);
             });
         }
-        function startCzolowka() { conn.send({type: 'START_INTRO'}); }
-        function showCredits() { conn.send({type: 'SHOW_CREDITS'}); }
-        function resetGame() { if(confirm("RESET?")) { conn.send({type: 'RESET'}); location.reload(); } }
-        function setR(r) { 
-            document.getElementById('normal-setup').style.display = r === 'final' ? 'none' : 'block'; 
-            document.getElementById('final-setup').style.display = r === 'final' ? 'block' : 'none'; 
-            conn.send({type: 'NEXT_ROUND', round: r}); 
-            strikes = {A:0, B:0}; sync(); 
-        }
+        function broadcast(m) { connections.forEach(c => c.send(m)); }
+        function startCzolowka() { broadcast({type: 'START_INTRO'}); }
+        function showCredits() { broadcast({type: 'SHOW_CREDITS'}); }
+        function setR(r) { broadcast({type: 'NEXT_ROUND', round: r}); strikes = {A:0, B:0}; sync(); }
         function loadQ() { const d = db[document.getElementById('q-select').value]; currentAnswers = d.a.map(x => ({t: x[0], p: x[1]})); document.getElementById('hint-box').innerHTML = d.q; }
-        function sendQ() { conn.send({type: 'SETUP', q: db[document.getElementById('q-select').value].q, a: currentAnswers}); const list = document.getElementById('ans-list'); list.innerHTML = ""; currentAnswers.forEach((a, i) => { list.innerHTML += `<div class="ans-row"><span>${a.t} (${a.p})</span><button onclick="reveal(${i})">ODKRYJ</button></div>`; }); }
-        function loadFinal() { 
-            const f = finalDb[document.getElementById('f-select').value]; 
-            let h = ""; f.qs.forEach((q,i)=> h += (i+1)+". "+q+" | "); document.getElementById('hint-box').innerHTML = h; 
-            const grid = document.getElementById('final-ctrl-grid'); grid.innerHTML = ""; 
-            for(let p=1; p<=2; p++) { grid.innerHTML += `<h4>GRACZ ${p}</h4>`; for(let r=0; r<5; r++) { grid.innerHTML += `<div class="final-ctrl"><input type="text" id="f-t-${p}-${r}" value="${f.q[r]}"><input type="number" id="f-p-${p}-${r}" value="${f.p[r]}"><button onclick="revF(${p},${r},'t')">T</button><button onclick="revF(${p},${r},'p')">P</button></div>`; } } 
+        function sendQ() { 
+            broadcast({type: 'SETUP', q: db[document.getElementById('q-select').value].q, a: currentAnswers}); 
+            const list = document.getElementById('ans-list'); list.innerHTML = ""; 
+            currentAnswers.forEach((a, i) => { list.innerHTML += `<div class="ans-row"><span>${a.t} (${a.p})</span><button onclick="reveal(${i})">ODKRYJ</button></div>`; }); 
         }
-        function revF(p, r, k) { conn.send({type: 'FINAL_REVEAL', player: p, row: r, kind: k, val: document.getElementById(`f-${k}-${p}-${r}`).value}); }
-        function reveal(i) { conn.send({type: 'REVEAL', index: i, text: currentAnswers[i].t, pts: currentAnswers[i].p}); if(activeTeam) { let s = document.getElementById('sc'+activeTeam); s.value = parseInt(s.value) + currentAnswers[i].p; sync(); } }
-        function strike() { conn.send({type: 'STRIKE'}); if(activeTeam) { strikes[activeTeam]++; sync(); } }
+        function reveal(i) { broadcast({type: 'REVEAL', index: i, text: currentAnswers[i].t, pts: currentAnswers[i].p}); if(activeTeam) { let s = document.getElementById('sc'+activeTeam); s.value = parseInt(s.value) + currentAnswers[i].p; sync(); } }
+        function strike() { broadcast({type: 'STRIKE'}); if(activeTeam) { strikes[activeTeam]++; sync(); } }
         function setTeam(t) { activeTeam = t; }
-        function sync() { conn.send({type: 'UPDATE', scA: document.getElementById('scA').value, scB: document.getElementById('scB').value, strikes: strikes}); }
+        function sync() { broadcast({type: 'UPDATE', scA: document.getElementById('scA').value, scB: document.getElementById('scB').value, strikes: strikes}); }
     </script>
 </body>
 </html>
