@@ -2,283 +2,75 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA - TV STUDIO PRO</title>
+    <title>FAMILIADA - TV</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        :root { --bg: #000033; --gold: #f1c40f; --red: #ff4757; --blue: #2e86de; }
-        body { font-family: 'VT323', monospace; background: var(--bg); color: var(--gold); margin: 0; overflow: hidden; text-transform: uppercase; user-select: none; }
-        
-        /* WARSTWY (Overlays) */
-        #timer-display { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 350px; color: var(--red); display: none; z-index: 20000; text-shadow: 20px 20px 0 #000; font-weight: bold; }
-        #buzzer-msg { position: fixed; top: 40%; left: 50%; transform: translate(-50%, -50%); background: var(--gold); color: black; padding: 40px 80px; font-size: 100px; border: 15px solid white; display: none; z-index: 15000; box-shadow: 0 0 50px rgba(0,0,0,0.8); white-space: nowrap; }
-        #strike-pop { display: none; position: fixed; inset: 0; justify-content: center; align-items: center; background: rgba(0,0,0,0.4); z-index: 10000; }
-        #strike-pop span { font-size: 700px; color: #ff0000; font-weight: bold; text-shadow: 20px 20px 0 #000; }
-
-        /* HEADER */
-        .header { display: flex; justify-content: space-between; align-items: center; padding: 20px 50px; background: rgba(0,0,0,0.6); border-bottom: 4px solid #444; height: 140px; }
-        .team-box { width: 300px; text-align: center; }
-        .team-name { font-size: 45px; color: white; margin-bottom: 5px; min-height: 50px; text-shadow: 2px 2px black; }
-        .score-box { font-size: 90px; color: white; padding: 5px; border: 4px solid #fff; min-width: 140px; text-align: center; background: rgba(0,0,0,0.5); box-shadow: inset 0 0 20px rgba(0,0,0,0.5); }
-        .strikes { font-size: 70px; color: var(--red); height: 75px; text-shadow: 3px 3px 0 #000; letter-spacing: 10px; }
-
-        /* LOGO / STATUS */
-        #center-info { text-align: center; }
-        #logo-text { font-size: 50px; color: white; border: 2px solid var(--gold); padding: 5px 30px; background: #000; letter-spacing: 5px; }
-        #connection-status { font-size: 20px; color: lime; margin-top: 5px; }
-
-        /* MAIN GAME */
-        #main { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 75vh; }
-        
-        /* PYTANIE / ID BOX */
-        #question-box { 
-            font-size: 50px; color: white; margin-bottom: 30px; text-align: center; width: 90%; 
-            min-height: 120px; display: flex; align-items: center; justify-content: center;
-            background: rgba(0,0,100, 0.3); border-radius: 20px; border: 2px solid #334155; padding: 20px;
-        }
-
-        /* TABLICA NORMALNA */
-        .board { width: 1000px; display: flex; flex-direction: column; gap: 12px; }
-        .row { display: flex; justify-content: space-between; font-size: 50px; height: 75px; padding: 0 30px; align-items: center; background: linear-gradient(to bottom, #000099, #000066); border: 3px solid #666; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
-        .row-idx { color: #888; margin-right: 20px; }
-        .pts-box { border-left: 3px solid #666; padding-left: 20px; min-width: 60px; text-align: right; }
-
-        /* TABLICA FINAŁOWA */
-        #final-board { display: none; width: 1200px; grid-template-columns: 1fr 1fr; gap: 60px; }
-        .f-row { display: flex; justify-content: space-between; background: #000066; padding: 0 20px; font-size: 45px; height: 65px; border: 2px solid #555; align-items: center; margin-bottom: 10px; }
-        .f-pts { color: white; min-width: 70px; text-align: right; border-left: 2px solid #555; padding-left: 10px; }
+        body { background: #000033; color: #f1c40f; font-family: 'VT323', monospace; text-align: center; margin: 0; overflow: hidden; }
+        #setup-screen { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #000033; z-index: 100; }
+        #id-box { font-size: 100px; background: white; color: black; padding: 10px 40px; margin: 20px; border-radius: 10px; }
+        #game-screen { display: none; height: 100vh; flex-direction: column; }
+        .header { display: flex; justify-content: space-between; padding: 20px 50px; background: rgba(0,0,0,0.5); border-bottom: 4px solid #444; }
+        .score { font-size: 80px; border: 4px solid white; padding: 10px 30px; min-width: 100px; background: black; }
+        #board { flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+        .row { width: 80%; background: linear-gradient(to bottom, #0000aa, #000066); border: 2px solid #888; margin: 8px; padding: 15px 30px; font-size: 45px; display: flex; justify-content: space-between; color: white; }
+        #strike-box { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.4); font-size: 500px; color: red; z-index: 1000; text-shadow: 15px 15px 0 black; }
+        #timer { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 300px; color: red; display: none; z-index: 1100; }
     </style>
 </head>
 <body>
-    <div id="timer-display">20</div>
-    <div id="buzzer-msg">GRZYBEK!</div>
-    <div id="strike-pop"><span>X</span></div>
-
-    <div class="header">
-        <div class="team-box">
-            <div id="nameA" class="team-name">DRUŻYNA A</div>
-            <div id="xA" class="strikes"></div>
-            <div id="sA" class="score-box" style="background: #c0392b">0</div>
-        </div>
-        <div id="center-info">
-            <div id="logo-text">FAMILIADA</div>
-            <div id="connection-status">INICJALIZACJA...</div>
-        </div>
-        <div class="team-box">
-            <div id="nameB" class="team-name">DRUŻYNA B</div>
-            <div id="xB" class="strikes"></div>
-            <div id="sB" class="score-box" style="background: #2980b9">0</div>
-        </div>
+    <div id="setup-screen">
+        <h1>TWOJE ID TELEWIZORA:</h1>
+        <div id="id-box">CZEKAJ...</div>
+        <p>Wpisz ten kod w panelu i grzybkach</p>
     </div>
 
-    <div id="main">
-        <div id="normal-view" style="width:100%; display:flex; flex-direction:column; align-items:center;">
-            <div id="question-box">ŁĄCZENIE Z SIECIĄ...<br><span style="font-size:20px">(Upewnij się, że masz internet)</span></div>
-            <div class="board" id="board">
-                <div class="row" style="justify-content:center; color:#555;">OCZEKIWANIE NA PANEL...</div>
-            </div>
+    <div id="game-screen">
+        <div class="header">
+            <div id="sA" class="score" style="color:#ff4757">0</div>
+            <div style="font-size: 40px;">FAMILIADA<br><span id="round-name">RUNDA 1</span></div>
+            <div id="sB" class="score" style="color:#2e86de">0</div>
         </div>
-
-        <div id="final-board">
-            <div class="f-col" id="f-p1"></div>
-            <div class="f-col" id="f-p2"></div>
-            <div style="grid-column: span 2; text-align:center; font-size:90px; color:white; border: 4px solid var(--gold); background: black; padding: 10px; margin-top:20px;">
-                SUMA: <span id="f-total" style="color:var(--gold)">0</span>
-            </div>
-        </div>
+        <div id="question" style="font-size: 50px; margin-top: 20px;">OCZEKIWANIE NA PYTANIE...</div>
+        <div id="board"></div>
     </div>
 
-    <audio id="sndOk" src="ok.mp3"></audio>
-    <audio id="sndNo" src="zle.mp3"></audio>
-    <audio id="sndRunda" src="runda.mp3"></audio>
-    <audio id="sndBrawa" src="brawa.mp3"></audio>
-    <audio id="sndSmiech" src="smiech.mp3"></audio>
-    <audio id="sndNapiecie" src="napiecie.mp3" loop></audio>
-    <audio id="sndZegar" src="tykanie.mp3"></audio>
+    <div id="strike-box">X</div>
+    <div id="timer">00</div>
 
     <script>
-        // --- 1. OBSŁUGA POŁĄCZENIA I BŁĘDÓW ---
         const peer = new Peer();
-        let fSum = 0;
-
-        peer.on('open', id => {
-            console.log("Połączono! ID:", id);
-            document.getElementById('connection-status').innerText = "ONLINE";
-            document.getElementById('connection-status').style.color = "#00ff00";
-            
-            // Wyświetl ID na środku ekranu
-            document.getElementById('question-box').innerHTML = 
-                `<div style="display:flex; flex-direction:column; align-items:center;">
-                    <span style="font-size:30px; color:var(--gold); margin-bottom:10px;">TWOJE ID TABLICY:</span>
-                    <span style="font-size:80px; font-weight:bold; background:#000; padding:10px 40px; border:3px solid white;">${id}</span>
-                    <span style="font-size:20px; margin-top:10px; color:#ccc;">Wpisz to ID w panelu sterowania</span>
-                 </div>`;
-        });
-
-        peer.on('error', err => {
-            console.error("Błąd PeerJS:", err);
-            document.getElementById('connection-status').innerText = "BŁĄD!";
-            document.getElementById('connection-status').style.color = "red";
-            document.getElementById('question-box').innerHTML = 
-                `<span style="color:red; font-size:40px;">BŁĄD POŁĄCZENIA!</span><br>
-                 <span style="font-size:25px; color:white;">Kod: ${err.type}</span><br>
-                 <span style="font-size:20px; color:#aaa;">Sprawdź internet lub odśwież stronę (F5)</span>`;
-        });
-
-        peer.on('disconnected', () => {
-            document.getElementById('connection-status').innerText = "ROZŁĄCZONO";
-            document.getElementById('connection-status').style.color = "orange";
-        });
-
-        // --- 2. OBSŁUGA ROZKAZÓW Z PANELU ---
+        peer.on('open', id => document.getElementById('id-box').innerText = id);
         peer.on('connection', conn => {
             conn.on('data', m => {
-                console.log("Otrzymano:", m); // Debug w konsoli
-
-                // --- DŹWIĘKI ---
-                if(m.type === 'SOUND') {
-                    const s = document.getElementById('snd' + m.file);
-                    if(s) {
-                        if(m.action === 'play') s.play().catch(e => console.log("Audio block:", e)); 
-                        else { s.pause(); s.currentTime = 0; }
-                    }
-                }
-
-                // --- STOPER ---
-                if(m.type === 'TIMER') {
-                    const t = document.getElementById('timer-display');
-                    t.innerText = m.val < 10 ? "0"+m.val : m.val; // Dodaj zero wiodące
-                    t.style.display = m.visible ? 'block' : 'none';
-                    // Dźwięk tykania w ostatnich 5 sekundach
-                    if(m.val <= 5 && m.val > 0) {
-                        const tik = document.getElementById('sndZegar');
-                        if(tik) { tik.currentTime = 0; tik.play(); }
-                    }
-                }
-
-                // --- NAZWY DRUŻYN ---
-                if(m.type === 'UPDATE_NAMES') {
-                    document.getElementById('nameA').innerText = m.a || "DRUŻYNA A";
-                    document.getElementById('nameB').innerText = m.b || "DRUŻYNA B";
-                }
-
-                // --- GRZYBEK (BUZZER) ---
-                if(m.type === 'BUZZ') {
-                    const b = document.getElementById('buzzer-msg');
-                    b.innerText = (m.teamName || "KTOŚ") + "!";
-                    b.style.display = 'block';
-                    document.getElementById('sndRunda').play();
-                    // Automatyczne ukrycie po 3 sekundach
-                    setTimeout(() => b.style.display = 'none', 3000);
-                }
-
-                // --- X (BŁĄD) ---
-                if(m.type === 'STRIKE') {
-                    const x = document.getElementById('strike-pop');
-                    x.style.display = 'flex';
-                    document.getElementById('sndNo').play();
-                    setTimeout(() => x.style.display = 'none', 1200);
-                }
-
-                // --- NOWE PYTANIE (SETUP) ---
+                document.getElementById('setup-screen').style.display = 'none';
+                document.getElementById('game-screen').style.display = 'flex';
+                
                 if(m.type === 'SETUP') {
-                    document.getElementById('question-box').innerText = m.q;
-                    const b = document.getElementById('board'); 
-                    b.innerHTML = "";
-                    m.a.forEach((ans, i) => { 
-                        b.innerHTML += `
-                        <div class="row" id="r-${i}">
-                            <div style="display:flex;">
-                                <span class="row-idx">${i+1}.</span>
-                                <span>....................</span>
-                            </div>
-                            <span class="pts-box">--</span>
-                        </div>`; 
-                    });
+                    document.getElementById('question').innerText = m.q;
+                    const b = document.getElementById('board'); b.innerHTML = '';
+                    m.a.forEach((ans, i) => b.innerHTML += `<div class="row" id="r-${i}"><span>${i+1}. ...................</span><span>--</span></div>`);
                 }
-
-                // --- ODKRYWANIE ODPOWIEDZI ---
                 if(m.type === 'REVEAL') {
-                    document.getElementById('sndOk').play();
                     const r = document.getElementById(`r-${m.index}`);
-                    if(r) {
-                        r.style.color = "var(--gold)";
-                        r.style.background = "linear-gradient(to bottom, #0000aa, #000088)";
-                        r.innerHTML = `
-                            <div style="display:flex;">
-                                <span class="row-idx">${m.index+1}.</span>
-                                <span>${m.text}</span>
-                            </div>
-                            <span class="pts-box">${m.pts}</span>`;
-                    }
+                    r.innerHTML = `<span>${m.index+1}. ${m.text}</span><span>${m.pts}</span>`;
+                    new Audio('https://www.myinstants.com/media/sounds/ding-sound-effect_2.mp3').play();
                 }
-
-                // --- AKTUALIZACJA WYNIKÓW ---
+                if(m.type === 'STRIKE') {
+                    const s = document.getElementById('strike-box'); s.style.display = 'flex';
+                    new Audio('https://www.myinstants.com/media/sounds/incorrect_6.mp3').play();
+                    setTimeout(() => s.style.display = 'none', 1200);
+                }
                 if(m.type === 'UPDATE') {
                     document.getElementById('sA').innerText = m.scA;
                     document.getElementById('sB').innerText = m.scB;
-                    // Renderowanie iksów
-                    let xA_html = ""; for(let i=0; i<m.strikes.A; i++) xA_html += "X ";
-                    let xB_html = ""; for(let i=0; i<m.strikes.B; i++) xB_html += "X ";
-                    document.getElementById('xA').innerText = xA_html;
-                    document.getElementById('xB').innerText = xB_html;
                 }
-
-                // --- ZMIANA RUNDY (NORMALNA / FINAŁ) ---
-                if(m.type === 'NEXT_ROUND') {
-                    document.getElementById('logo-text').innerText = m.round === 'final' ? "FINAŁ" : "RUNDA " + m.round;
-                    
-                    if(m.round === 'final') {
-                        document.getElementById('normal-view').style.display = 'none';
-                        document.getElementById('final-board').style.display = 'grid';
-                        fSum = 0; 
-                        document.getElementById('f-total').innerText = "0";
-                        renderFinalSlots();
-                    } else {
-                        document.getElementById('normal-view').style.display = 'flex';
-                        document.getElementById('final-board').style.display = 'none';
-                    }
-                }
-
-                // --- ODKRYWANIE FINAŁU ---
-                if(m.type === 'FINAL_REVEAL') {
-                    // m.p = gracz (1/2), m.r = rząd (0-4), m.k = kolumna ('t' tekst / 'p' punkty)
-                    const target = document.getElementById(`f${m.p}-${m.k}-${m.r}`);
-                    if(target) {
-                        target.innerText = m.v;
-                        if(m.k === 'p') {
-                            // Jeśli odkrywamy punkty, dodaj dźwięk i zlicz sumę
-                            if(m.v !== "" && m.v !== "0") document.getElementById('sndOk').play();
-                            else if(m.v === "0") document.getElementById('sndNo').play(); // Zero punktów = błąd
-                            
-                            fSum += parseInt(m.v) || 0;
-                            document.getElementById('f-total').innerText = fSum;
-                        }
-                    }
+                if(m.type === 'TIMER') {
+                    const t = document.getElementById('timer'); t.innerText = m.val;
+                    t.style.display = m.visible ? 'block' : 'none';
                 }
             });
         });
-
-        // Funkcja pomocnicza do rysowania pustej tabeli finałowej
-        function renderFinalSlots() {
-            const p1 = document.getElementById('f-p1'); 
-            const p2 = document.getElementById('f-p2');
-            p1.innerHTML = ""; p2.innerHTML = "";
-            
-            for(let i=0; i<5; i++) {
-                p1.innerHTML += `
-                <div class="f-row">
-                    <span id="f1-t-${i}">................</span>
-                    <span class="f-pts" id="f1-p-${i}">--</span>
-                </div>`;
-                
-                p2.innerHTML += `
-                <div class="f-row">
-                    <span id="f2-t-${i}">................</span>
-                    <span class="f-pts" id="f2-p-${i}">--</span>
-                </div>`;
-            }
-        }
     </script>
 </body>
 </html>
