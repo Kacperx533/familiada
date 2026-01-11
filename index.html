@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>TABLICA - FAMILIADA (NETWORK)</title>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <style>
+        :root { --bg: #000033; --gold: #f1c40f; --red: #ff4757; --blue: #2e86de; }
+        body { font-family: 'VT323', monospace; background: var(--bg); color: var(--gold); margin: 0; overflow: hidden; text-transform: uppercase; }
+        #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 1000; }
+        #overlay button { padding: 20px 40px; font-family: 'VT323'; font-size: 30px; background: var(--gold); border: none; cursor: pointer; border-radius: 10px; margin-top: 20px; }
+        #game-id-display { font-size: 40px; color: white; border: 2px dashed var(--gold); padding: 10px 20px; }
+        
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 20px 50px; background: rgba(0,0,0,0.5); border-bottom: 4px solid #444; }
+        .score-box { font-size: 90px; color: white; padding: 10px 30px; border: 4px solid #fff; min-width: 120px; text-align: center; }
+        #sA { background: var(--red); } #sB { background: var(--blue); }
+        .side-x { font-size: 100px; width: 150px; font-weight: bold; }
+        #xA { color: var(--red); } #xB { color: var(--blue); text-align: right; }
+        
+        #main { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 70vh; }
+        #question { font-size: 50px; color: white; margin-bottom: 20px; text-align: center; height: 60px; }
+        .board { width: 900px; display: flex; flex-direction: column; gap: 10px; }
+        .row { display: flex; justify-content: space-between; font-size: 48px; height: 65px; padding: 0 20px; align-items: center; background: #000066; border: 2px solid #555; }
+        .ans-text { color: transparent; }
+        .ans-pts { color: transparent; min-width: 70px; text-align: right; border-left: 3px solid transparent; padding-left: 15px; }
+        .revealed .ans-text { color: var(--gold); }
+        .revealed .ans-pts { color: white; border-left: 3px solid #555; }
+        
+        #final-board { display: none; width: 1000px; grid-template-columns: 1fr 1fr; gap: 40px; }
+        .f-row { display: flex; justify-content: space-between; background: #000066; padding: 5px 20px; font-size: 45px; height: 60px; border: 2px solid #555; }
+        .f-pts { color: white; min-width: 70px; text-align: right; border-left: 3px solid #555; padding-left: 15px; }
+        .f-sum { grid-column: span 2; text-align: center; font-size: 90px; color: white; margin-top: 20px; border: 5px solid var(--gold); background: #000; }
+        #strike-pop { display: none; position: fixed; inset: 0; justify-content: center; align-items: center; background: rgba(255,0,0,0.3); z-index: 500; }
+        #strike-pop span { font-size: 600px; color: #ff0000; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div id="overlay">
+        <div style="color:white; margin-bottom:10px">ID TWOJEJ GRY:</div>
+        <div id="game-id-display">Ładowanie...</div>
+        <button onclick="startApp()">START / ODBLOKUJ DŹWIĘK</button>
+    </div>
+    
+    <audio id="sndOk" src="ok.mp3"></audio>
+    <audio id="sndNo" src="zle.mp3"></audio>
+    <audio id="sndRunda" src="runda.mp3"></audio>
+
+    <div class="header">
+        <div id="xA" class="side-x"></div>
+        <div id="sA" class="score-box">0</div>
+        <div id="r-display" style="font-size: 40px;">RUNDA 1</div>
+        <div id="sB" class="score-box">0</div>
+        <div id="xB" class="side-x"></div>
+    </div>
+
+    <div id="main">
+        <div id="normal-view">
+            <div id="question">POŁĄCZ PANEL...</div>
+            <div class="board" id="board"></div>
+        </div>
+        <div id="final-board">
+            <div id="f-p1"></div><div id="f-p2"></div>
+            <div class="f-sum">SUMA: <span id="f-total">0</span></div>
+        </div>
+    </div>
+    <div id="strike-pop"><span>X</span></div>
+
+    <script>
+        let peer = new Peer();
+        let fSum = 0;
+        const sOk = document.getElementById('sndOk'), sNo = document.getElementById('sndNo'), sRunda = document.getElementById('sndRunda');
+
+        peer.on('open', (id) => {
+            document.getElementById('game-id-display').innerText = id;
+        });
+
+        function startApp() { document.getElementById('overlay').style.display = 'none'; }
+
+        peer.on('connection', (conn) => {
+            conn.on('data', (m) => {
+                if(m.type === 'NEXT_ROUND') {
+                    sRunda.currentTime = 0; sRunda.play();
+                    document.getElementById('board').innerHTML = "";
+                    const rName = (m.round === 'final') ? "FINAŁ" : "RUNDA " + m.round;
+                    document.getElementById('question').innerText = rName;
+                    document.getElementById('r-display').innerText = rName;
+                    document.getElementById('normal-view').style.display = (m.round === 'final') ? 'none' : 'block';
+                    document.getElementById('final-board').style.display = (m.round === 'final') ? 'grid' : 'none';
+                }
+                if(m.type === 'SETUP') {
+                    const b = document.getElementById('board'); b.innerHTML = "";
+                    document.getElementById('question').innerText = m.q;
+                    for(let i=0; i<5; i++) {
+                        const d = m.a[i] || {t: "...", p: ""};
+                        b.innerHTML += `<div class="row" id="r-${i}"><span>${i+1}. <span class="ans-text">${d.t}</span></span><span class="ans-pts">${d.p}</span></div>`;
+                    }
+                }
+                if(m.type === 'REVEAL') { document.getElementById(`r-${m.index}`).classList.add('revealed'); sOk.currentTime = 0; sOk.play(); }
+                if(m.type === 'STRIKE') {
+                    document.getElementById('strike-pop').style.display = 'flex';
+                    sNo.currentTime = 0; sNo.play();
+                    setTimeout(() => document.getElementById('strike-pop').style.display = 'none', 1200);
+                }
+                if(m.type === 'FINAL_INIT') {
+                    fSum = 0; document.getElementById('f-total').innerText = 0;
+                    const p1 = document.getElementById('f-p1'), p2 = document.getElementById('f-p2');
+                    p1.innerHTML = ""; p2.innerHTML = "";
+                    for(let i=0; i<5; i++) {
+                        p1.innerHTML += `<div class="f-row"><span id="f1-t-${i}"></span><span class="f-pts" id="f1-p-${i}"></span></div>`;
+                        p2.innerHTML += `<div class="f-row"><span id="f2-t-${i}"></span><span class="f-pts" id="f2-p-${i}"></span></div>`;
+                    }
+                }
+                if(m.type === 'FINAL_REVEAL') {
+                    document.getElementById(`f${m.player}-${m.kind}-${m.row}`).innerText = m.val;
+                    sOk.currentTime = 0; sOk.play();
+                    if(m.kind === 'p') { fSum += parseInt(m.val) || 0; document.getElementById('f-total').innerText = fSum; }
+                }
+                if(m.type === 'UPDATE') {
+                    document.getElementById('sA').innerText = m.scA; document.getElementById('sB').innerText = m.scB;
+                    document.getElementById('xA').innerText = "X".repeat(m.strikes.A); document.getElementById('xB').innerText = "X".repeat(m.strikes.B);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
