@@ -2,55 +2,67 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA TV - FULL MULTIMEDIA</title>
+    <title>FAMILIADA TV - EDYCJA SZKOŁA</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root { --bg: #000033; --gold: #f1c40f; --red: #ff4757; --blue: #2e86de; }
         body { font-family: 'VT323', monospace; background: var(--bg); color: var(--gold); margin: 0; overflow: hidden; text-transform: uppercase; }
         
-        /* Warstwy wideo */
+        /* Nakładki Wideo */
         .video-overlay { position: fixed; inset: 0; background: black; z-index: 20000; display: none; }
         video { width: 100%; height: 100%; object-fit: cover; }
 
-        /* Reszta interfejsu */
+        /* Ekran Powitalny */
+        #welcome-screen { position: fixed; inset: 0; background: var(--bg); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 15000; text-align: center; }
+        #welcome-screen h1 { font-size: 150px; color: var(--gold); margin: 0; text-shadow: 8px 8px #000; }
+        #welcome-screen h2 { font-size: 80px; color: white; margin: 0; }
+
+        /* Startownik i Blokada */
         #overlay-start { position: fixed; inset: 0; background: black; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 30000; }
+        
+        /* Interfejs Gry */
         .header { display: flex; justify-content: space-between; align-items: center; padding: 20px 50px; background: rgba(0,0,0,0.8); border-bottom: 5px solid var(--gold); }
         .score-box { font-size: 110px; color: white; padding: 10px 40px; border: 5px solid #fff; min-width: 150px; text-align: center; }
         
         #main { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 75vh; }
-        #question { font-size: 55px; color: white; margin-bottom: 30px; text-align: center; }
+        #question { font-size: 55px; color: white; margin-bottom: 30px; text-align: center; padding: 0 20px; }
         .board { width: 1000px; display: flex; flex-direction: column; gap: 15px; }
-        .row { display: flex; justify-content: space-between; font-size: 50px; height: 80px; padding: 0 30px; align-items: center; background: #000066; border: 3px solid #555; }
-        .revealed { color: var(--gold); border-color: var(--gold); }
+        .row { display: flex; justify-content: space-between; font-size: 50px; height: 80px; padding: 0 30px; align-items: center; background: #000066; border: 3px solid #555; transition: 0.3s; }
+        .revealed { color: var(--gold); border-color: var(--gold); background: #000099; }
 
-        #strike-pop { display: none; position: fixed; inset: 0; justify-content: center; align-items: center; background: rgba(0,0,0,0.8); z-index: 12000; }
-        #strike-pop span { font-size: 800px; color: var(--red); }
+        /* Pop-up Błędu (X) */
+        #strike-pop { display: none; position: fixed; inset: 0; justify-content: center; align-items: center; background: rgba(0,0,0,0.7); z-index: 12000; }
+        #strike-pop span { font-size: 800px; color: var(--red); font-weight: bold; -webkit-text-stroke: 10px white; }
     </style>
 </head>
 <body>
     <div id="layer-intro" class="video-overlay"><video id="vidIntro" src="czolowka.mp4"></video></div>
     <div id="layer-outro" class="video-overlay"><video id="vidOutro" src="napisy.mp4"></video></div>
-
-    <div id="overlay-start">
-        <div id="game-id-display" style="color:white; font-size:40px; margin-bottom:20px;">ŁĄCZENIE...</div>
-        <button onclick="document.getElementById('overlay-start').style.display='none'" style="padding:20px; font-size:20px; cursor:pointer;">ODBLOKUJ MULTIMEDIA</button>
-    </div>
-
     <audio id="sndOk" src="ok.mp3"></audio>
     <audio id="sndNo" src="zle.mp3"></audio>
     <audio id="sndRunda" src="runda.mp3"></audio>
 
+    <div id="welcome-screen">
+        <h1>FAMILIADA</h1>
+        <h2>EDYCJA SZKOŁA</h2>
+    </div>
+
+    <div id="overlay-start">
+        <div id="game-id-display" style="color:white; font-size:40px; margin-bottom:20px;">ŁĄCZENIE...</div>
+        <button onclick="document.getElementById('overlay-start').style.display='none'" style="padding:20px; font-size:20px; cursor:pointer; background:var(--gold); border:none; border-radius:10px; font-weight:bold;">URUCHOM SYSTEM TV</button>
+    </div>
+
     <div class="header">
         <div id="xA" style="font-size:100px; color:var(--red); width:200px"></div>
         <div id="sA" class="score-box" style="background:var(--red)">0</div>
-        <div id="r-display" style="font-size: 50px; color: white;">FAMILIADA</div>
+        <div id="r-display" style="font-size: 50px; color: white;">CZEKAMY...</div>
         <div id="sB" class="score-box" style="background:var(--blue)">0</div>
         <div id="xB" style="font-size:100px; color:var(--blue); width:200px; text-align:right"></div>
     </div>
 
     <div id="main">
-        <div id="question">POWODZENIA!</div>
+        <div id="question">ZAPRASZAMY DO GRY!</div>
         <div class="board" id="board"></div>
     </div>
 
@@ -62,34 +74,39 @@
 
         peer.on('connection', conn => {
             conn.on('data', m => {
-                // Multimedia
+                // Multimedia i Napisy
                 if(m.type === 'START_INTRO') { 
-                    const l = document.getElementById('layer-intro'); l.style.display='block'; 
-                    const v = document.getElementById('vidIntro'); v.play();
-                    v.onended = () => l.style.display='none';
+                    const l = document.getElementById('layer-intro'); 
+                    const w = document.getElementById('welcome-screen');
+                    l.style.display='block'; 
+                    const v = document.getElementById('vidIntro'); 
+                    v.play();
+                    v.onended = () => { l.style.display='none'; w.style.display='flex'; };
                 }
                 if(m.type === 'START_OUTRO') { 
-                    const l = document.getElementById('layer-outro'); l.style.display='block'; 
+                    document.getElementById('layer-outro').style.display='block'; 
                     document.getElementById('vidOutro').play();
                 }
 
-                // Gra
+                // Logika Gry
+                if(m.type === 'SETUP' || m.type === 'NEXT_ROUND') {
+                    document.getElementById('welcome-screen').style.display='none';
+                    if(m.type === 'NEXT_ROUND') document.getElementById('sndRunda').play();
+                }
+
                 if(m.type === 'STRIKE') {
                     document.getElementById('strike-pop').style.display='flex';
                     document.getElementById('sndNo').play();
-                    setTimeout(() => document.getElementById('strike-pop').style.display='none', 1500);
+                    setTimeout(() => document.getElementById('strike-pop').style.display='none', 1200);
                 }
+
                 if(m.type === 'REVEAL') {
                     document.getElementById('sndOk').play();
-                    const r = document.getElementById(`r-${m.index}`);
-                    r.classList.add('revealed');
-                    r.innerHTML = `<span>${m.index+1}. ${m.text}</span><span>${m.pts}</span>`;
+                    const row = document.getElementById(`r-${m.index}`);
+                    row.classList.add('revealed');
+                    row.innerHTML = `<span>${m.index+1}. ${m.text}</span><span>${m.pts}</span>`;
                 }
-                if(m.type === 'NEXT_ROUND') {
-                    document.getElementById('sndRunda').play();
-                    document.getElementById('r-display').innerText = "RUNDA " + m.round;
-                    document.getElementById('board').innerHTML = "";
-                }
+
                 if(m.type === 'SETUP') {
                     document.getElementById('question').innerText = m.q;
                     const b = document.getElementById('board'); b.innerHTML = "";
@@ -97,11 +114,16 @@
                         b.innerHTML += `<div class="row" id="r-${i}"><span>${i+1}. ....................</span><span>--</span></div>`;
                     });
                 }
+
                 if(m.type === 'UPDATE') {
                     document.getElementById('sA').innerText = m.scA;
                     document.getElementById('sB').innerText = m.scB;
                     document.getElementById('xA').innerText = "X".repeat(m.strikes.A);
                     document.getElementById('xB').innerText = "X".repeat(m.strikes.B);
+                }
+                
+                if(m.type === 'NEXT_ROUND') {
+                    document.getElementById('r-display').innerText = "RUNDA " + m.round;
                 }
             });
         });
