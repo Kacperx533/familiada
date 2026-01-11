@@ -2,46 +2,39 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GRZYBEK</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        body { margin: 0; background: #121212; color: white; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; }
-        #buzzer-btn { 
-            display: none; width: 250px; height: 250px; background: radial-gradient(circle, #ff4757 0%, #b00020 100%); 
-            border-radius: 50%; border: 10px solid #555; box-shadow: 0 15px 0 #800000;
-            font-size: 40px; color: white; font-weight: bold; cursor: pointer;
-        }
-        #buzzer-btn:disabled { opacity: 0.3; filter: grayscale(1); }
-        #buzzer-btn:active:not(:disabled) { transform: translateY(10px); box-shadow: 0 5px 0 #800000; }
-        input, select { padding: 15px; margin: 10px; width: 80%; border-radius: 10px; }
+        body { margin:0; background:#121212; color:white; display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; }
+        #btn { width:250px; height:250px; border-radius:50%; background:red; border:10px solid #555; font-size:40px; color:white; font-weight:bold; display:none; }
+        #btn:disabled { opacity:0.2; }
     </style>
 </head>
 <body>
     <div id="setup">
-        <input type="text" id="game-id" placeholder="ID Z TV">
+        <input type="text" id="p-id" placeholder="ID PANELU">
         <select id="team"><option value="A">DRUŻYNA A</option><option value="B">DRUŻYNA B</option></select>
-        <button onclick="connect()" style="padding:20px; width:80%;">POŁĄCZ</button>
+        <button onclick="connect()" style="padding:15px;">POŁĄCZ</button>
     </div>
-    <button id="buzzer-btn" onclick="buzz()" disabled>STOP!</button>
-    <div id="stat">ZABLOKOWANE</div>
+    <button id="btn" onclick="buzz()" disabled>STOP!</button>
+    <p id="stat">CZEKAJ...</p>
 
     <script>
         let peer = new Peer(), conn, team;
         function connect() {
             team = document.getElementById('team').value;
-            conn = peer.connect(document.getElementById('game-id').value);
+            conn = peer.connect(document.getElementById('p-id').value);
             conn.on('open', () => {
-                document.getElementById('setup').style.display = 'none';
-                document.getElementById('buzzer-btn').style.display = 'block';
-                document.getElementById('stat').innerText = "POŁĄCZONO";
+                document.getElementById('setup').style.display='none';
+                document.getElementById('btn').style.display='block';
             });
             conn.on('data', m => {
-                if(m.type === 'UNLOCK') { document.getElementById('buzzer-btn').disabled = false; document.getElementById('stat').innerText = "MOŻESZ KLIKAĆ!"; }
-                if(m.type === 'LOCK') { document.getElementById('buzzer-btn').disabled = true; document.getElementById('stat').innerText = "ZABLOKOWANE"; }
+                if(m.type === 'UNLOCK') { document.getElementById('btn').disabled=false; document.getElementById('stat').innerText="GRAJ!"; }
+                if(m.type === 'LOCK') { document.getElementById('btn').disabled=true; document.getElementById('stat').innerText="ZABLOKOWANE"; }
             });
         }
-        function buzz() { conn.send({type: 'BUZZ', team: team}); document.getElementById('buzzer-btn').disabled = true; }
+        function buzz() { conn.send({type:'BUZZ', team:team}); document.getElementById('btn').disabled=true; }
     </script>
 </body>
 </html>
