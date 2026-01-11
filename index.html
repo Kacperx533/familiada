@@ -68,8 +68,8 @@
         peer.on('open', id => document.getElementById('game-id-display').innerText = "ID TV: " + id);
         peer.on('connection', conn => {
             conn.on('data', m => {
-                if(m.type === 'START_INTRO') { document.getElementById('video-layer').style.display='block'; document.getElementById('myVideo').play(); document.getElementById('myVideo').onended=()=>document.getElementById('video-layer').style.display='none'; }
-                if(m.type === 'SHOW_CREDITS') { document.getElementById('credits-screen').style.display='block'; document.getElementById('videoCredits').play(); document.getElementById('videoCredits').onended=()=>document.getElementById('credits-screen').style.display='none'; }
+                if(m.type === 'START_INTRO') { document.getElementById('video-layer').style.display='block'; document.getElementById('myVideo').play(); }
+                if(m.type === 'SHOW_CREDITS') { document.getElementById('credits-screen').style.display='block'; document.getElementById('videoCredits').play(); }
                 if(m.type === 'BUZZ') { 
                     const b = document.getElementById('buzzer-msg'); b.innerText = (m.team === 'A' ? "DRUŻYNA A" : "DRUŻYNA B") + "!";
                     b.style.display = 'block'; document.getElementById('sndRunda').play(); setTimeout(()=> b.style.display='none', 3000);
