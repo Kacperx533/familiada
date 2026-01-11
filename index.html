@@ -7,65 +7,84 @@
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root { --bg: #000033; --gold: #f1c40f; --red: #ff4757; --blue: #2e86de; }
-        body { font-family: 'VT323', monospace; background: var(--bg); color: var(--gold); margin: 0; overflow: hidden; text-transform: uppercase; }
+        body { font-family: 'VT323', monospace; background: var(--bg); color: var(--gold); margin: 0; overflow: hidden; text-transform: uppercase; user-select: none; }
         
-        /* Stoper */
-        #timer-display { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 300px; color: var(--red); display: none; z-index: 20000; text-shadow: 15px 15px black; }
-        
-        /* Nagłówek */
-        .header { display: flex; justify-content: space-between; align-items: center; padding: 20px 50px; background: rgba(0,0,0,0.5); border-bottom: 4px solid #444; }
-        .team-box { width: 250px; text-align: center; }
-        .team-name { font-size: 40px; color: white; margin-bottom: 10px; min-height: 45px; }
-        .score-box { font-size: 90px; color: white; padding: 10px; border: 4px solid #fff; min-width: 120px; text-align: center; }
-        .strikes { font-size: 70px; color: var(--red); height: 75px; }
-
-        /* Główne pole gry */
-        #main { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 70vh; }
-        #question { font-size: 55px; color: white; margin-bottom: 30px; text-align: center; width: 90%; min-height: 70px; }
-        .board { width: 900px; display: flex; flex-direction: column; gap: 15px; }
-        .row { display: flex; justify-content: space-between; font-size: 50px; height: 75px; padding: 0 30px; align-items: center; background: #000066; border: 3px solid #555; }
-        
-        /* Finał */
-        #final-board { display: none; width: 1100px; grid-template-columns: 1fr 1fr; gap: 50px; }
-        .f-row { display: flex; justify-content: space-between; background: #000066; padding: 0 25px; font-size: 45px; height: 65px; border: 2px solid #555; align-items: center; margin-bottom: 10px; }
-        .f-pts { color: white; min-width: 80px; text-align: right; border-left: 3px solid #555; padding-left: 15px; }
-        
-        /* Pop-up Iksy */
-        #strike-pop { display: none; position: fixed; inset: 0; justify-content: center; align-items: center; background: rgba(255,0,0,0.3); z-index: 10000; }
+        /* WARSTWY (Overlays) */
+        #timer-display { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 350px; color: var(--red); display: none; z-index: 20000; text-shadow: 20px 20px 0 #000; font-weight: bold; }
+        #buzzer-msg { position: fixed; top: 40%; left: 50%; transform: translate(-50%, -50%); background: var(--gold); color: black; padding: 40px 80px; font-size: 100px; border: 15px solid white; display: none; z-index: 15000; box-shadow: 0 0 50px rgba(0,0,0,0.8); white-space: nowrap; }
+        #strike-pop { display: none; position: fixed; inset: 0; justify-content: center; align-items: center; background: rgba(0,0,0,0.4); z-index: 10000; }
         #strike-pop span { font-size: 700px; color: #ff0000; font-weight: bold; text-shadow: 20px 20px 0 #000; }
+
+        /* HEADER */
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 20px 50px; background: rgba(0,0,0,0.6); border-bottom: 4px solid #444; height: 140px; }
+        .team-box { width: 300px; text-align: center; }
+        .team-name { font-size: 45px; color: white; margin-bottom: 5px; min-height: 50px; text-shadow: 2px 2px black; }
+        .score-box { font-size: 90px; color: white; padding: 5px; border: 4px solid #fff; min-width: 140px; text-align: center; background: rgba(0,0,0,0.5); box-shadow: inset 0 0 20px rgba(0,0,0,0.5); }
+        .strikes { font-size: 70px; color: var(--red); height: 75px; text-shadow: 3px 3px 0 #000; letter-spacing: 10px; }
+
+        /* LOGO / STATUS */
+        #center-info { text-align: center; }
+        #logo-text { font-size: 50px; color: white; border: 2px solid var(--gold); padding: 5px 30px; background: #000; letter-spacing: 5px; }
+        #connection-status { font-size: 20px; color: lime; margin-top: 5px; }
+
+        /* MAIN GAME */
+        #main { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 75vh; }
         
-        /* Komunikat grzybka */
-        #buzzer-msg { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--gold); color: black; padding: 50px; font-size: 100px; border: 15px solid white; display: none; z-index: 15000; }
+        /* PYTANIE / ID BOX */
+        #question-box { 
+            font-size: 50px; color: white; margin-bottom: 30px; text-align: center; width: 90%; 
+            min-height: 120px; display: flex; align-items: center; justify-content: center;
+            background: rgba(0,0,100, 0.3); border-radius: 20px; border: 2px solid #334155; padding: 20px;
+        }
+
+        /* TABLICA NORMALNA */
+        .board { width: 1000px; display: flex; flex-direction: column; gap: 12px; }
+        .row { display: flex; justify-content: space-between; font-size: 50px; height: 75px; padding: 0 30px; align-items: center; background: linear-gradient(to bottom, #000099, #000066); border: 3px solid #666; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+        .row-idx { color: #888; margin-right: 20px; }
+        .pts-box { border-left: 3px solid #666; padding-left: 20px; min-width: 60px; text-align: right; }
+
+        /* TABLICA FINAŁOWA */
+        #final-board { display: none; width: 1200px; grid-template-columns: 1fr 1fr; gap: 60px; }
+        .f-row { display: flex; justify-content: space-between; background: #000066; padding: 0 20px; font-size: 45px; height: 65px; border: 2px solid #555; align-items: center; margin-bottom: 10px; }
+        .f-pts { color: white; min-width: 70px; text-align: right; border-left: 2px solid #555; padding-left: 10px; }
     </style>
 </head>
 <body>
     <div id="timer-display">20</div>
-    <div id="buzzer-msg"></div>
+    <div id="buzzer-msg">GRZYBEK!</div>
     <div id="strike-pop"><span>X</span></div>
 
     <div class="header">
         <div class="team-box">
             <div id="nameA" class="team-name">DRUŻYNA A</div>
             <div id="xA" class="strikes"></div>
-            <div id="sA" class="score-box" style="background:var(--red)">0</div>
+            <div id="sA" class="score-box" style="background: #c0392b">0</div>
         </div>
-        <div id="r-display" style="font-size: 50px; color: white; border: 2px solid var(--gold); padding: 10px 30px;">FAMILIADA</div>
+        <div id="center-info">
+            <div id="logo-text">FAMILIADA</div>
+            <div id="connection-status">INICJALIZACJA...</div>
+        </div>
         <div class="team-box">
             <div id="nameB" class="team-name">DRUŻYNA B</div>
             <div id="xB" class="strikes"></div>
-            <div id="sB" class="score-box" style="background:var(--blue)">0</div>
+            <div id="sB" class="score-box" style="background: #2980b9">0</div>
         </div>
     </div>
 
     <div id="main">
-        <div id="normal-view">
-            <div id="question">CZEKAM NA PYTANIE...</div>
-            <div class="board" id="board"></div>
+        <div id="normal-view" style="width:100%; display:flex; flex-direction:column; align-items:center;">
+            <div id="question-box">ŁĄCZENIE Z SIECIĄ...<br><span style="font-size:20px">(Upewnij się, że masz internet)</span></div>
+            <div class="board" id="board">
+                <div class="row" style="justify-content:center; color:#555;">OCZEKIWANIE NA PANEL...</div>
+            </div>
         </div>
+
         <div id="final-board">
             <div class="f-col" id="f-p1"></div>
             <div class="f-col" id="f-p2"></div>
-            <div style="grid-column: span 2; text-align:center; font-size:90px; color:white; border: 5px solid var(--gold); background: black; padding: 15px; margin-top:30px;">SUMA: <span id="f-total">0</span></div>
+            <div style="grid-column: span 2; text-align:center; font-size:90px; color:white; border: 4px solid var(--gold); background: black; padding: 10px; margin-top:20px;">
+                SUMA: <span id="f-total" style="color:var(--gold)">0</span>
+            </div>
         </div>
     </div>
 
@@ -78,76 +97,160 @@
     <audio id="sndZegar" src="tykanie.mp3"></audio>
 
     <script>
+        // --- 1. OBSŁUGA POŁĄCZENIA I BŁĘDÓW ---
         const peer = new Peer();
         let fSum = 0;
+
         peer.on('open', id => {
-            console.log("ID TV:", id);
-            document.getElementById('question').innerText = "ID TV: " + id;
+            console.log("Połączono! ID:", id);
+            document.getElementById('connection-status').innerText = "ONLINE";
+            document.getElementById('connection-status').style.color = "#00ff00";
+            
+            // Wyświetl ID na środku ekranu
+            document.getElementById('question-box').innerHTML = 
+                `<div style="display:flex; flex-direction:column; align-items:center;">
+                    <span style="font-size:30px; color:var(--gold); margin-bottom:10px;">TWOJE ID TABLICY:</span>
+                    <span style="font-size:80px; font-weight:bold; background:#000; padding:10px 40px; border:3px solid white;">${id}</span>
+                    <span style="font-size:20px; margin-top:10px; color:#ccc;">Wpisz to ID w panelu sterowania</span>
+                 </div>`;
         });
 
+        peer.on('error', err => {
+            console.error("Błąd PeerJS:", err);
+            document.getElementById('connection-status').innerText = "BŁĄD!";
+            document.getElementById('connection-status').style.color = "red";
+            document.getElementById('question-box').innerHTML = 
+                `<span style="color:red; font-size:40px;">BŁĄD POŁĄCZENIA!</span><br>
+                 <span style="font-size:25px; color:white;">Kod: ${err.type}</span><br>
+                 <span style="font-size:20px; color:#aaa;">Sprawdź internet lub odśwież stronę (F5)</span>`;
+        });
+
+        peer.on('disconnected', () => {
+            document.getElementById('connection-status').innerText = "ROZŁĄCZONO";
+            document.getElementById('connection-status').style.color = "orange";
+        });
+
+        // --- 2. OBSŁUGA ROZKAZÓW Z PANELU ---
         peer.on('connection', conn => {
             conn.on('data', m => {
+                console.log("Otrzymano:", m); // Debug w konsoli
+
+                // --- DŹWIĘKI ---
                 if(m.type === 'SOUND') {
                     const s = document.getElementById('snd' + m.file);
-                    if(m.action === 'play') s.play(); else { s.pause(); s.currentTime = 0; }
+                    if(s) {
+                        if(m.action === 'play') s.play().catch(e => console.log("Audio block:", e)); 
+                        else { s.pause(); s.currentTime = 0; }
+                    }
                 }
+
+                // --- STOPER ---
                 if(m.type === 'TIMER') {
                     const t = document.getElementById('timer-display');
-                    t.innerText = m.val;
+                    t.innerText = m.val < 10 ? "0"+m.val : m.val; // Dodaj zero wiodące
                     t.style.display = m.visible ? 'block' : 'none';
-                    if(m.val <= 5 && m.val > 0) document.getElementById('sndZegar').play();
+                    // Dźwięk tykania w ostatnich 5 sekundach
+                    if(m.val <= 5 && m.val > 0) {
+                        const tik = document.getElementById('sndZegar');
+                        if(tik) { tik.currentTime = 0; tik.play(); }
+                    }
                 }
+
+                // --- NAZWY DRUŻYN ---
                 if(m.type === 'UPDATE_NAMES') {
-                    document.getElementById('nameA').innerText = m.a;
-                    document.getElementById('nameB').innerText = m.b;
+                    document.getElementById('nameA').innerText = m.a || "DRUŻYNA A";
+                    document.getElementById('nameB').innerText = m.b || "DRUŻYNA B";
                 }
+
+                // --- GRZYBEK (BUZZER) ---
                 if(m.type === 'BUZZ') {
                     const b = document.getElementById('buzzer-msg');
-                    b.innerText = m.teamName + "!";
+                    b.innerText = (m.teamName || "KTOŚ") + "!";
                     b.style.display = 'block';
                     document.getElementById('sndRunda').play();
-                    setTimeout(() => b.style.display = 'none', 2500);
+                    // Automatyczne ukrycie po 3 sekundach
+                    setTimeout(() => b.style.display = 'none', 3000);
                 }
+
+                // --- X (BŁĄD) ---
                 if(m.type === 'STRIKE') {
-                    document.getElementById('strike-pop').style.display='flex';
+                    const x = document.getElementById('strike-pop');
+                    x.style.display = 'flex';
                     document.getElementById('sndNo').play();
-                    setTimeout(() => document.getElementById('strike-pop').style.display='none', 1200);
+                    setTimeout(() => x.style.display = 'none', 1200);
                 }
+
+                // --- NOWE PYTANIE (SETUP) ---
                 if(m.type === 'SETUP') {
-                    document.getElementById('question').innerText = m.q;
-                    const b = document.getElementById('board'); b.innerHTML = "";
-                    m.a.forEach((ans, i) => { b.innerHTML += `<div class="row" id="r-${i}"><span>${i+1}. ....................</span><span>--</span></div>`; });
+                    document.getElementById('question-box').innerText = m.q;
+                    const b = document.getElementById('board'); 
+                    b.innerHTML = "";
+                    m.a.forEach((ans, i) => { 
+                        b.innerHTML += `
+                        <div class="row" id="r-${i}">
+                            <div style="display:flex;">
+                                <span class="row-idx">${i+1}.</span>
+                                <span>....................</span>
+                            </div>
+                            <span class="pts-box">--</span>
+                        </div>`; 
+                    });
                 }
+
+                // --- ODKRYWANIE ODPOWIEDZI ---
                 if(m.type === 'REVEAL') {
                     document.getElementById('sndOk').play();
                     const r = document.getElementById(`r-${m.index}`);
-                    r.style.color = "var(--gold)";
-                    r.innerHTML = `<span>${m.index+1}. ${m.text}</span><span>${m.pts}</span>`;
+                    if(r) {
+                        r.style.color = "var(--gold)";
+                        r.style.background = "linear-gradient(to bottom, #0000aa, #000088)";
+                        r.innerHTML = `
+                            <div style="display:flex;">
+                                <span class="row-idx">${m.index+1}.</span>
+                                <span>${m.text}</span>
+                            </div>
+                            <span class="pts-box">${m.pts}</span>`;
+                    }
                 }
+
+                // --- AKTUALIZACJA WYNIKÓW ---
                 if(m.type === 'UPDATE') {
                     document.getElementById('sA').innerText = m.scA;
                     document.getElementById('sB').innerText = m.scB;
-                    document.getElementById('xA').innerText = "X".repeat(m.strikes.A);
-                    document.getElementById('xB').innerText = "X".repeat(m.strikes.B);
+                    // Renderowanie iksów
+                    let xA_html = ""; for(let i=0; i<m.strikes.A; i++) xA_html += "X ";
+                    let xB_html = ""; for(let i=0; i<m.strikes.B; i++) xB_html += "X ";
+                    document.getElementById('xA').innerText = xA_html;
+                    document.getElementById('xB').innerText = xB_html;
                 }
+
+                // --- ZMIANA RUNDY (NORMALNA / FINAŁ) ---
                 if(m.type === 'NEXT_ROUND') {
-                    document.getElementById('r-display').innerText = m.round === 'final' ? "FINAŁ" : "RUNDA " + m.round;
+                    document.getElementById('logo-text').innerText = m.round === 'final' ? "FINAŁ" : "RUNDA " + m.round;
+                    
                     if(m.round === 'final') {
                         document.getElementById('normal-view').style.display = 'none';
                         document.getElementById('final-board').style.display = 'grid';
-                        fSum = 0; document.getElementById('f-total').innerText = "0";
+                        fSum = 0; 
+                        document.getElementById('f-total').innerText = "0";
                         renderFinalSlots();
                     } else {
-                        document.getElementById('normal-view').style.display = 'block';
+                        document.getElementById('normal-view').style.display = 'flex';
                         document.getElementById('final-board').style.display = 'none';
                     }
                 }
+
+                // --- ODKRYWANIE FINAŁU ---
                 if(m.type === 'FINAL_REVEAL') {
+                    // m.p = gracz (1/2), m.r = rząd (0-4), m.k = kolumna ('t' tekst / 'p' punkty)
                     const target = document.getElementById(`f${m.p}-${m.k}-${m.r}`);
                     if(target) {
                         target.innerText = m.v;
                         if(m.k === 'p') {
-                            document.getElementById('sndOk').play();
+                            // Jeśli odkrywamy punkty, dodaj dźwięk i zlicz sumę
+                            if(m.v !== "" && m.v !== "0") document.getElementById('sndOk').play();
+                            else if(m.v === "0") document.getElementById('sndNo').play(); // Zero punktów = błąd
+                            
                             fSum += parseInt(m.v) || 0;
                             document.getElementById('f-total').innerText = fSum;
                         }
@@ -156,12 +259,24 @@
             });
         });
 
+        // Funkcja pomocnicza do rysowania pustej tabeli finałowej
         function renderFinalSlots() {
-            const p1 = document.getElementById('f-p1'); const p2 = document.getElementById('f-p2');
+            const p1 = document.getElementById('f-p1'); 
+            const p2 = document.getElementById('f-p2');
             p1.innerHTML = ""; p2.innerHTML = "";
+            
             for(let i=0; i<5; i++) {
-                p1.innerHTML += `<div class="f-row"><span id="f1-t-${i}"></span><span class="f-pts" id="f1-p-${i}"></span></div>`;
-                p2.innerHTML += `<div class="f-row"><span id="f2-t-${i}"></span><span class="f-pts" id="f2-p-${i}"></span></div>`;
+                p1.innerHTML += `
+                <div class="f-row">
+                    <span id="f1-t-${i}">................</span>
+                    <span class="f-pts" id="f1-p-${i}">--</span>
+                </div>`;
+                
+                p2.innerHTML += `
+                <div class="f-row">
+                    <span id="f2-t-${i}">................</span>
+                    <span class="f-pts" id="f2-p-${i}">--</span>
+                </div>`;
             }
         }
     </script>
