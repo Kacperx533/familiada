@@ -84,12 +84,12 @@
                 <button onclick="setTeam('A')" id="btnA" class="btn btn-red">TEAM A</button>
                 <button onclick="setTeam('B')" id="btnB" class="btn btn-primary" style="background:var(--blue)">TEAM B</button>
             </div>
-            <button onclick="sendToTV({type:'STRIKE'}); if(activeTeam) strikes[activeTeam]++; sync();" class="btn btn-red strike-btn">✖</button>
+            <button onclick="triggerStrike()" class="btn btn-red strike-btn">✖</button>
             <div class="grid-2" style="margin-top:10px;">
                 <div><label style="font-size:10px">PUNKTY A</label><input type="number" id="scA" value="0" onchange="sync()"></div>
                 <div><label style="font-size:10px">PUNKTY B</label><input type="number" id="scB" value="0" onchange="sync()"></div>
             </div>
-            <button onclick="strikes={A:0, B:0}; sync();" class="btn btn-dark" style="font-size:10px; margin-top:5px;">RESET BŁĘDÓW (X)</button>
+            <button onclick="resetStrikes()" class="btn btn-dark" style="font-size:10px; margin-top:5px;">RESET BŁĘDÓW (X)</button>
         </div>
     </div>
 
@@ -97,7 +97,6 @@
         let peer = new Peer();
         let tvConn, buzzerConns = [], activeTeam = null, strikes = {A:0, B:0}, multiplier = 1, currentAnswers = [];
 
-        // BAZA 30 PYTAŃ
         const db = [
             { q: "Więcej niż jedno zwierzę?", a: [["Stado", 45], ["Para", 25], ["Owce", 15], ["Lama", 10], ["Wataha", 5]] },
             { q: "Zwierzę na literę K?", a: [["Kot", 48], ["Koń", 22], ["Krowa", 15], ["Kura", 10], ["Kangur", 5]] },
@@ -108,27 +107,7 @@
             { q: "Co rośnie w lesie?", a: [["Grzyby", 50], ["Jagody", 25], ["Drzewa", 15], ["Mech", 10]] },
             { q: "Dyscyplina z piłką?", a: [["Nożna", 60], ["Siatkówka", 20], ["Koszykówka", 15], ["Ręczna", 5]] },
             { q: "Coś czerwonego?", a: [["Pomidor", 40], ["Róża", 30], ["Serce", 20], ["Krew", 10]] },
-            { q: "Polskie miasto na K?", a: [["Kraków", 60], ["Katowice", 20], ["Kielce", 10], ["Koszalin", 5]] },
-            { q: "Część garderoby na zimę?", a: [["Kurtka", 40], ["Czapka", 30], ["Szalik", 20], ["Rękawiczki", 10]] },
-            { q: "Co słodkiego?", a: [["Czekolada", 40], ["Lody", 30], ["Ciastko", 20], ["Cukierki", 10]] },
-            { q: "Środek transportu?", a: [["Samolot", 40], ["Pociąg", 30], ["Autobus", 20], ["Statek", 10]] },
-            { q: "Instrument muzyczny?", a: [["Gitara", 45], ["Pianino", 30], ["Trąbka", 15], ["Skrzypce", 10]] },
-            { q: "Ptak, który nie lata?", a: [["Struś", 50], ["Pingwin", 40], ["Kura", 10]] },
-            { q: "Gdzie na wakacje?", a: [["Morze", 50], ["Góry", 30], ["Zagranica", 15], ["Wieś", 5]] },
-            { q: "Coś okrągłego?", a: [["Piłka", 50], ["Koło", 30], ["Talerz", 15], ["Słońce", 5]] },
-            { q: "Zawód medyczny?", a: [["Lekarz", 60], ["Pielęgniarka", 25], ["Ratownik", 10], ["Dentysta", 5]] },
-            { q: "Co ma rogi?", a: [["Krowa", 50], ["Diabeł", 20], ["Koza", 15], ["Jeleń", 15]] },
-            { q: "Element pogody?", a: [["Deszcz", 40], ["Słońce", 35], ["Wiatr", 15], ["Śnieg", 10]] },
-            { q: "Zwierzę domowe?", a: [["Pies", 55], ["Kot", 35], ["Chomik", 10]] },
-            { q: "Coś do pisania?", a: [["Długopis", 50], ["Ołówek", 30], ["Pióro", 15], ["Flamaster", 5]] },
-            { q: "Polska potrawa?", a: [["Pierogi", 50], ["Bigos", 25], ["Schabowy", 15], ["Żurek", 10]] },
-            { q: "Gdzie trzymamy pieniądze?", a: [["Portfel", 60], ["Bank", 30], ["Skarbonka", 10]] },
-            { q: "Co jest w piórniku?", a: [["Długopis", 45], ["Gumka", 25], ["Linijka", 20], ["Temperówka", 10]] },
-            { q: "Kwiat na randkę?", a: [["Róża", 70], ["Tulipan", 15], ["Goździk", 10], ["Lilia", 5]] },
-            { q: "Zwierzę na farmie?", a: [["Krowa", 40], ["Świnia", 30], ["Kura", 20], ["Koń", 10]] },
-            { q: "Co w piekarni?", a: [["Chleb", 60], ["Bułki", 30], ["Pączek", 10]] },
-            { q: "Dzień tygodnia na S?", a: [["Sobota", 70], ["Środa", 30]] },
-            { q: "Co świeci na niebie?", a: [["Słońce", 60], ["Księżyc", 30], ["Gwiazdy", 10]] }
+            { q: "Polskie miasto na K?", a: [["Kraków", 60], ["Katowice", 20], ["Kielce", 10], ["Koszalin", 5]] }
         ];
 
         const finalDb = [
@@ -136,7 +115,6 @@
             { n: "Finał: Dom", qs: ["Pokój?", "Mebel?", "Kuchnia?", "Ściana?", "Zwierzę?"], q: ["Salon", "Kanapa", "Lodówka", "Obraz", "Pies"], p: [40, 35, 25, 10, 5] }
         ];
 
-        // LOGIKA PEER
         peer.on('open', id => document.getElementById('panel-id-display').innerText = "TWÓJ ID PANELU: " + id);
         
         peer.on('connection', conn => {
@@ -148,13 +126,16 @@
 
         function connectToTV() {
             const id = document.getElementById('tv-id').value;
+            if(!id) return alert("Wpisz ID TV!");
             tvConn = peer.connect(id);
             tvConn.on('open', () => {
                 document.getElementById('setup').style.display='none';
                 document.getElementById('controls').style.display='block';
+                
                 const qs = document.getElementById('q-select');
                 qs.innerHTML = '<option value="">-- WYBIERZ PYTANIE --</option>';
                 db.forEach((d, i) => qs.innerHTML += `<option value="${i}">${d.q}</option>`);
+                
                 const fs = document.getElementById('f-select');
                 fs.innerHTML = '<option value="">-- WYBIERZ FINAŁ --</option>';
                 finalDb.forEach((f, i) => fs.innerHTML += `<option value="${i}">${f.n}</option>`);
@@ -165,7 +146,6 @@
         function controlBuzzers(state) { broadcast({type: state}); }
         function sendToTV(m) { if(tvConn && tvConn.open) tvConn.send(m); }
 
-        // RUNDY
         function setR(r) { 
             multiplier = (typeof r === 'number') ? r : 1; 
             document.getElementById('normal-game-ui').style.display = (r === 'final') ? 'none' : 'block'; 
@@ -176,7 +156,6 @@
             controlBuzzers('LOCK'); 
         }
 
-        // PYTANIA
         function loadQ() {
             const val = document.getElementById('q-select').value;
             if(val==="") return;
@@ -190,6 +169,7 @@
 
         function sendQ() { 
             const val = document.getElementById('q-select').value; 
+            if(val==="") return;
             sendToTV({type:'SETUP', q: db[val].q, a: currentAnswers.map(x=>({t:x[0], p:x[1]}))}); 
         }
 
@@ -203,9 +183,37 @@
             }
         }
 
-        // FINAŁ
+        function triggerStrike() {
+            sendToTV({type:'STRIKE'});
+            if(activeTeam) {
+                strikes[activeTeam]++;
+                sync();
+            }
+        }
+
+        function resetStrikes() {
+            strikes = {A:0, B:0};
+            sync();
+        }
+
+        function setTeam(t) { 
+            activeTeam = t; 
+            document.getElementById('btnA').className = t==='A' ? 'btn btn-red active-team' : 'btn btn-red'; 
+            document.getElementById('btnB').className = t==='B' ? 'btn btn-primary active-team' : 'btn btn-primary'; 
+        }
+
+        function sync() { 
+            sendToTV({
+                type:'UPDATE', 
+                scA: document.getElementById('scA').value, 
+                scB: document.getElementById('scB').value, 
+                strikes: strikes
+            }); 
+        }
+
         function loadFinal() {
             const val = document.getElementById('f-select').value;
+            if(val==="") return;
             const f = finalDb[val];
             const div = document.getElementById('f-inputs');
             div.innerHTML = "";
@@ -222,18 +230,11 @@
                 div.innerHTML += `</div>`;
             }
         }
+
         function rf(p, r, k) { 
             const val = document.getElementById(`f-${k}-${p}-${r}`).value; 
             sendToTV({type:'FINAL_REVEAL', p:p, r:r, k:k, v:val}); 
         }
-
-        // SYNC
-        function setTeam(t) { 
-            activeTeam = t; 
-            document.getElementById('btnA').className = t==='A' ? 'btn btn-red active-team' : 'btn btn-red'; 
-            document.getElementById('btnB').className = t==='B' ? 'btn btn-primary active-team' : 'btn btn-primary'; 
-        }
-        function sync() { sendToTV({type:'UPDATE', scA:document.getElementById('scA').value, scB:document.getElementById('scB').value, strikes:strikes}); }
     </script>
 </body>
 </html>
