@@ -2,114 +2,67 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>PANEL STEROWANIA PRO</title>
+    <title>PANEL STEROWANIA</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         body { font-family: sans-serif; background: #121212; color: white; padding: 20px; }
-        .card { background: #1e1e1e; padding: 20px; border-radius: 12px; margin-bottom: 10px; border: 1px solid #333; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        button { padding: 15px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        input, select { width: 100%; padding: 12px; margin: 10px 0; background: #2a2a2a; border: 1px solid #444; color: white; border-radius: 6px; box-sizing: border-box; }
-        .btn-reveal { background: #3498db; color: white; text-align: left; margin-bottom: 5px; display: flex; justify-content: space-between; }
-        .btn-strike { background: #e74c3c; color: white; font-size: 40px; width: 100%; height: 100px; }
-        .btn-send { background: #2ecc71; color: white; width: 100%; }
+        .card { background: #1e1e1e; padding: 15px; border-radius: 10px; margin-bottom: 10px; border: 1px solid #333; }
+        button { padding: 12px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; width: 100%; }
+        input { width: 100%; padding: 10px; margin: 5px 0; background: #2a2a2a; color: white; border: 1px solid #444; box-sizing: border-box; }
+        .btn-rev { background: #3498db; color: white; margin-bottom: 5px; display: flex; justify-content: space-between; padding: 10px; }
     </style>
 </head>
 <body>
-
-    <div class="card grid">
-        <button onclick="connect()" style="background: #f1c40f; color: black;">POŁĄCZ ZE STUDIEM</button>
-        <div id="status" style="line-height: 45px; text-align: center; color: #777;">ROZŁĄCZONO</div>
+    <div class="card">
+        <button onclick="connect()" style="background: #f1c40f;">POŁĄCZ ZE STUDIEM</button>
+        <div id="st" style="text-align: center; margin-top: 10px; color: #777;">ROZŁĄCZONO</div>
     </div>
 
     <div id="ui" style="display:none">
-        <div class="card grid">
-            <div>
-                <label>DRUŻYNA A (Nazwa i Pkt)</label>
-                <input type="text" id="nA" value="DRUŻYNA A" onchange="sync()">
-                <input type="number" id="sA" value="0" onchange="sync()">
-            </div>
-            <div>
-                <label>DRUŻYNA B (Nazwa i Pkt)</label>
-                <input type="text" id="nB" value="DRUŻYNA B" onchange="sync()">
-                <input type="number" id="sB" value="0" onchange="sync()">
-            </div>
+        <div class="card" style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div><input type="text" id="nA" value="DRUŻYNA A" onchange="sync()"><input type="number" id="sA" value="0" onchange="sync()"></div>
+            <div><input type="text" id="nB" value="DRUŻYNA B" onchange="sync()"><input type="number" id="sB" value="0" onchange="sync()"></div>
         </div>
-
         <div class="card">
-            <label>WYBIERZ PYTANIE:</label>
-            <select id="q-select" onchange="loadQ()"></select>
-            <button class="btn-send" onclick="sendQ()">WYŚLIJ PYTANIE NA TABLICĘ</button>
+            <select id="q-sel" onchange="loadQ()" style="width:100%; padding:10px;"></select>
+            <button onclick="sendQ()" style="background: #2ecc71; margin-top: 10px;">WYŚLIJ NA TABLICĘ</button>
         </div>
-
-        <div id="ans-area" class="card"></div>
-
-        <button class="btn-strike" onclick="strike()">✖ BŁĄD</button>
+        <div id="ans" class="card"></div>
+        <button onclick="strike()" style="background: #e74c3c; height: 80px; font-size: 30px;">✖ BŁĄD</button>
     </div>
 
     <script>
-        const STAŁE_ID = 'FAMILIADA-GAMESHOW-PRO';
+        const MOJE_ID = 'FAMILIADA-STUDIO-PRO-2026-XYZ'; 
         let peer = new Peer(), conn, currentQ;
-
         const db = [
-            { q: "Więcej niż jedno zwierzę to?", a: [["Stado", 45], ["Para", 25], ["Owce", 15], ["Lama", 5]] },
-            { q: "Coś, co kładziemy na kanapkę?", a: [["Ser", 40], ["Szynka", 35], ["Pomidor", 15], ["Masło", 10]] },
-            { q: "Zwierzę na literę K?", a: [["Kot", 50], ["Koń", 20], ["Krowa", 15], ["Kangur", 5]] },
-            { q: "Dyscyplina sportowa z piłką?", a: [["Nożna", 55], ["Siatkówka", 20], ["Koszykówka", 15]] },
-            { q: "Owoc cytrusowy?", a: [["Cytryna", 45], ["Pomarańcza", 35], ["Mandarynka", 15]] },
-            { q: "Co robimy zaraz po przebudzeniu?", a: [["Ziewamy", 40], ["Myjemy zęby", 30], ["Pijemy kawę", 20]] },
-            { q: "Przedmiot w piórniku?", a: [["Długopis", 50], ["Ołówek", 25], ["Gumka", 15], ["Linijka", 5]] },
-            { q: "Polskie miasto na K?", a: [["Kraków", 60], ["Katowice", 20], ["Kielce", 10]] },
-            { q: "Co można zbierać w lesie?", a: [["Grzyby", 65], ["Jagody", 20], ["Chrust", 10]] },
-            { q: "Część garderoby na zimę?", a: [["Kurtka", 45], ["Czapka", 30], ["Szalik", 15], ["Rękawiczki", 10]] },
-            { q: "Co pijemy na gorąco?", a: [["Herbata", 45], ["Kawa", 40], ["Kakao", 15]] },
-            { q: "Urządzenie w kuchni?", a: [["Lodówka", 40], ["Kuchenka", 30], ["Mikser", 15], ["Zmywarka", 10]] },
-            { q: "Przedmiot szkolny?", a: [["Matematyka", 45], ["Polski", 30], ["WF", 15], ["Historia", 10]] },
-            { q: "Środek transportu?", a: [["Samochód", 40], ["Pociąg", 25], ["Autobus", 20], ["Samolot", 15]] },
-            { q: "Coś słodkiego?", a: [["Czekolada", 40], ["Ciastko", 30], ["Lody", 20], ["Cukierki", 10]] },
-            { q: "Zwierzę domowe?", a: [["Pies", 55], ["Kot", 35], ["Chomik", 5], ["Papuga", 5]] },
-            { q: "Gdzie jeździmy na wakacje?", a: [["Morze", 50], ["Góry", 35], ["Mazury", 15]] },
-            { q: "Kwiat doniczkowy?", a: [["Storczyk", 40], ["Paproć", 25], ["Kaktus", 20], ["Fikus", 10]] },
-            { q: "Coś czerwonego?", a: [["Pomidor", 45], ["Krew", 20], ["Serce", 15], ["Róża", 15]] },
-            { q: "Instrument muzyczny?", a: [["Gitara", 45], ["Pianino", 30], ["Skrzypce", 15], ["Perkusja", 10]] },
-            { q: "Element pogody?", a: [["Deszcz", 40], ["Słońce", 35], ["Śnieg", 15], ["Wiatr", 10]] },
-            { q: "Zawód w szpitalu?", a: [["Lekarz", 55], ["Pielęgniarka", 35], ["Ratownik", 10]] },
-            { q: "Coś, co ma koła?", a: [["Samochód", 45], ["Rower", 30], ["Traktor", 15], ["Taczka", 5]] },
-            { q: "Co kupujemy w piekarni?", a: [["Chleb", 60], ["Bułki", 30], ["Drożdżówkę", 10]] },
-            { q: "Ptak, który nie lata?", a: [["Struś", 50], ["Pingwin", 40], ["Kura", 10]] },
-            { q: "Dzień tygodnia na S?", a: [["Sobota", 70], ["Środa", 30]] },
-            { q: "Coś, co świeci?", a: [["Słońce", 50], ["Żarówka", 30], ["Księżyc", 15], ["Latarka", 5]] },
-            { q: "Gdzie trzymamy pieniądze?", a: [["Portfel", 50], ["Bank", 35], ["Skarbonka", 15]] },
-            { q: "Ssak wodny?", a: [["Delfin", 50], ["Wieloryb", 40], ["Foka", 10]] },
-            { q: "Coś do pisania?", a: [["Długopis", 50], ["Ołówek", 30], ["Marker", 20]] }
+            { q: "Więcej niż jedno zwierzę?", a: [["Stado", 45], ["Para", 25], ["Owce", 15], ["Lama", 5]] },
+            { q: "Coś na kanapkę?", a: [["Ser", 40], ["Szynka", 35], ["Pomidor", 15], ["Masło", 10]] },
+            { q: "Zwierzę na K?", a: [["Kot", 50], ["Koń", 20], ["Krowa", 15]] }
+            // Tutaj możesz dopisać resztę pytań
         ];
 
         window.onload = () => {
-            const sel = document.getElementById('q-select');
-            db.forEach((item, i) => sel.innerHTML += `<option value="${i}">${item.q}</option>`);
+            db.forEach((item, i) => document.getElementById('q-sel').innerHTML += `<option value="${i}">${item.q}</option>`);
             loadQ();
         };
 
         function connect() {
-            conn = peer.connect(STAŁE_ID);
+            conn = peer.connect(MOJE_ID);
             conn.on('open', () => { 
                 document.getElementById('ui').style.display='block'; 
-                document.getElementById('status').innerText = "POŁĄCZONO";
-                document.getElementById('status').style.color = "#2ecc71";
-                sync(); 
+                document.getElementById('st').innerText = "POŁĄCZONO"; 
+                document.getElementById('st').style.color = "#2ecc71";
             });
         }
 
         function loadQ() {
-            currentQ = db[document.getElementById('q-select').value];
-            const div = document.getElementById('ans-area'); div.innerHTML = "";
-            currentQ.a.forEach((a, i) => {
-                div.innerHTML += `<button class="btn-reveal" onclick="reveal(${i})"><span>${a[0]}</span> <span>${a[1]}</span></button>`;
-            });
+            currentQ = db[document.getElementById('q-sel').value];
+            const d = document.getElementById('ans'); d.innerHTML = "";
+            currentQ.a.forEach((a, i) => d.innerHTML += `<button class="btn-rev" onclick="rev(${i})"><span>${a[0]}</span><span>${a[1]}</span></button>`);
         }
 
         function sendQ() { conn.send({type:'SETUP', q:currentQ.q, a:currentQ.a.map(x=>({t:x[0], p:x[1]}))}); }
-        function reveal(i) { conn.send({type:'REVEAL', index:i, text:currentQ.a[i][0], pts:currentQ.a[i][1]}); }
+        function rev(i) { conn.send({type:'REVEAL', index:i, text:currentQ.a[i][0], pts:currentQ.a[i][1]}); }
         function strike() { conn.send({type:'STRIKE'}); }
         function sync() { conn.send({type:'UPDATE', scA:document.getElementById('sA').value, scB:document.getElementById('sB').value, nameA:document.getElementById('nA').value, nameB:document.getElementById('nB').value}); }
     </script>
