@@ -2,68 +2,166 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PANEL PROWADZĄCEGO</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FAMILIADA - PANEL STEROWANIA</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        body { font-family: sans-serif; background: #121212; color: white; padding: 10px; }
-        .card { background: #1e1e1e; padding: 10px; border-radius: 12px; margin-bottom: 8px; border: 1px solid #444; }
-        button { padding: 10px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; }
-        .btn-main { width: 100%; margin: 4px 0; }
-        .ans-row { background: #333; padding: 6px; margin: 3px 0; display: flex; justify-content: space-between; align-items: center; border-radius: 5px; }
-        .final-grid { display: grid; grid-template-columns: 1fr 50px 40px 40px; gap: 3px; margin-bottom: 5px; }
-        input { background: #222; color: white; border: 1px solid #555; padding: 8px; border-radius: 5px; }
-        select { width: 100%; padding: 10px; background: #333; color: white; border-radius: 8px; margin-bottom: 10px; }
+        :root {
+            --primary: #bb86fc;
+            --secondary: #03dac6;
+            --bg: #121212;
+            --surface: #1e1e1e;
+            --error: #cf6679;
+            --on-surface: #ffffff;
+            --gold: #f1c40f;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--on-surface);
+            margin: 0;
+            padding: 10px;
+            padding-bottom: 40px;
+        }
+
+        .card {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            border: 1px solid #333;
+        }
+
+        h3, h4 { margin: 0 0 10px 0; color: var(--primary); text-transform: uppercase; font-size: 14px; }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            margin: 5px 0;
+            background: #2c2c2c;
+            border: 1px solid #444;
+            color: white;
+            border-radius: 8px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 8px;
+            padding: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            display: inline-block;
+        }
+
+        .btn-green { background: #2e7d32; color: white; }
+        .btn-red { background: var(--error); color: white; }
+        .btn-violet { background: var(--primary); color: black; }
+        .btn-outline { background: transparent; border: 1px solid var(--primary); color: var(--primary); }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+        .ans-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #2c2c2c;
+            padding: 8px 12px;
+            margin: 4px 0;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        #panel-id-display {
+            background: rgba(241, 196, 15, 0.1);
+            color: var(--gold);
+            padding: 8px;
+            border-radius: 6px;
+            text-align: center;
+            border: 1px solid var(--gold);
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .strike-btn {
+            background: #ff0000;
+            height: 70px;
+            font-size: 30px;
+            color: white;
+            width: 100%;
+            margin-top: 10px;
+            border-radius: 12px;
+        }
+
+        .final-grid {
+            display: grid;
+            grid-template-columns: 1fr 50px 40px 40px;
+            gap: 4px;
+            margin-bottom: 8px;
+            align-items: center;
+        }
+
+        .final-grid span { font-size: 11px; grid-column: span 4; color: #aaa; }
+
+        .active-team { border: 3px solid var(--gold) !important; }
     </style>
 </head>
 <body>
+
     <div id="setup" class="card">
-        <h3>1. POŁĄCZ Z TV</h3>
-        <input type="text" id="tv-id" placeholder="ID Z EKRANU TV" style="width: 60%;">
-        <button onclick="connectToTV()" style="background: #4CAF50; color: white;">POŁĄCZ</button>
-        <p id="panel-id-display" style="color: yellow; font-weight: bold;">ID PANELU (DLA GRACZY): --</p>
+        <h3>1. Połącz z TV</h3>
+        <input type="text" id="tv-id" placeholder="Wpisz ID z ekranu TV">
+        <button onclick="connectToTV()" class="btn btn-green" style="width:100%">POŁĄCZ Z TABLICĄ</button>
+        <p id="panel-id-display">Oczekiwanie na ID...</p>
     </div>
 
     <div id="controls" style="display:none">
-        <div class="card">
-            <button onclick="sendToTV({type:'START_INTRO'})" style="background:#2e7d32; color:white; width:48%">▶ CZOŁÓWKA</button>
-            <button onclick="sendToTV({type:'SHOW_CREDITS'})" style="background:#5d4037; color:white; width:48%">🎬 NAPISY</button>
-        </div>
         
-        <div class="card">
-            <strong>RUNDA:</strong>
-            <button onclick="setR(1)">1 (x1)</button>
-            <button onclick="setR(2)">2 (x2)</button>
-            <button onclick="setR(3)">3 (x3)</button>
-            <button onclick="setR('final')" style="background:violet">FINAŁ</button> | 
-            <button onclick="broadcast({type:'UNLOCK'})" style="background:green; color:white;">🔓 ODBLOKUJ GRZYBKI</button>
+        <div class="card grid-2">
+            <button onclick="sendToTV({type:'START_INTRO'})" class="btn btn-green">▶ START</button>
+            <button onclick="sendToTV({type:'SHOW_CREDITS'})" class="btn btn-outline">NAPISY</button>
         </div>
 
-        <div id="normal-game">
-            <div class="card">
-                <select id="q-select" onchange="loadQ()"></select>
-                <button class="btn-main" onclick="sendQ()" style="background:#bb86fc; color:black;">WYŚLIJ PYTANIE NA TV</button>
-                <div id="ans-list"></div>
+        <div class="card">
+            <h4>Runda / Grzybki</h4>
+            <div class="grid-2" style="margin-bottom:8px;">
+                <button onclick="setR(1)" class="btn btn-outline">R1</button>
+                <button onclick="setR(2)" class="btn btn-outline">R2</button>
+                <button onclick="setR(3)" class="btn btn-outline">R3</button>
+                <button onclick="setR('final')" class="btn btn-violet">FINAŁ</button>
             </div>
+            <button onclick="broadcast({type:'UNLOCK'})" class="btn btn-green" style="width:100%">🔓 ODBLOKUJ GRZYBKI</button>
         </div>
 
-        <div id="final-game" style="display:none">
-            <div class="card">
-                <select id="f-select" onchange="loadFinal()"></select>
-                <div id="f-inputs"></div>
+        <div id="normal-game" class="card">
+            <h4>Pytania</h4>
+            <select id="q-select" onchange="loadQ()"></select>
+            <button onclick="sendQ()" class="btn btn-violet" style="width:100%">WYŚLIJ NA TV</button>
+            <div id="ans-list"></div>
+        </div>
+
+        <div id="final-game" class="card" style="display:none">
+            <h4>Finał</h4>
+            <select id="f-select" onchange="loadFinal()"></select>
+            <div id="f-inputs"></div>
+        </div>
+
+        <div class="card">
+            <div class="grid-2">
+                <button onclick="setTeam('A')" id="btnA" class="btn" style="background: var(--error);">TEAM A</button>
+                <button onclick="setTeam('B')" id="btnB" class="btn" style="background: var(--secondary); color: black;">TEAM B</button>
             </div>
-        </div>
-
-        <div class="card">
-            <button onclick="setTeam('A')" id="btnA" style="background:#cf6679; width:48%">TEAM A</button>
-            <button onclick="setTeam('B')" id="btnB" style="background:#03dac6; width:48%">TEAM B</button>
-            <button class="btn-main" onclick="sendToTV({type:'STRIKE'}); if(activeTeam) strikes[activeTeam]++; sync();" style="background:red; color:white; height:60px; font-size:20px;">X (BŁĄD)</button>
-        </div>
-        
-        <div class="card">
-            PKT A: <input type="number" id="scA" value="0" style="width:60px" onchange="sync()"> 
-            PKT B: <input type="number" id="scB" value="0" style="width:60px" onchange="sync()">
-            <button onclick="strikes={A:0, B:0}; sync();" style="float:right">RESET X</button>
+            <button onclick="sendToTV({type:'STRIKE'}); if(activeTeam) strikes[activeTeam]++; sync();" class="btn strike-btn">❌ BŁĄD (X)</button>
+            <div class="grid-2" style="margin-top:10px;">
+                <input type="number" id="scA" value="0" onchange="sync()">
+                <input type="number" id="scB" value="0" onchange="sync()">
+            </div>
+            <button onclick="strikes={A:0, B:0}; sync();" class="btn btn-outline" style="width:100%; margin-top:5px;">RESET X</button>
         </div>
     </div>
 
@@ -97,7 +195,7 @@
             { n: "Finał 5: Jedzenie", qs: ["Biały napój?", "Obiad?", "Słodycz?", "Pizza?", "Chleb?"], q: ["Mleko", "Ziemniaki", "Czekolada", "Ser", "Chleb"], p: [50, 25, 10, 10, 5] }
         ];
 
-        peer.on('open', id => document.getElementById('panel-id-display').innerText = "ID PANELU (DLA GRACZY): " + id);
+        peer.on('open', id => document.getElementById('panel-id-display').innerText = "ID PANELU: " + id);
         peer.on('connection', conn => {
             buzzerConns.push(conn);
             conn.on('data', m => { if(m.type === 'BUZZ') sendToTV(m); });
@@ -120,12 +218,25 @@
         function broadcast(m) { buzzerConns.forEach(c => { if(c.open) c.send(m); }); }
         function sendToTV(m) { if(tvConn && tvConn.open) tvConn.send(m); }
         function setR(r) { multiplier = (typeof r === 'number') ? r : 1; document.getElementById('normal-game').style.display = (r === 'final') ? 'none' : 'block'; document.getElementById('final-game').style.display = (r === 'final') ? 'block' : 'none'; sendToTV({type: 'NEXT_ROUND', round: r}); strikes = {A:0, B:0}; sync(); }
-        function loadQ() { const val = document.getElementById('q-select').value; if(val==="") return; const d = db[val]; currentAnswers = d.a; let list = document.getElementById('ans-list'); list.innerHTML = ""; d.a.forEach((a, i) => { list.innerHTML += `<div class="ans-row"><span>${a[0]} (${a[1]})</span><button onclick="reveal(${i})">ODKRYJ</button></div>`; }); }
+        
+        function loadQ() { 
+            const val = document.getElementById('q-select').value; if(val==="") return; 
+            const d = db[val]; currentAnswers = d.a; 
+            let list = document.getElementById('ans-list'); list.innerHTML = ""; 
+            d.a.forEach((a, i) => { list.innerHTML += `<div class="ans-row"><span>${a[0]} (${a[1]})</span><button onclick="reveal(${i})" class="btn btn-outline" style="padding:5px 10px">ODKRYJ</button></div>`; }); 
+        }
+
         function sendQ() { const val = document.getElementById('q-select').value; if(val==="") return; sendToTV({type:'SETUP', q: db[val].q, a: currentAnswers.map(x=>({t:x[0], p:x[1]}))}); }
         function reveal(i) { let pts = currentAnswers[i][1] * multiplier; sendToTV({type:'REVEAL', index:i, text:currentAnswers[i][0], pts: pts}); if(activeTeam) { let s = document.getElementById('sc'+activeTeam); s.value = parseInt(s.value) + pts; sync(); } }
-        function loadFinal() { const val = document.getElementById('f-select').value; if(val==="") return; const f = finalDb[val]; const div = document.getElementById('f-inputs'); div.innerHTML = ""; for(let p=1; p<=2; p++) { div.innerHTML += `<h4>GRACZ ${p}</h4>`; for(let i=0; i<5; i++) { div.innerHTML += `<div class="final-grid"><span>${f.qs[i]}</span><input id="f-t-${p}-${i}" value="${p==1?f.q[i]:''}" placeholder="T"><input id="f-p-${p}-${i}" value="${p==1?f.p[i]:''}" style="width:40px"><button onclick="rf(${p},${i},'t')">T</button><button onclick="rf(${p},${i},'p')">P</button></div>`; } } }
+        
+        function loadFinal() { 
+            const val = document.getElementById('f-select').value; if(val==="") return; 
+            const f = finalDb[val]; const div = document.getElementById('f-inputs'); div.innerHTML = ""; 
+            for(let p=1; p<=2; p++) { div.innerHTML += `<h4>GRACZ ${p}</h4>`; for(let i=0; i<5; i++) { div.innerHTML += `<div class="final-grid"><span>${f.qs[i]}</span><input id="f-t-${p}-${i}" value="${p==1?f.q[i]:''}" placeholder="Odp"><input id="f-p-${p}-${i}" value="${p==1?f.p[i]:''}" style="width:40px"><button onclick="rf(${p},${i},'t')" class="btn btn-outline" style="padding:5px">T</button><button onclick="rf(${p},${i},'p')" class="btn btn-green" style="padding:5px">P</button></div>`; } } 
+        }
+
         function rf(p, r, k) { const val = document.getElementById(`f-${k}-${p}-${r}`).value; sendToTV({type:'FINAL_REVEAL', p:p, r:r, k:k, v:val}); }
-        function setTeam(t) { activeTeam = t; document.getElementById('btnA').style.border = (t==='A'?'3px solid gold':'none'); document.getElementById('btnB').style.border = (t==='B'?'3px solid gold':'none'); }
+        function setTeam(t) { activeTeam = t; document.getElementById('btnA').classList.toggle('active-team', t==='A'); document.getElementById('btnB').classList.toggle('active-team', t==='B'); }
         function sync() { sendToTV({type:'UPDATE', scA:document.getElementById('scA').value, scB:document.getElementById('scB').value, strikes:strikes}); }
     </script>
 </body>
