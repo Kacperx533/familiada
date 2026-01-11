@@ -2,90 +2,86 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>PANEL STUDIO PRO</title>
+    <title>PANEL STEROWANIA PRO</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        :root { --bg: #0f172a; --card: #1e293b; --accent: #8b5cf6; --success: #10b981; --danger: #ef4444; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: white; margin: 0; padding: 15px; }
-        .card { background: var(--card); border-radius: 15px; padding: 15px; margin-bottom: 10px; border: 1px solid #334155; }
-        button { border: none; border-radius: 8px; padding: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; width: 100%; color: white; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        input, select { width: 100%; padding: 12px; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 8px; box-sizing: border-box; margin-top: 5px; }
-        .ans-btn { background: #334155; text-align: left; margin-bottom: 5px; display: flex; justify-content: space-between; }
-        .ans-btn:hover { background: var(--accent); }
-        .btn-strike { background: var(--danger); height: 100px; font-size: 40px; margin-top: 10px; }
+        body { font-family: sans-serif; background: #121212; color: white; padding: 20px; }
+        .card { background: #1e1e1e; padding: 20px; border-radius: 12px; margin-bottom: 10px; border: 1px solid #333; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        button { padding: 15px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        input, select { width: 100%; padding: 12px; margin: 10px 0; background: #2a2a2a; border: 1px solid #444; color: white; border-radius: 6px; box-sizing: border-box; }
+        .btn-reveal { background: #3498db; color: white; text-align: left; margin-bottom: 5px; display: flex; justify-content: space-between; }
+        .btn-strike { background: #e74c3c; color: white; font-size: 40px; width: 100%; height: 100px; }
+        .btn-send { background: #2ecc71; color: white; width: 100%; }
     </style>
 </head>
 <body>
 
-    <div id="setup" class="card">
-        <input type="text" id="tv-id" placeholder="WPISZ ID Z TELEWIZORA">
-        <button onclick="connect()" style="background: var(--accent); margin-top:10px;">POŁĄCZ STUDIO</button>
+    <div class="card grid">
+        <button onclick="connect()" style="background: #f1c40f; color: black;">POŁĄCZ ZE STUDIEM</button>
+        <div id="status" style="line-height: 45px; text-align: center; color: #777;">ROZŁĄCZONO</div>
     </div>
 
-    <div id="controls" style="display:none">
+    <div id="ui" style="display:none">
         <div class="card grid">
             <div>
-                <label>DRUŻYNA A</label>
+                <label>DRUŻYNA A (Nazwa i Pkt)</label>
                 <input type="text" id="nA" value="DRUŻYNA A" onchange="sync()">
                 <input type="number" id="sA" value="0" onchange="sync()">
             </div>
             <div>
-                <label>DRUŻYNA B</label>
+                <label>DRUŻYNA B (Nazwa i Pkt)</label>
                 <input type="text" id="nB" value="DRUŻYNA B" onchange="sync()">
                 <input type="number" id="sB" value="0" onchange="sync()">
             </div>
         </div>
 
         <div class="card">
-            <label>WYBIERZ PYTANIE (BAZA 30)</label>
+            <label>WYBIERZ PYTANIE:</label>
             <select id="q-select" onchange="loadQ()"></select>
-            <button onclick="sendQ()" style="background: var(--success); margin-top:10px;">WYŚLIJ NA TABLICĘ</button>
+            <button class="btn-send" onclick="sendQ()">WYŚLIJ PYTANIE NA TABLICĘ</button>
         </div>
 
-        <div id="answers" class="card"></div>
+        <div id="ans-area" class="card"></div>
 
-        <button class="btn-strike" onclick="strike()">✖</button>
-
-        <div class="card grid">
-            <button onclick="timer(20)" style="background: #576574;">TIMER 20s</button>
-            <button onclick="timer(0)" style="background: #222f3e;">STOP</button>
-        </div>
+        <button class="btn-strike" onclick="strike()">✖ BŁĄD</button>
     </div>
 
     <script>
+        const STAŁE_ID = 'FAMILIADA-GAMESHOW-PRO';
         let peer = new Peer(), conn, currentQ;
+
         const db = [
-            { q: "Więcej niż jedno zwierzę?", a: [["Owce", 32], ["Lama", 21], ["Stado", 15], ["Para", 5]] },
-            { q: "Polska potrawa wigilijna?", a: [["Barszcz", 45], ["Karp", 30], ["Pierogi", 15], ["Uszka", 8]] },
-            { q: "Przedmiot szkolny?", a: [["Matematyka", 40], ["Polski", 25], ["WF", 15], ["Historia", 10]] },
-            { q: "Zwierzę na literę K?", a: [["Kot", 48], ["Koń", 22], ["Krowa", 15], ["Kangur", 5]] },
-            { q: "Co pijemy rano?", a: [["Kawa", 50], ["Herbata", 25], ["Woda", 10], ["Mleko", 8]] },
-            { q: "Co można robić w lesie?", a: [["Spacerować", 45], ["Zbierać grzyby", 35], ["Biegać", 10]] },
-            { q: "Owoc cytrusowy?", a: [["Cytryna", 40], ["Pomarańcza", 35], ["Mandarynka", 15]] },
-            { q: "Coś, co ma kółka?", a: [["Samochód", 45], ["Rower", 25], ["Wózek", 15], ["Hulajnoga", 10]] },
-            { q: "Element pogody?", a: [["Deszcz", 40], ["Słońce", 35], ["Wiatr", 15], ["Śnieg", 10]] },
-            { q: "Czym podróżujemy?", a: [["Samochód", 40], ["Pociąg", 25], ["Autobus", 15], ["Samolot", 15]] },
-            { q: "Zajęcie na wakacjach?", a: [["Pływanie", 35], ["Opalanie", 30], ["Zwiedzanie", 20]] },
-            { q: "Kwiat na randkę?", a: [["Róża", 60], ["Tulipan", 20], ["Goździk", 10]] },
-            { q: "Coś słodkiego?", a: [["Czekolada", 35], ["Lody", 30], ["Ciasto", 20], ["Cukierki", 10]] },
-            { q: "Dyscyplina sportowa?", a: [["Piłka nożna", 45], ["Siatkówka", 20], ["Bieganie", 15]] },
-            { q: "Co kładziemy na kanapkę?", a: [["Szynka", 40], ["Ser", 35], ["Pomidor", 15], ["Masło", 5]] },
-            { q: "Coś, co lata?", a: [["Ptak", 45], ["Samolot", 35], ["Mucha", 10], ["Balon", 5]] },
-            { q: "Część garderoby?", a: [["Spodnie", 35], ["Koszulka", 30], ["Buty", 20], ["Kurtka", 10]] },
-            { q: "Miasto w Polsce?", a: [["Warszawa", 40], ["Kraków", 30], ["Gdańsk", 15], ["Wrocław", 10]] },
-            { q: "Coś czerwonego?", a: [["Pomidor", 40], ["Serce", 25], ["Krew", 15], ["Róża", 10]] },
-            { q: "Instrument muzyczny?", a: [["Gitara", 40], ["Pianino", 30], ["Perkusja", 15]] },
-            { q: "Zawód medyczny?", a: [["Lekarz", 50], ["Pielęgniarka", 30], ["Ratownik", 10]] },
-            { q: "Drzewo liściaste?", a: [["Dąb", 40], ["Brzoza", 30], ["Klon", 15], ["Buk", 5]] },
-            { q: "Gdzie trzymamy pieniądze?", a: [["Portfel", 45], ["Bank", 35], ["Skarbonka", 10]] },
-            { q: "Coś, co świeci?", a: [["Słońce", 45], ["Żarówka", 30], ["Księżyc", 15]] },
-            { q: "Ssak wodny?", a: [["Delfin", 45], ["Wieloryb", 35], ["Foka", 15]] },
-            { q: "Coś do pisania?", a: [["Długopis", 45], ["Ołówek", 30], ["Marker", 15]] },
-            { q: "Dzień tygodnia?", a: [["Sobota", 40], ["Niedziela", 30], ["Piątek", 15], ["Poniedziałek", 10]] },
-            { q: "Co kupujemy w piekarni?", a: [["Chleb", 50], ["Bułki", 30], ["Pączek", 10], ["Drożdżówka", 10]] },
-            { q: "Zabytek w Polsce?", a: [["Wawel", 40], ["Zamek Królewski", 25], ["Malbork", 15]] },
-            { q: "Coś, co rośnie w ogrodzie?", a: [["Trawa", 35], ["Kwiaty", 30], ["Jabłoń", 20], ["Marchew", 15]] }
+            { q: "Więcej niż jedno zwierzę to?", a: [["Stado", 45], ["Para", 25], ["Owce", 15], ["Lama", 5]] },
+            { q: "Coś, co kładziemy na kanapkę?", a: [["Ser", 40], ["Szynka", 35], ["Pomidor", 15], ["Masło", 10]] },
+            { q: "Zwierzę na literę K?", a: [["Kot", 50], ["Koń", 20], ["Krowa", 15], ["Kangur", 5]] },
+            { q: "Dyscyplina sportowa z piłką?", a: [["Nożna", 55], ["Siatkówka", 20], ["Koszykówka", 15]] },
+            { q: "Owoc cytrusowy?", a: [["Cytryna", 45], ["Pomarańcza", 35], ["Mandarynka", 15]] },
+            { q: "Co robimy zaraz po przebudzeniu?", a: [["Ziewamy", 40], ["Myjemy zęby", 30], ["Pijemy kawę", 20]] },
+            { q: "Przedmiot w piórniku?", a: [["Długopis", 50], ["Ołówek", 25], ["Gumka", 15], ["Linijka", 5]] },
+            { q: "Polskie miasto na K?", a: [["Kraków", 60], ["Katowice", 20], ["Kielce", 10]] },
+            { q: "Co można zbierać w lesie?", a: [["Grzyby", 65], ["Jagody", 20], ["Chrust", 10]] },
+            { q: "Część garderoby na zimę?", a: [["Kurtka", 45], ["Czapka", 30], ["Szalik", 15], ["Rękawiczki", 10]] },
+            { q: "Co pijemy na gorąco?", a: [["Herbata", 45], ["Kawa", 40], ["Kakao", 15]] },
+            { q: "Urządzenie w kuchni?", a: [["Lodówka", 40], ["Kuchenka", 30], ["Mikser", 15], ["Zmywarka", 10]] },
+            { q: "Przedmiot szkolny?", a: [["Matematyka", 45], ["Polski", 30], ["WF", 15], ["Historia", 10]] },
+            { q: "Środek transportu?", a: [["Samochód", 40], ["Pociąg", 25], ["Autobus", 20], ["Samolot", 15]] },
+            { q: "Coś słodkiego?", a: [["Czekolada", 40], ["Ciastko", 30], ["Lody", 20], ["Cukierki", 10]] },
+            { q: "Zwierzę domowe?", a: [["Pies", 55], ["Kot", 35], ["Chomik", 5], ["Papuga", 5]] },
+            { q: "Gdzie jeździmy na wakacje?", a: [["Morze", 50], ["Góry", 35], ["Mazury", 15]] },
+            { q: "Kwiat doniczkowy?", a: [["Storczyk", 40], ["Paproć", 25], ["Kaktus", 20], ["Fikus", 10]] },
+            { q: "Coś czerwonego?", a: [["Pomidor", 45], ["Krew", 20], ["Serce", 15], ["Róża", 15]] },
+            { q: "Instrument muzyczny?", a: [["Gitara", 45], ["Pianino", 30], ["Skrzypce", 15], ["Perkusja", 10]] },
+            { q: "Element pogody?", a: [["Deszcz", 40], ["Słońce", 35], ["Śnieg", 15], ["Wiatr", 10]] },
+            { q: "Zawód w szpitalu?", a: [["Lekarz", 55], ["Pielęgniarka", 35], ["Ratownik", 10]] },
+            { q: "Coś, co ma koła?", a: [["Samochód", 45], ["Rower", 30], ["Traktor", 15], ["Taczka", 5]] },
+            { q: "Co kupujemy w piekarni?", a: [["Chleb", 60], ["Bułki", 30], ["Drożdżówkę", 10]] },
+            { q: "Ptak, który nie lata?", a: [["Struś", 50], ["Pingwin", 40], ["Kura", 10]] },
+            { q: "Dzień tygodnia na S?", a: [["Sobota", 70], ["Środa", 30]] },
+            { q: "Coś, co świeci?", a: [["Słońce", 50], ["Żarówka", 30], ["Księżyc", 15], ["Latarka", 5]] },
+            { q: "Gdzie trzymamy pieniądze?", a: [["Portfel", 50], ["Bank", 35], ["Skarbonka", 15]] },
+            { q: "Ssak wodny?", a: [["Delfin", 50], ["Wieloryb", 40], ["Foka", 10]] },
+            { q: "Coś do pisania?", a: [["Długopis", 50], ["Ołówek", 30], ["Marker", 20]] }
         ];
 
         window.onload = () => {
@@ -95,15 +91,20 @@
         };
 
         function connect() {
-            conn = peer.connect(document.getElementById('tv-id').value);
-            conn.on('open', () => { document.getElementById('setup').style.display='none'; document.getElementById('controls').style.display='block'; sync(); });
+            conn = peer.connect(STAŁE_ID);
+            conn.on('open', () => { 
+                document.getElementById('ui').style.display='block'; 
+                document.getElementById('status').innerText = "POŁĄCZONO";
+                document.getElementById('status').style.color = "#2ecc71";
+                sync(); 
+            });
         }
 
         function loadQ() {
             currentQ = db[document.getElementById('q-select').value];
-            const div = document.getElementById('answers'); div.innerHTML = "";
+            const div = document.getElementById('ans-area'); div.innerHTML = "";
             currentQ.a.forEach((a, i) => {
-                div.innerHTML += `<button class="ans-btn" onclick="reveal(${i})"><span>${a[0]}</span> <span>${a[1]}</span></button>`;
+                div.innerHTML += `<button class="btn-reveal" onclick="reveal(${i})"><span>${a[0]}</span> <span>${a[1]}</span></button>`;
             });
         }
 
@@ -111,17 +112,6 @@
         function reveal(i) { conn.send({type:'REVEAL', index:i, text:currentQ.a[i][0], pts:currentQ.a[i][1]}); }
         function strike() { conn.send({type:'STRIKE'}); }
         function sync() { conn.send({type:'UPDATE', scA:document.getElementById('sA').value, scB:document.getElementById('sB').value, nameA:document.getElementById('nA').value, nameB:document.getElementById('nB').value}); }
-        
-        function timer(s) {
-            if(s === 0) { conn.send({type:'TIMER', visible:false}); return; }
-            let sec = s;
-            conn.send({type:'TIMER', val:sec, visible:true});
-            let interval = setInterval(() => {
-                sec--;
-                conn.send({type:'TIMER', val:sec, visible:true});
-                if(sec <= 0) { clearInterval(interval); new Audio('https://www.myinstants.com/media/sounds/incorrect_6.mp3').play(); }
-            }, 1000);
-        }
     </script>
 </body>
 </html>
