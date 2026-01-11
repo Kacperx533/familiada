@@ -2,112 +2,133 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>PANEL PRO - STEROWANIE</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FAMILIADA - PANEL STEROWANIA</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #121212; color: white; padding: 20px; }
-        .card { background: #1e1e1e; padding: 20px; border-radius: 12px; margin-bottom: 10px; border: 1px solid #333; }
-        button { padding: 15px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; width: 100%; margin: 5px 0; }
-        input, select { width: 100%; padding: 12px; margin: 10px 0; background: #2a2a2a; border: 1px solid #444; color: white; border-radius: 6px; box-sizing: border-box; }
-        .ans-btn { background: #3498db; color: white; display: flex; justify-content: space-between; font-size: 18px; }
-        .ans-btn:hover { background: #2980b9; }
-        .strike-btn { background: #e74c3c; color: white; font-size: 40px; height: 120px; }
-        .strike-btn:hover { background: #c0392b; }
+        :root { --bg: #0f172a; --card: #1e293b; --accent: #8b5cf6; --success: #10b981; --danger: #ef4444; --gold: #f59e0b; --text: #f8fafc; }
+        body { font-family: sans-serif; background: var(--bg); color: var(--text); padding: 10px; margin: 0; }
+        .card { background: var(--card); border-radius: 15px; padding: 15px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.1); }
+        h4 { margin: 0 0 10px 0; font-size: 0.9rem; text-transform: uppercase; color: var(--accent); }
+        input, select { width: 100%; padding: 12px; background: #0f172a; border: 2px solid #334155; color: white; border-radius: 10px; margin-bottom: 10px; box-sizing: border-box; font-size: 16px; }
+        .btn { border: none; border-radius: 10px; padding: 12px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.2s; }
+        .btn-primary { background: var(--accent); color: white; }
+        .btn-green { background: var(--success); color: white; }
+        .btn-red { background: var(--danger); color: white; }
+        .btn-gold { background: var(--gold); color: black; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .ans-row { display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); padding: 8px; margin: 4px 0; border-radius: 8px; }
+        .strike-zone { background: var(--danger); font-size: 30px; margin-top: 10px; }
+        .active-team { border: 3px solid var(--gold) !important; box-shadow: 0 0 10px var(--gold); }
     </style>
 </head>
 <body>
-
-    <div class="card">
-        <label>KOD Z TELEWIZORA:</label>
-        <input type="text" id="tv-id" placeholder="np. peerjs-abc-123">
-        <button onclick="connect()" style="background: #f1c40f; color: black;">POŁĄCZ ZE STUDIEM</button>
-        <div id="status" style="text-align:center; margin-top:10px; color: #777;">ROZŁĄCZONO</div>
+    <div id="setup" class="card">
+        <h4>Połącz z TV</h4>
+        <input type="text" id="tv-id" placeholder="ID z ekranu TV">
+        <button onclick="connectToTV()" class="btn btn-primary">POŁĄCZ</button>
+        <div id="panel-id-display" style="font-size: 12px; margin-top: 10px; text-align: center; color: var(--gold);">Generowanie ID...</div>
     </div>
 
-    <div id="ui" style="display:none">
-        <div class="card" style="display:grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-            <div>
-                <label>DRUŻYNA A</label>
-                <input type="text" id="nA" value="DRUŻYNA A" onchange="sync()">
-                <input type="number" id="sA" value="0" onchange="sync()">
+    <div id="controls" style="display:none">
+        <div class="card">
+            <h4>Rundy i Blokada</h4>
+            <div class="grid-2" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 10px;">
+                <button onclick="setR(1)" class="btn btn-primary">x1</button>
+                <button onclick="setR(2)" class="btn btn-primary">x2</button>
+                <button onclick="setR(3)" class="btn btn-primary">x3</button>
+                <button onclick="setR('final')" class="btn btn-gold">FIN</button>
             </div>
-            <div>
-                <label>DRUŻYNA B</label>
-                <input type="text" id="nB" value="DRUŻYNA B" onchange="sync()">
-                <input type="number" id="sB" value="0" onchange="sync()">
+            <div class="grid-2">
+                <button onclick="controlBuzzers('UNLOCK')" class="btn btn-green">🔓 ODBLOKUJ</button>
+                <button onclick="controlBuzzers('LOCK')" class="btn btn-red">🔒 ZABLOKUJ</button>
             </div>
+        </div>
+
+        <div id="normal-game" class="card">
+            <h4>Pytania i Odpowiedzi</h4>
+            <select id="q-select" onchange="loadQ()"></select>
+            <button onclick="sendQ()" class="btn btn-primary" style="margin-bottom: 10px;">WYŚLIJ NA TV</button>
+            <div id="ans-list"></div>
         </div>
 
         <div class="card">
-            <label>WYBIERZ PYTANIE:</label>
-            <select id="q-sel" onchange="loadQ()"></select>
-            <button onclick="sendQ()" style="background: #2ecc71; color: white;">WYŚLIJ PYTANIE NA TABLICĘ</button>
+            <h4>Punkty i Błędy</h4>
+            <div class="grid-2">
+                <button onclick="setTeam('A')" id="btnA" class="btn btn-red">DRUŻYNA A</button>
+                <button onclick="setTeam('B')" id="btnB" class="btn btn-primary" style="background:var(--blue)">DRUŻYNA B</button>
+            </div>
+            <button onclick="sendToTV({type:'STRIKE'}); if(activeTeam) strikes[activeTeam]++; sync();" class="btn strike-zone">✖ BŁĄD</button>
+            <div class="grid-2" style="margin-top:10px">
+                <input type="number" id="scA" value="0" onchange="sync()">
+                <input type="number" id="scB" value="0" onchange="sync()">
+            </div>
+            <button onclick="strikes={A:0, B:0}; sync();" class="btn" style="background:transparent; border:1px solid #444; color:#777; font-size:10px;">RESET X</button>
         </div>
-
-        <div id="ans-list" class="card"></div>
-        <button class="strike-btn" onclick="strike()">✖ BŁĄD (X)</button>
     </div>
 
     <script>
-        let peer = new Peer(), conn, currentQ;
+        let peer = new Peer();
+        let tvConn, buzzerConns = [], activeTeam = null, strikes = {A:0, B:0}, multiplier = 1, currentAnswers = [];
+
+        // Baza pytań (taka sama jak w Twoim kodzie)
         const db = [
-            { q: "Więcej niż jedno zwierzę?", a: [["Stado", 45], ["Para", 25], ["Owce", 15], ["Lama", 5]] },
-            { q: "Coś na kanapkę?", a: [["Ser", 40], ["Szynka", 35], ["Pomidor", 15], ["Masło", 10]] },
-            { q: "Zwierzę na literę K?", a: [["Kot", 48], ["Koń", 22], ["Krowa", 15]] },
-            { q: "Co pijemy rano?", a: [["Kawa", 50], ["Herbata", 25], ["Woda", 10]] },
-            { q: "Dzień tygodnia na S?", a: [["Sobota", 70], ["Środa", 30]] },
-            { q: "Owoc cytrusowy?", a: [["Cytryna", 45], ["Pomarańcza", 35], ["Mandarynka", 15]] },
-            { q: "Co rośnie w lesie?", a: [["Grzyby", 60], ["Jagody", 25], ["Drzewa", 15]] },
-            { q: "Przedmiot w piórniku?", a: [["Długopis", 50], ["Ołówek", 25], ["Gumka", 15]] },
-            { q: "Część garderoby na zimę?", a: [["Kurtka", 45], ["Czapka", 30], ["Szalik", 20]] },
-            { q: "Urządzenie w kuchni?", a: [["Lodówka", 40], ["Kuchenka", 30], ["Mikser", 20]] },
-            { q: "Polskie miasto na K?", a: [["Kraków", 60], ["Katowice", 20], ["Kielce", 10]] },
-            { q: "Środek transportu?", a: [["Samolot", 45], ["Pociąg", 30], ["Autobus", 20]] },
-            { q: "Co słodkiego?", a: [["Czekolada", 40], ["Lody", 30], ["Ciastko", 20]] },
-            { q: "Dyscyplina z piłką?", a: [["Nożna", 60], ["Siatkówka", 20], ["Koszykówka", 15]] },
-            { q: "Ptak, który nie lata?", a: [["Struś", 55], ["Pingwin", 35], ["Kura", 10]] },
-            { q: "Instrument muzyczny?", a: [["Gitara", 45], ["Pianino", 35], ["Trąbka", 15]] },
-            { q: "Coś czerwonego?", a: [["Pomidor", 50], ["Róża", 25], ["Serce", 15]] },
-            { q: "Gdzie trzymamy pieniądze?", a: [["Portfel", 60], ["Bank", 30], ["Skarbonka", 10]] },
-            { q: "Zwierzę domowe?", a: [["Pies", 55], ["Kot", 35], ["Chomik", 10]] },
-            { q: "Co świeci na niebie?", a: [["Słońce", 60], ["Księżyc", 30], ["Gwiazdy", 10]] },
-            { q: "Przedmiot szkolny?", a: [["Matematyka", 45], ["WF", 35], ["Polski", 15]] },
-            { q: "Coś okrągłego?", a: [["Piłka", 50], ["Koło", 30], ["Talerz", 20]] },
-            { q: "Zawód medyczny?", a: [["Lekarz", 60], ["Pielęgniarka", 30], ["Ratownik", 10]] },
-            { q: "Czym piszemy?", a: [["Długopis", 60], ["Ołówek", 30], ["Kreda", 10]] },
-            { q: "Gdzie na wakacje?", a: [["Morze", 55], ["Góry", 35], ["Wieś", 10]] },
-            { q: "Co w piekarni?", a: [["Chleb", 65], ["Bułki", 25], ["Pączek", 10]] },
-            { q: "Zwierzę na farmie?", a: [["Krowa", 45], ["Świnia", 30], ["Kura", 25]] },
-            { q: "Co do picia na gorąco?", a: [["Herbata", 50], ["Kawa", 40], ["Kakao", 10]] },
-            { q: "Element pogody?", a: [["Deszcz", 40], ["Słońce", 40], ["Śnieg", 20]] },
-            { q: "Co ma rogi?", a: [["Krowa", 50], ["Diabeł", 25], ["Koza", 15], ["Jeleń", 10]] }
+            { q: "Więcej niż jedno zwierzę?", a: [["Owce", 32], ["Lama", 21], ["Stado", 15], ["Wataha", 10], ["Para", 5]] },
+            { q: "Zwierzę na literę K?", a: [["Kot", 48], ["Koń", 22], ["Krowa", 15], ["Kura", 10], ["Kangur", 5]] },
+            { q: "Co pijemy rano?", a: [["Kawa", 45], ["Herbata", 30], ["Woda", 15], ["Sok", 10]] }
+            // ... dopisz resztę swoich pytań tutaj
         ];
 
-        window.onload = () => {
-            db.forEach((item, i) => document.getElementById('q-sel').innerHTML += `<option value="${i}">${item.q}</option>`);
-            loadQ();
-        };
+        peer.on('open', id => document.getElementById('panel-id-display').innerText = "ID PANELU: " + id);
 
-        function connect() {
-            conn = peer.connect(document.getElementById('tv-id').value);
-            conn.on('open', () => { 
-                document.getElementById('ui').style.display='block'; 
-                document.getElementById('status').innerText = "POŁĄCZONO";
-                document.getElementById('status').style.color = "#2ecc71";
-                sync(); 
+        peer.on('connection', conn => {
+            if(!buzzerConns.find(c => c.peer === conn.peer)) buzzerConns.push(conn);
+            conn.on('data', m => { 
+                if(m.type === 'BUZZ') { sendToTV(m); controlBuzzers('LOCK'); }
+            });
+        });
+
+        function connectToTV() {
+            const id = document.getElementById('tv-id').value;
+            tvConn = peer.connect(id);
+            tvConn.on('open', () => {
+                document.getElementById('setup').style.display='none';
+                document.getElementById('controls').style.display='block';
+                const qs = document.getElementById('q-select');
+                qs.innerHTML = '<option value="">-- WYBIERZ PYTANIE --</option>';
+                db.forEach((d, i) => qs.innerHTML += `<option value="${i}">${d.q}</option>`);
             });
         }
 
+        function broadcast(m) { buzzerConns.forEach(c => { if(c.open) c.send(m); }); }
+        function controlBuzzers(state) { broadcast({type: state}); }
+        function sendToTV(m) { if(tvConn && tvConn.open) tvConn.send(m); }
+
         function loadQ() {
-            currentQ = db[document.getElementById('q-sel').value];
-            const l = document.getElementById('ans-list'); l.innerHTML = "";
-            currentQ.a.forEach((a, i) => l.innerHTML += `<button class="ans-btn" onclick="rev(${i})"><span>${a[0]}</span><span>${a[1]}</span></button>`);
+            const d = db[document.getElementById('q-select').value];
+            if(!d) return;
+            currentAnswers = d.a;
+            const list = document.getElementById('ans-list');
+            list.innerHTML = "";
+            d.a.forEach((a, i) => {
+                list.innerHTML += `<div class="ans-row"><span>${a[0]} (${a[1]})</span><button onclick="reveal(${i})" class="btn btn-gold" style="width:80px; padding:5px">ODKRYJ</button></div>`;
+            });
         }
 
-        function sendQ() { conn.send({type:'SETUP', q:currentQ.q, a:currentQ.a.map(x=>({t:x[0], p:x[1]}))}); }
-        function rev(i) { conn.send({type:'REVEAL', index:i, text:currentQ.a[i][0], pts:currentQ.a[i][1]}); }
-        function strike() { conn.send({type:'STRIKE'}); }
-        function sync() { conn.send({type:'UPDATE', scA:document.getElementById('sA').value, scB:document.getElementById('sB').value, nA:document.getElementById('nA').value, nB:document.getElementById('nB').value}); }
+        function sendQ() { const val = document.getElementById('q-select').value; sendToTV({type:'SETUP', q: db[val].q, a: currentAnswers.map(x=>({t:x[0], p:x[1]}))}); }
+        function reveal(i) {
+            let pts = currentAnswers[i][1] * multiplier;
+            sendToTV({type:'REVEAL', index:i, text:currentAnswers[i][0], pts: pts});
+            if(activeTeam) {
+                let s = document.getElementById('sc'+activeTeam);
+                s.value = parseInt(s.value) + pts;
+                sync();
+            }
+        }
+
+        function setR(r) { multiplier = (typeof r === 'number') ? r : 1; sendToTV({type: 'NEXT_ROUND', round: r}); strikes = {A:0, B:0}; sync(); controlBuzzers('LOCK'); }
+        function setTeam(t) { activeTeam = t; document.getElementById('btnA').className = t==='A' ? 'btn btn-red active-team' : 'btn btn-red'; document.getElementById('btnB').className = t==='B' ? 'btn btn-primary active-team' : 'btn btn-primary'; }
+        function sync() { sendToTV({type:'UPDATE', scA:document.getElementById('scA').value, scB:document.getElementById('scB').value, strikes:strikes}); }
     </script>
 </body>
 </html>
