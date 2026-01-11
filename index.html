@@ -2,69 +2,117 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA - TV</title>
-    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    <title>FAMILIADA PRO - TV</title>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&family=Inter:wght@900&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        body { background: #000033; color: #f1c40f; font-family: 'VT323', monospace; text-align: center; margin: 0; overflow: hidden; }
-        #setup-screen { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #000033; z-index: 100; }
-        #id-box { font-size: 100px; background: white; color: black; padding: 10px 40px; margin: 20px; border-radius: 10px; }
-        #game-screen { display: none; height: 100vh; flex-direction: column; }
-        .header { display: flex; justify-content: space-between; padding: 20px 50px; background: rgba(0,0,0,0.5); border-bottom: 4px solid #444; }
-        .score { font-size: 80px; border: 4px solid white; padding: 10px 30px; min-width: 100px; background: black; }
-        #board { flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
-        .row { width: 80%; background: linear-gradient(to bottom, #0000aa, #000066); border: 2px solid #888; margin: 8px; padding: 15px 30px; font-size: 45px; display: flex; justify-content: space-between; color: white; }
-        #strike-box { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.4); font-size: 500px; color: red; z-index: 1000; text-shadow: 15px 15px 0 black; }
-        #timer { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 300px; color: red; display: none; z-index: 1100; }
+        :root { --gold: #f1c40f; --blue: #1e3799; --dark: #0a0a2e; --red: #eb4d4b; }
+        body { background: var(--dark); color: white; font-family: 'Inter', sans-serif; margin: 0; overflow: hidden; text-transform: uppercase; }
+        
+        /* Ekran startowy z ID */
+        #setup-screen { position: fixed; inset: 0; background: radial-gradient(circle, #1e3799 0%, #0a0a2e 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; }
+        .id-card { background: white; color: black; padding: 30px 60px; border-radius: 20px; box-shadow: 0 0 50px rgba(0,0,0,0.5); text-align: center; }
+        #my-id { font-size: 80px; font-weight: 900; display: block; letter-spacing: 5px; margin-top: 10px; }
+
+        /* Nagłówek i Punkty */
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 30px 60px; background: rgba(0,0,0,0.4); border-bottom: 5px solid var(--gold); }
+        .score-box { background: #000; border: 4px solid white; padding: 10px 40px; font-size: 100px; font-family: 'VT323'; color: white; min-width: 150px; text-align: center; box-shadow: inset 0 0 20px rgba(255,255,255,0.2); }
+        .team-info { text-align: center; width: 350px; }
+        .team-name { font-size: 35px; margin-bottom: 10px; color: var(--gold); }
+
+        /* Tablica */
+        #main-game { display: none; height: 100vh; flex-direction: column; align-items: center; padding-top: 50px; }
+        #question-display { font-size: 45px; margin-bottom: 40px; text-align: center; max-width: 90%; text-shadow: 2px 2px 10px rgba(0,0,0,0.5); }
+        .board { width: 1100px; display: grid; gap: 15px; }
+        .row { background: linear-gradient(180deg, #273c75 0%, #192a56 100%); border: 3px solid #487eb0; height: 85px; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; font-size: 50px; box-shadow: 0 10px 20px rgba(0,0,0,0.3); border-radius: 10px; }
+        .pts { border-left: 3px solid #487eb0; padding-left: 30px; min-width: 80px; text-align: right; font-family: 'VT323'; font-size: 60px; }
+
+        /* Efekty specjalne */
+        #strike-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index: 2000; }
+        #strike-overlay span { color: var(--red); font-size: 600px; font-weight: 900; text-shadow: 20px 20px 0 #000; }
+        #buzzer-msg { display: none; position: fixed; top: 40%; left: 50%; transform: translate(-50%, -50%); background: var(--gold); color: black; padding: 40px 100px; font-size: 100px; font-weight: 900; border: 15px solid white; z-index: 1500; }
+        #timer { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 400px; color: var(--red); font-family: 'VT323'; display: none; z-index: 2100; text-shadow: 15px 15px 0 #000; }
     </style>
 </head>
 <body>
+
     <div id="setup-screen">
-        <h1>TWOJE ID TELEWIZORA:</h1>
-        <div id="id-box">CZEKAJ...</div>
-        <p>Wpisz ten kod w panelu i grzybkach</p>
-    </div>
-
-    <div id="game-screen">
-        <div class="header">
-            <div id="sA" class="score" style="color:#ff4757">0</div>
-            <div style="font-size: 40px;">FAMILIADA<br><span id="round-name">RUNDA 1</span></div>
-            <div id="sB" class="score" style="color:#2e86de">0</div>
+        <div class="id-card">
+            <div style="font-size: 24px;">ID TWOJEGO TELEWIZORA</div>
+            <div id="my-id">ŁĄCZENIE...</div>
         </div>
-        <div id="question" style="font-size: 50px; margin-top: 20px;">OCZEKIWANIE NA PYTANIE...</div>
-        <div id="board"></div>
     </div>
 
-    <div id="strike-box">X</div>
+    <div id="main-game">
+        <div class="header" style="width: 100%; box-sizing: border-box;">
+            <div class="team-info">
+                <div id="nameA" class="team-name">DRUŻYNA A</div>
+                <div id="sA" class="score-box">0</div>
+            </div>
+            <div style="text-align: center;">
+                <div style="font-size: 30px; letter-spacing: 5px;">FAMILIADA</div>
+                <div id="round-title" style="font-size: 20px; color: var(--gold);">RUNDA 1</div>
+            </div>
+            <div class="team-info">
+                <div id="nameB" class="team-name">DRUŻYNA B</div>
+                <div id="sB" class="score-box">0</div>
+            </div>
+        </div>
+
+        <div id="question-display">OCZEKIWANIE NA PYTANIE...</div>
+        <div class="board" id="board-ui"></div>
+    </div>
+
+    <div id="strike-overlay"><span>X</span></div>
+    <div id="buzzer-msg">BUZZ!</div>
     <div id="timer">00</div>
 
     <script>
         const peer = new Peer();
-        peer.on('open', id => document.getElementById('id-box').innerText = id);
+        peer.on('open', id => document.getElementById('my-id').innerText = id);
+
         peer.on('connection', conn => {
             conn.on('data', m => {
                 document.getElementById('setup-screen').style.display = 'none';
-                document.getElementById('game-screen').style.display = 'flex';
-                
+                document.getElementById('main-game').style.display = 'flex';
+
                 if(m.type === 'SETUP') {
-                    document.getElementById('question').innerText = m.q;
-                    const b = document.getElementById('board'); b.innerHTML = '';
-                    m.a.forEach((ans, i) => b.innerHTML += `<div class="row" id="r-${i}"><span>${i+1}. ...................</span><span>--</span></div>`);
+                    document.getElementById('question-display').innerText = m.q;
+                    const b = document.getElementById('board-ui'); b.innerHTML = '';
+                    m.a.forEach((ans, i) => {
+                        b.innerHTML += `<div class="row" id="r-${i}"><div style="color:#7f8c8d">${i+1}. ........................</div><div class="pts">--</div></div>`;
+                    });
                 }
+
                 if(m.type === 'REVEAL') {
-                    const r = document.getElementById(`r-${m.index}`);
-                    r.innerHTML = `<span>${m.index+1}. ${m.text}</span><span>${m.pts}</span>`;
+                    const row = document.getElementById(`r-${m.index}`);
+                    row.style.background = 'linear-gradient(180deg, #f1c40f 0%, #f39c12 100%)';
+                    row.style.color = 'black';
+                    row.innerHTML = `<div>${m.index+1}. ${m.text}</div><div class="pts" style="color:black; border-color:black;">${m.pts}</div>`;
                     new Audio('https://www.myinstants.com/media/sounds/ding-sound-effect_2.mp3').play();
                 }
+
                 if(m.type === 'STRIKE') {
-                    const s = document.getElementById('strike-box'); s.style.display = 'flex';
+                    const s = document.getElementById('strike-overlay'); s.style.display = 'flex';
                     new Audio('https://www.myinstants.com/media/sounds/incorrect_6.mp3').play();
                     setTimeout(() => s.style.display = 'none', 1200);
                 }
+
+                if(m.type === 'BUZZ') {
+                    const b = document.getElementById('buzzer-msg');
+                    b.innerText = m.teamName + "!";
+                    b.style.display = 'block';
+                    new Audio('https://www.myinstants.com/media/sounds/start-sound-effect.mp3').play();
+                    setTimeout(() => b.style.display = 'none', 2500);
+                }
+
                 if(m.type === 'UPDATE') {
                     document.getElementById('sA').innerText = m.scA;
                     document.getElementById('sB').innerText = m.scB;
+                    document.getElementById('nameA').innerText = m.nameA || "DRUŻYNA A";
+                    document.getElementById('nameB').innerText = m.nameB || "DRUŻYNA B";
                 }
+
                 if(m.type === 'TIMER') {
                     const t = document.getElementById('timer'); t.innerText = m.val;
                     t.style.display = m.visible ? 'block' : 'none';
