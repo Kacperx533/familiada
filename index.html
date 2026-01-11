@@ -8,34 +8,26 @@
     <style>
         :root { --bg: #000033; --gold: #f1c40f; --red: #ff4757; --blue: #2e86de; }
         body { font-family: 'VT323', monospace; background: var(--bg); color: var(--gold); margin: 0; overflow: hidden; text-transform: uppercase; }
-        
-        /* WARSTWY WIDEO */
         #video-layer, #credits-screen { position: fixed; inset: 0; background: black; z-index: 10000; display: none; }
         video { width: 100%; height: 100%; object-fit: cover; }
-        
         #intro-screen { position: fixed; inset: 0; background: var(--gold); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; }
         #intro-text { font-size: 180px; color: #000066; font-weight: bold; }
-        
         #overlay { position: fixed; inset: 0; background: black; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 11000; }
         #game-id-display { color: white; font-size: 40px; border: 2px dashed var(--gold); padding: 20px; margin-bottom: 20px; }
-
         .header { display: flex; justify-content: space-between; align-items: center; padding: 20px 50px; background: rgba(0,0,0,0.5); border-bottom: 4px solid #444; }
         .score-box { font-size: 90px; color: white; padding: 10px 30px; border: 4px solid #fff; min-width: 120px; text-align: center; }
-        
         #main { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 75vh; }
         #question { font-size: 50px; color: white; margin-bottom: 25px; text-align: center; width: 90%; min-height: 60px; }
-        
         .board { width: 900px; display: flex; flex-direction: column; gap: 12px; }
         .row { display: flex; justify-content: space-between; font-size: 48px; height: 70px; padding: 0 25px; align-items: center; background: #000066; border: 2px solid #555; }
-        
         #final-board { display: none; width: 1100px; grid-template-columns: 1fr 1fr; gap: 50px; }
         .f-col { display: flex; flex-direction: column; gap: 10px; }
         .f-row { display: flex; justify-content: space-between; background: #000066; padding: 0 25px; font-size: 45px; height: 65px; border: 2px solid #555; align-items: center; color: var(--gold); }
         .f-pts { color: white; min-width: 75px; text-align: right; border-left: 3px solid #555; padding-left: 15px; height: 100%; display: flex; align-items: center; justify-content: flex-end; }
         .f-sum-box { grid-column: span 2; text-align:center; font-size:80px; color:white; margin-top:20px; border: 4px solid var(--gold); background: black; padding: 10px; }
-        
         #strike-pop { display: none; position: fixed; inset: 0; justify-content: center; align-items: center; background: rgba(255,0,0,0.3); z-index: 12000; }
         #strike-pop span { font-size: 700px; color: #ff0000; font-weight: bold; text-shadow: 20px 20px 0 #000; }
+        #buzzer-msg { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--gold); color: black; padding: 40px; font-size: 80px; font-weight: bold; border: 10px solid white; display: none; z-index: 15000; box-shadow: 0 0 100px rgba(0,0,0,0.8); }
     </style>
 </head>
 <body>
@@ -47,6 +39,7 @@
     <div id="video-layer"><video id="myVideo" src="czolowka.mp4"></video></div>
     <div id="credits-screen"><video id="videoCredits" src="napisy.mp4"></video></div>
     <div id="intro-screen"><div id="intro-text">FAMILIADA</div></div>
+    <div id="buzzer-msg"></div>
     
     <audio id="sndOk" src="ok.mp3"></audio>
     <audio id="sndNo" src="zle.mp3"></audio>
@@ -78,7 +71,7 @@
         const peer = new Peer();
         const video = document.getElementById('myVideo');
         const vCredits = document.getElementById('videoCredits');
-        let fSum = 0;
+        let fSum = 0; let buzzerLocked = false;
 
         peer.on('open', id => document.getElementById('game-id-display').innerText = "ID GRY: " + id);
 
@@ -98,6 +91,14 @@
                     scr.style.display = 'block';
                     vCredits.play();
                     vCredits.onended = () => { scr.style.display = 'none'; };
+                }
+                if(m.type === 'BUZZ' && !buzzerLocked) {
+                    buzzerLocked = true;
+                    document.getElementById('sndRunda').play();
+                    const bMsg = document.getElementById('buzzer-msg');
+                    bMsg.innerText = (m.team === 'A' ? "DRUŻYNA A" : "DRUŻYNA B") + "!";
+                    bMsg.style.display = 'block';
+                    setTimeout(() => { bMsg.style.display = 'none'; buzzerLocked = false; }, 3000);
                 }
                 if(m.type === 'STRIKE') {
                     document.getElementById('strike-pop').style.display = 'flex';
