@@ -6,167 +6,80 @@
     <title>PRO PANEL - FAMILIADA</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        :root {
-            --bg: #0f172a;
-            --card: #1e293b;
-            --accent: #8b5cf6;
-            --success: #10b981;
-            --danger: #ef4444;
-            --gold: #f59e0b;
-            --text: #f8fafc;
-        }
-
-        body {
-            font-family: 'Inter', -apple-system, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            margin: 0;
-            padding: 16px;
-            line-height: 1.5;
-        }
-
-        /* Nagłówki i teksty */
-        h2 { font-size: 1.2rem; margin-bottom: 1rem; color: var(--accent); text-align: center; letter-spacing: 2px; }
-        h4 { margin: 0 0 10px 0; font-size: 0.9rem; color: #94a3b8; text-transform: uppercase; }
-
-        /* Karty */
-        .card {
-            background: var(--card);
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 16px;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-
-        /* Inputy i Selektory */
-        input, select {
-            width: 100%;
-            padding: 14px;
-            background: #0f172a;
-            border: 2px solid #334155;
-            color: white;
-            border-radius: 12px;
-            font-size: 16px;
-            margin-bottom: 10px;
-            transition: border-color 0.3s;
-        }
-        input:focus { border-color: var(--accent); outline: none; }
-
-        /* Przyciski */
-        .btn {
-            border: none;
-            border-radius: 12px;
-            padding: 14px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            font-size: 0.9rem;
-        }
+        :root { --bg: #0f172a; --card: #1e293b; --accent: #8b5cf6; --success: #10b981; --danger: #ef4444; --gold: #f59e0b; --text: #f8fafc; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; }
+        .card { background: var(--card); border-radius: 20px; padding: 20px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.05); }
+        h2 { font-size: 1.1rem; text-align: center; color: var(--accent); margin-bottom: 15px; }
+        h4 { font-size: 0.8rem; color: #94a3b8; text-transform: uppercase; margin: 0 0 10px 0; }
+        input, select { width: 100%; padding: 12px; background: #0f172a; border: 2px solid #334155; color: white; border-radius: 12px; font-size: 16px; box-sizing: border-box; margin-bottom: 10px; }
+        .btn { border: none; border-radius: 12px; padding: 12px; font-weight: bold; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
         .btn:active { transform: scale(0.95); }
-
         .btn-primary { background: var(--accent); color: white; width: 100%; }
         .btn-green { background: var(--success); color: white; }
         .btn-red { background: var(--danger); color: white; }
         .btn-outline { background: transparent; border: 2px solid #334155; color: white; }
         .btn-gold { background: var(--gold); color: black; }
-
-        /* Siatki */
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .grid-round { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 15px; }
-
-        /* Listy odpowiedzi */
-        .ans-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: rgba(255,255,255,0.03);
-            padding: 12px 16px;
-            margin: 6px 0;
-            border-radius: 12px;
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-
-        /* Wielki przycisk błędu */
-        .strike-zone {
-            background: linear-gradient(135deg, #ef4444 0%, #991b1b 100%);
-            height: 100px;
-            font-size: 40px;
-            margin-top: 15px;
-            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
-        }
-
-        /* Finał */
-        .final-item {
-            background: rgba(0,0,0,0.2);
-            padding: 10px;
-            border-radius: 12px;
-            margin-bottom: 10px;
-        }
-        .final-controls { display: grid; grid-template-columns: 1fr 60px 50px 50px; gap: 5px; margin-top: 5px; }
-        
-        .active-team { border: 3px solid var(--gold) !important; box-shadow: 0 0 20px rgba(245, 158, 11, 0.4); }
-
-        #panel-id-display { color: var(--gold); font-weight: bold; text-align: center; font-size: 0.8rem; margin-top: 5px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .grid-round { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin-bottom: 10px; }
+        .ans-row { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); padding: 10px; margin: 5px 0; border-radius: 10px; }
+        .strike-zone { background: linear-gradient(135deg, #ef4444, #991b1b); height: 80px; font-size: 40px; margin: 15px 0; width: 100%; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3); }
+        .active-team { border: 3px solid var(--gold) !important; }
+        #panel-id-display { color: var(--gold); text-align: center; font-size: 0.8rem; margin-top: 5px; font-weight: bold; }
+        .final-item { background: rgba(0,0,0,0.2); padding: 10px; border-radius: 12px; margin-bottom: 10px; }
     </style>
 </head>
 <body>
-
     <div id="setup" class="card">
-        <h2>KONFIGURACJA</h2>
-        <input type="text" id="tv-id" placeholder="ID z ekranu TV">
+        <h2>KONFIGURACJA PANELU</h2>
+        <input type="text" id="tv-id" placeholder="ID z TV">
         <button onclick="connectToTV()" class="btn btn-primary">POŁĄCZ Z EKRANEM</button>
-        <div id="panel-id-display">Generowanie ID Panelu...</div>
+        <div id="panel-id-display">Generowanie ID...</div>
     </div>
 
     <div id="controls" style="display:none">
-        
         <div class="card grid-2">
             <button onclick="sendToTV({type:'START_INTRO'})" class="btn btn-green">▶ START</button>
             <button onclick="sendToTV({type:'SHOW_CREDITS'})" class="btn btn-outline">NAPISY</button>
         </div>
 
         <div class="card">
-            <h4>Wybierz etap</h4>
+            <h4>Rundy i Blokada</h4>
             <div class="grid-round">
                 <button onclick="setR(1)" class="btn btn-outline">x1</button>
                 <button onclick="setR(2)" class="btn btn-outline">x2</button>
                 <button onclick="setR(3)" class="btn btn-outline">x3</button>
                 <button onclick="setR('final')" class="btn btn-gold">FIN</button>
             </div>
-            <button onclick="broadcast({type:'UNLOCK'})" class="btn btn-green" style="width:100%">🔓 ODBLOKUJ GRZYBKI</button>
+            <div class="grid-2">
+                <button onclick="controlBuzzers('UNLOCK')" class="btn btn-green">🔓 ODBLOKUJ</button>
+                <button onclick="controlBuzzers('LOCK')" class="btn btn-red">🔒 ZABLOKUJ</button>
+            </div>
         </div>
 
         <div id="normal-game" class="card">
-            <h4>Baza pytań</h4>
+            <h4>Pytania</h4>
             <select id="q-select" onchange="loadQ()"></select>
-            <button onclick="sendQ()" class="btn btn-primary" style="margin-bottom:15px;">WYŚLIJ PYTANIE NA TV</button>
+            <button onclick="sendQ()" class="btn btn-primary">WYŚLIJ NA TV</button>
             <div id="ans-list"></div>
         </div>
 
         <div id="final-game" class="card" style="display:none">
-            <h4>Panel Finałowy</h4>
+            <h4>Finał</h4>
             <select id="f-select" onchange="loadFinal()"></select>
             <div id="f-inputs"></div>
         </div>
 
         <div class="card">
             <div class="grid-2">
-                <button onclick="setTeam('A')" id="btnA" class="btn btn-outline" style="border-color:var(--danger)">TEAM A</button>
-                <button onclick="setTeam('B')" id="btnB" class="btn btn-outline" style="border-color:var(--secondary)">TEAM B</button>
+                <button onclick="setTeam('A')" id="btnA" class="btn btn-outline">TEAM A</button>
+                <button onclick="setTeam('B')" id="btnB" class="btn btn-outline">TEAM B</button>
             </div>
-            
             <button onclick="sendToTV({type:'STRIKE'}); if(activeTeam) strikes[activeTeam]++; sync();" class="btn btn-red strike-zone">✖</button>
-            
-            <div class="grid-2" style="margin-top:20px;">
+            <div class="grid-2">
                 <input type="number" id="scA" value="0" onchange="sync()">
                 <input type="number" id="scB" value="0" onchange="sync()">
             </div>
-            <button onclick="strikes={A:0, B:0}; sync();" class="btn btn-outline" style="width:100%; margin-top:10px; font-size: 0.7rem;">WYCZYŚĆ BŁĘDY (X)</button>
+            <button onclick="strikes={A:0, B:0}; sync();" class="btn btn-outline" style="width:100%; margin-top:10px; font-size:0.7rem">RESET X</button>
         </div>
     </div>
 
@@ -201,14 +114,22 @@
         ];
 
         peer.on('open', id => document.getElementById('panel-id-display').innerText = "TWÓJ ID PANELU: " + id);
+        
         peer.on('connection', conn => {
             buzzerConns.push(conn);
-            conn.on('data', m => { if(m.type === 'BUZZ') sendToTV(m); });
+            conn.on('data', m => { 
+                if(m.type === 'BUZZ') {
+                    sendToTV(m);
+                    controlBuzzers('LOCK');
+                }
+            });
         });
+
+        function broadcast(m) { buzzerConns.forEach(c => { if(c && c.open) c.send(m); }); }
+        function controlBuzzers(state) { broadcast({type: state}); }
 
         function connectToTV() {
             const id = document.getElementById('tv-id').value;
-            if(!id) return alert("Wpisz ID z TV!");
             tvConn = peer.connect(id);
             tvConn.on('open', () => {
                 document.getElementById('setup').style.display='none';
@@ -222,13 +143,12 @@
             });
         }
 
-        function broadcast(m) { buzzerConns.forEach(c => { if(c.open) c.send(m); }); }
         function sendToTV(m) { if(tvConn && tvConn.open) tvConn.send(m); }
         function setR(r) { multiplier = (typeof r === 'number') ? r : 1; document.getElementById('normal-game').style.display = (r === 'final') ? 'none' : 'block'; document.getElementById('final-game').style.display = (r === 'final') ? 'block' : 'none'; sendToTV({type: 'NEXT_ROUND', round: r}); strikes = {A:0, B:0}; sync(); }
-        function loadQ() { const val = document.getElementById('q-select').value; if(val==="") return; const d = db[val]; currentAnswers = d.a; let list = document.getElementById('ans-list'); list.innerHTML = ""; d.a.forEach((a, i) => { list.innerHTML += `<div class="ans-row"><span>${a[0]} (${a[1]})</span><button onclick="reveal(${i})" class="btn btn-gold" style="padding:5px 10px; font-size:0.7rem;">ODKRYJ</button></div>`; }); }
+        function loadQ() { const val = document.getElementById('q-select').value; if(val==="") return; const d = db[val]; currentAnswers = d.a; let list = document.getElementById('ans-list'); list.innerHTML = ""; d.a.forEach((a, i) => { list.innerHTML += `<div class="ans-row"><span>${a[0]} (${a[1]})</span><button onclick="reveal(${i})" class="btn btn-gold" style="padding:5px 10px; font-size:0.7rem">ODKRYJ</button></div>`; }); }
         function sendQ() { const val = document.getElementById('q-select').value; if(val==="") return; sendToTV({type:'SETUP', q: db[val].q, a: currentAnswers.map(x=>({t:x[0], p:x[1]}))}); }
         function reveal(i) { let pts = currentAnswers[i][1] * multiplier; sendToTV({type:'REVEAL', index:i, text:currentAnswers[i][0], pts: pts}); if(activeTeam) { let s = document.getElementById('sc'+activeTeam); s.value = parseInt(s.value) + pts; sync(); } }
-        function loadFinal() { const val = document.getElementById('f-select').value; if(val==="") return; const f = finalDb[val]; const div = document.getElementById('f-inputs'); div.innerHTML = ""; for(let p=1; p<=2; p++) { div.innerHTML += `<div class="final-item"><h4>Gracz ${p}</h4>`; for(let i=0; i<5; i++) { div.innerHTML += `<div class="final-controls"><span style="font-size:10px; grid-column:span 4; color:var(--accent)">${f.qs[i]}</span><input id="f-t-${p}-${i}" value="${p==1?f.q[i]:''}" placeholder="T"><input id="f-p-${p}-${i}" value="${p==1?f.p[i]:''}" style="width:40px"><button onclick="rf(${p},${i},'t')" class="btn btn-outline" style="padding:5px">T</button><button onclick="rf(${p},${i},'p')" class="btn btn-green" style="padding:5px">P</button></div>`; } div.innerHTML += `</div>`; } }
+        function loadFinal() { const val = document.getElementById('f-select').value; if(val==="") return; const f = finalDb[val]; const div = document.getElementById('f-inputs'); div.innerHTML = ""; for(let p=1; p<=2; p++) { div.innerHTML += `<div class="final-item"><h4>Gracz ${p}</h4>`; for(let i=0; i<5; i++) { div.innerHTML += `<div style="display:grid; grid-template-columns: 1fr 50px 40px 40px; gap:5px; margin-top:10px;"><span style="font-size:10px; grid-column:span 4; color:var(--accent)">${f.qs[i]}</span><input id="f-t-${p}-${i}" value="${p==1?f.q[i]:''}" placeholder="T"><input id="f-p-${p}-${i}" value="${p==1?f.p[i]:''}" style="width:40px"><button onclick="rf(${p},i,'t')" class="btn btn-outline" style="padding:5px">T</button><button onclick="rf(${p},i,'p')" class="btn btn-green" style="padding:5px">P</button></div>`; } div.innerHTML += `</div>`; } }
         function rf(p, r, k) { const val = document.getElementById(`f-${k}-${p}-${r}`).value; sendToTV({type:'FINAL_REVEAL', p:p, r:r, k:k, v:val}); }
         function setTeam(t) { activeTeam = t; document.getElementById('btnA').className = t==='A' ? 'btn btn-red active-team' : 'btn btn-outline'; document.getElementById('btnB').className = t==='B' ? 'btn btn-green active-team' : 'btn btn-outline'; }
         function sync() { sendToTV({type:'UPDATE', scA:document.getElementById('scA').value, scB:document.getElementById('scB').value, strikes:strikes}); }
