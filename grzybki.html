@@ -6,42 +6,41 @@
     <title>GRZYBEK</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        body { margin:0; background:#121212; color:white; display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; overflow:hidden; font-family: sans-serif; }
-        #btn { width:260px; height:260px; border-radius:50%; background:radial-gradient(circle, #ff4757 0%, #b00020 100%); border:10px solid #555; font-size:40px; color:white; font-weight:bold; display:none; cursor: pointer; }
-        #btn:disabled { opacity:0.2; filter: grayscale(1); }
-        #btn:active:not(:disabled) { transform: translateY(5px); }
-        input, select { padding: 15px; margin: 10px; width: 80%; border-radius: 10px; border: none; font-size: 16px; }
-        .status { margin-top: 15px; font-size: 18px; color: #f1c40f; }
+        body { margin:0; background:#0f172a; color:white; display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; overflow:hidden; font-family: sans-serif; }
+        #btn { width:260px; height:260px; border-radius:50%; background:radial-gradient(circle, #ff4757, #b00020); border:12px solid #334155; font-size:40px; color:white; font-weight:bold; display:none; cursor: pointer; transition: 0.1s; }
+        #btn:disabled { background: #334155; opacity:0.3; cursor: default; }
+        #btn:active:not(:disabled) { transform: scale(0.9); }
+        input, select { padding: 15px; margin: 10px; width: 80%; border-radius: 12px; border: 2px solid #334155; background: #1e293b; color: white; font-size: 16px; }
+        #stat { color: #f59e0b; margin-top: 15px; font-weight: bold; }
     </style>
 </head>
 <body>
     <div id="setup">
-        <h2 style="text-align:center">USTAWIENIA</h2>
-        <input type="text" id="p-id" placeholder="WPISZ ID PANELU">
+        <h2 style="text-align:center">DOŁĄCZ DO GRY</h2>
+        <input type="text" id="p-id" placeholder="ID PANELU">
         <select id="team"><option value="A">DRUŻYNA A</option><option value="B">DRUŻYNA B</option></select>
-        <button onclick="connect()" style="padding:20px; width:80%; background:#2e7d32; color:white; border:none; border-radius:10px; font-weight:bold; font-size:18px;">POŁĄCZ</button>
+        <button onclick="connect()" style="padding:20px; width:80%; background:#10b981; color:white; border:none; border-radius:12px; font-weight:bold; font-size:18px; margin: 10px auto; display: block;">POŁĄCZ</button>
     </div>
     <button id="btn" onclick="buzz()" disabled>STOP!</button>
-    <p id="stat" class="status">CZEKAJ NA START...</p>
+    <p id="stat">CZEKAJ NA POŁĄCZENIE</p>
 
     <script>
         let peer = new Peer(), conn, team;
         function connect() {
             team = document.getElementById('team').value;
             const pId = document.getElementById('p-id').value;
-            if(!pId) return alert("Wpisz ID Panelu!");
             conn = peer.connect(pId);
             conn.on('open', () => {
                 document.getElementById('setup').style.display='none';
                 document.getElementById('btn').style.display='block';
-                document.getElementById('stat').innerText="POŁĄCZONO! CZEKAJ NA RUNDĘ.";
+                document.getElementById('stat').innerText="POŁĄCZONO. CZEKAJ...";
             });
             conn.on('data', m => {
                 if(m.type === 'UNLOCK') { document.getElementById('btn').disabled=false; document.getElementById('stat').innerText="GRAJ!"; }
                 if(m.type === 'LOCK') { document.getElementById('btn').disabled=true; document.getElementById('stat').innerText="ZABLOKOWANE"; }
             });
         }
-        function buzz() { conn.send({type:'BUZZ', team:team}); document.getElementById('btn').disabled=true; document.getElementById('stat').innerText="WYŚŁANO!"; }
+        function buzz() { conn.send({type:'BUZZ', team:team}); document.getElementById('btn').disabled=true; }
     </script>
 </body>
 </html>
