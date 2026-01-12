@@ -2,101 +2,239 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA TV - EDYCJA SZKOŁA</title>
+    <title>FAMILIADA TV - PROFESSIONAL BOARD</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        :root { --bg: #000033; --gold: #f1c40f; --red: #ff4757; --blue: #2e86de; }
-        body { font-family: 'VT323', monospace; background: var(--bg); color: var(--gold); margin: 0; overflow: hidden; text-transform: uppercase; }
-        
-        /* Ciemne tła dla wszystkich nakładek */
-        .video-overlay { position: fixed; inset: 0; background: black; z-index: 20000; display: none; }
-        #welcome-screen { position: fixed; inset: 0; background: var(--bg); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 15000; text-align: center; }
-        #overlay-start { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 30000; }
-        
-        video { width: 100%; height: 100%; object-fit: cover; }
-        #welcome-screen h1 { font-size: 150px; color: var(--gold); margin: 0; text-shadow: 8px 8px #000; }
-        #welcome-screen h2 { font-size: 80px; color: white; margin: 0; }
+        :root {
+            --bg: #000022;
+            --board-blue: #000080;
+            --gold: #f1c40f;
+            --gold-dark: #b8860b;
+            --red: #d63031;
+            --blue: #0984e3;
+            --text: #fff;
+        }
 
-        /* Interfejs */
-        .header { display: flex; justify-content: space-between; align-items: center; padding: 20px 50px; background: rgba(0,0,0,0.9); border-bottom: 5px solid var(--gold); }
-        .score-box { font-size: 110px; color: white; padding: 10px 40px; border: 5px solid #fff; min-width: 150px; text-align: center; }
-        #main { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 75vh; }
-        #question { font-size: 55px; color: white; margin-bottom: 30px; text-align: center; padding: 0 20px; }
-        .board { width: 1000px; display: flex; flex-direction: column; gap: 15px; }
-        .row { display: flex; justify-content: space-between; font-size: 50px; height: 80px; padding: 0 30px; align-items: center; background: #000066; border: 3px solid #555; }
-        .revealed { color: var(--gold); border-color: var(--gold); background: #000099; }
-        #strike-pop { display: none; position: fixed; inset: 0; justify-content: center; align-items: center; background: rgba(0,0,0,0.8); z-index: 25000; }
-        #strike-pop span { font-size: 800px; color: var(--red); font-weight: bold; -webkit-text-stroke: 10px white; }
+        body {
+            font-family: 'VT323', monospace;
+            background: var(--bg);
+            color: var(--text);
+            margin: 0;
+            overflow: hidden;
+            text-transform: uppercase;
+        }
+
+        /* --- NAGŁÓWEK (PUNKTY I RUNDA) --- */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            background: linear-gradient(180deg, #000044 0%, #000 100%);
+            border-bottom: 4px solid var(--gold);
+            height: 120px;
+        }
+
+        .score-container { display: flex; align-items: center; gap: 20px; }
+        
+        .score-box {
+            font-size: 90px;
+            color: white;
+            padding: 5px 30px;
+            border: 4px solid #fff;
+            min-width: 120px;
+            text-align: center;
+            box-shadow: 0 0 15px rgba(255,255,255,0.3);
+        }
+
+        .strikes { font-size: 80px; font-weight: bold; min-width: 150px; color: var(--red); letter-spacing: 5px; }
+        #xB { text-align: right; color: var(--blue); }
+
+        .round-info {
+            text-align: center;
+            border: 3px solid var(--gold);
+            padding: 10px 30px;
+            background: rgba(241, 196, 15, 0.1);
+        }
+        .round-info div:first-child { font-size: 30px; color: var(--gold); }
+        .round-info #r-display { font-size: 60px; color: #fff; }
+
+        /* --- TABLICA Z PYTANIEM --- */
+        #main {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 40px;
+        }
+
+        #question {
+            font-size: 50px;
+            color: #fff;
+            margin-bottom: 30px;
+            background: rgba(0,0,0,0.5);
+            padding: 10px 40px;
+            border-radius: 50px;
+            border: 2px solid var(--board-blue);
+        }
+
+        .board {
+            width: 1100px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            padding: 20px;
+            background: var(--board-blue);
+            border: 8px solid var(--gold);
+            box-shadow: inset 0 0 50px #000, 0 0 30px rgba(0,0,0,1);
+        }
+
+        .row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 75px;
+            padding: 0 30px;
+            background: #000055;
+            border: 2px solid #333;
+            font-size: 55px;
+            color: #444; /* Ukryty tekst */
+        }
+
+        .row.revealed {
+            color: var(--gold);
+            background: #0000aa;
+            border-color: var(--gold);
+            text-shadow: 2px 2px #000;
+        }
+
+        .row .dots { color: #222; flex-grow: 1; margin: 0 10px; overflow: hidden; }
+
+        /* --- EKRANY SPECJALNE --- */
+        #welcome-screen {
+            position: fixed; inset: 0; background: var(--bg);
+            display: none; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 100; text-align: center;
+        }
+        #welcome-screen h1 { font-size: 180px; color: var(--gold); margin: 0; text-shadow: 10px 10px #000; }
+        #welcome-screen h2 { font-size: 70px; color: #fff; margin: -20px 0 0 0; }
+
+        #strike-pop {
+            display: none; position: fixed; inset: 0; 
+            justify-content: center; align-items: center; 
+            background: rgba(0,0,0,0.8); z-index: 1000;
+        }
+        #strike-pop span { font-size: 800px; color: var(--red); -webkit-text-stroke: 15px white; }
+
+        #overlay-start {
+            position: fixed; inset: 0; background: #000;
+            display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 5000;
+        }
     </style>
 </head>
 <body>
-    <div id="layer-intro" class="video-overlay"><video id="vidIntro" src="czolowka.mp4"></video></div>
-    <div id="layer-outro" class="video-overlay"><video id="vidOutro" src="napisy.mp4"></video></div>
-    
+
+    <div id="overlay-start">
+        <h2 id="game-id-display" style="color:var(--gold)">ŁĄCZENIE Z SERWEREM...</h2>
+        <button onclick="document.getElementById('overlay-start').style.display='none'" 
+                style="padding:20px 40px; font-size:30px; cursor:pointer; background:var(--gold); border:none; font-family:'VT323';">
+            OTWÓRZ TABLICĘ
+        </button>
+    </div>
+
     <div id="welcome-screen">
         <h1>FAMILIADA</h1>
         <h2>EDYCJA SZKOŁA</h2>
     </div>
 
-    <div id="overlay-start">
-        <div id="game-id-display" style="color:white; font-size:40px; margin-bottom:20px;">ŁĄCZENIE...</div>
-        <button onclick="document.getElementById('overlay-start').style.display='none'" style="padding:25px 50px; font-size:30px; cursor:pointer; background:var(--gold); border:none; border-radius:15px; font-weight:bold; color:#000;">URUCHOM SYSTEM</button>
-    </div>
+    <div id="strike-pop"><span>X</span></div>
 
     <audio id="sndOk" src="ok.mp3"></audio>
     <audio id="sndNo" src="zle.mp3"></audio>
     <audio id="sndRunda" src="runda.mp3"></audio>
 
     <div class="header">
-        <div id="xA" style="font-size:100px; color:var(--red); width:200px"></div>
-        <div id="sA" class="score-box" style="background:var(--red)">0</div>
-        <div id="r-display" style="font-size: 50px; color: white;">FAMILIADA</div>
-        <div id="sB" class="score-box" style="background:var(--blue)">0</div>
-        <div id="xB" style="font-size:100px; color:var(--blue); width:200px; text-align:right"></div>
+        <div class="score-container">
+            <div id="xA" class="strikes"></div>
+            <div id="sA" class="score-box" style="background:var(--red)">0</div>
+        </div>
+
+        <div class="round-info">
+            <div>RUNDA</div>
+            <div id="r-display">---</div>
+        </div>
+
+        <div class="score-container">
+            <div id="sB" class="score-box" style="background:var(--blue)">0</div>
+            <div id="xB" class="strikes"></div>
+        </div>
     </div>
 
     <div id="main">
-        <div id="question">ZAPRASZAMY DO GRY!</div>
-        <div class="board" id="board"></div>
+        <div id="question">CZEKAMY NA PYTANIE...</div>
+        <div class="board" id="board">
+            </div>
     </div>
-    <div id="strike-pop"><span>X</span></div>
+
+    <div id="layer-intro" style="display:none; position:fixed; inset:0; z-index:9000; background:#000;">
+        <video id="vidIntro" src="czolowka.mp4" style="width:100%; height:100%"></video>
+    </div>
 
     <script>
         const peer = new Peer();
         peer.on('open', id => document.getElementById('game-id-display').innerText = "KOD TV: " + id);
+
         peer.on('connection', conn => {
             conn.on('data', m => {
-                if(m.type === 'START_INTRO') { 
-                    const l = document.getElementById('layer-intro'); 
-                    l.style.display='block'; v = document.getElementById('vidIntro'); v.play();
-                    v.onended = () => { l.style.display='none'; document.getElementById('welcome-screen').style.display='flex'; };
+                if(m.type === 'START_INTRO') {
+                    const l = document.getElementById('layer-intro');
+                    l.style.display = 'block';
+                    const v = document.getElementById('vidIntro');
+                    v.play();
+                    v.onended = () => {
+                        l.style.display = 'none';
+                        document.getElementById('welcome-screen').style.display = 'flex';
+                    };
                 }
-                if(m.type === 'START_OUTRO') { document.getElementById('layer-outro').style.display='block'; document.getElementById('vidOutro').play(); }
-                if(m.type === 'SETUP' || m.type === 'NEXT_ROUND') {
-                    document.getElementById('welcome-screen').style.display='none';
-                    if(m.type === 'NEXT_ROUND') document.getElementById('sndRunda').play();
+
+                if(m.type === 'SETUP') {
+                    document.getElementById('welcome-screen').style.display = 'none';
+                    document.getElementById('question').innerText = m.q;
+                    const b = document.getElementById('board');
+                    b.innerHTML = "";
+                    m.a.forEach((ans, i) => {
+                        b.innerHTML += `
+                            <div class="row" id="r-${i}">
+                                <span>${i+1}. ...........................</span>
+                                <span>--</span>
+                            </div>`;
+                    });
                 }
-                if(m.type === 'STRIKE') {
-                    document.getElementById('strike-pop').style.display='flex'; document.getElementById('sndNo').play();
-                    setTimeout(() => document.getElementById('strike-pop').style.display='none', 1200);
-                }
+
                 if(m.type === 'REVEAL') {
                     document.getElementById('sndOk').play();
                     const row = document.getElementById(`r-${m.index}`);
                     row.classList.add('revealed');
                     row.innerHTML = `<span>${m.index+1}. ${m.text}</span><span>${m.pts}</span>`;
                 }
-                if(m.type === 'SETUP') {
-                    document.getElementById('question').innerText = m.q;
-                    const b = document.getElementById('board'); b.innerHTML = "";
-                    m.a.forEach((ans, i) => { b.innerHTML += `<div class="row" id="r-${i}"><span>${i+1}. ....................</span><span>--</span></div>`; });
+
+                if(m.type === 'STRIKE') {
+                    document.getElementById('sndNo').play();
+                    document.getElementById('strike-pop').style.display = 'flex';
+                    setTimeout(() => document.getElementById('strike-pop').style.display = 'none', 1200);
                 }
+
                 if(m.type === 'UPDATE') {
-                    document.getElementById('sA').innerText = m.scA; document.getElementById('sB').innerText = m.scB;
-                    document.getElementById('xA').innerText = "X".repeat(m.strikes.A); document.getElementById('xB').innerText = "X".repeat(m.strikes.B);
+                    document.getElementById('sA').innerText = m.scA;
+                    document.getElementById('sB').innerText = m.scB;
+                    document.getElementById('xA').innerText = "X".repeat(m.strikes.A);
+                    document.getElementById('xB').innerText = "X".repeat(m.strikes.B);
                 }
-                if(m.type === 'NEXT_ROUND') document.getElementById('r-display').innerText = "RUNDA " + m.round;
+
+                if(m.type === 'NEXT_ROUND') {
+                    document.getElementById('sndRunda').play();
+                    document.getElementById('r-display').innerText = m.round;
+                }
             });
         });
     </script>
