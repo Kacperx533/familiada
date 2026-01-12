@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA TV - FINAL</title>
+    <title>FAMILIADA TV - MEGA BOARD</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
@@ -10,37 +10,42 @@
         .led-bg { position: fixed; inset: 0; background-image: radial-gradient(rgba(0,0,0,0.5) 40%, transparent 45%); background-size: 4px 4px; z-index: 100; pointer-events: none; }
         #video-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 3000; display: none; }
         
-        .main-container { display: flex; flex-direction: column; height: 100vh; align-items: center; justify-content: center; }
+        .main-container { display: flex; flex-direction: column; height: 100vh; align-items: center; justify-content: center; background: #000; }
         
+        /* Maksymalnie powiększona tablica */
         .board-frame { 
-            border: 8px solid #333; border-radius: 20px; padding: 40px; 
-            background: #050505; width: 950px; position: relative; 
-            box-shadow: 0 0 50px rgba(0,0,0,1);
+            border: 12px solid #222; border-radius: 25px; padding: 50px; 
+            background: #050505; width: 92vw; height: 85vh; position: relative; 
+            box-shadow: inset 0 0 100px #000; display: flex; flex-direction: column; justify-content: space-between;
         }
 
-        /* Kontener na X po lewej stronie */
+        /* Kontener na X po lewej stronie WEWNĄTRZ tablicy */
         #strike-container {
-            position: absolute; left: -100px; top: 50%; transform: translateY(-50%);
-            display: flex; flex-direction: column; gap: 10px;
+            position: absolute; left: 30px; top: 50%; transform: translateY(-50%);
+            display: flex; flex-direction: column; gap: 20px; z-index: 10;
         }
-        .strike-x { width: 80px; height: 80px; filter: drop-shadow(0 0 10px red); display: none; }
+        .strike-x { width: 120px; height: 120px; filter: drop-shadow(0 0 15px red); display: none; }
 
-        .row { display: flex; font-size: 85px; height: 95px; align-items: center; position: relative; margin-bottom: 10px; justify-content: center; }
-        .row-num { width: 60px; color: #f5b041; position: absolute; left: 0; }
+        /* Wiersze z odpowiedziami */
+        #board-ui { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; gap: 10px; margin-left: 120px; } /* margines na X */
+
+        .row { display: flex; font-size: 110px; height: 120px; align-items: center; position: relative; }
+        .row-num { width: 80px; color: #f5b041; flex-shrink: 0; }
         
-        .row-content { width: 100%; display: flex; justify-content: space-between; position: relative; padding: 0 10px; }
-        .dots { color: #1a1a1a; letter-spacing: 8px; position: absolute; left: 50%; transform: translateX(-50%); z-index: 1; }
+        .row-content { flex-grow: 1; display: flex; justify-content: space-between; position: relative; border-bottom: 2px solid #111; }
+        .dots { color: #111; letter-spacing: 15px; position: absolute; left: 50%; transform: translateX(-50%); z-index: 1; }
         
-        .ans-text { position: relative; z-index: 2; background: #050505; padding: 0 15px; display: none; flex-grow: 1; text-align: left; }
-        .pts-val { position: relative; z-index: 2; background: #050505; padding: 0 15px; display: none; width: 100px; text-align: right; }
+        .ans-text { position: relative; z-index: 2; background: #050505; padding: 0 20px; display: none; }
+        .pts-val { position: relative; z-index: 2; background: #050505; padding: 0 20px; display: none; width: 140px; text-align: right; border-left: 4px solid #111; }
         
         .revealed .ans-text, .revealed .pts-val { display: block; }
         .revealed .dots { display: none; }
 
-        .suma-row { display: flex; justify-content: flex-end; font-size: 90px; margin-top: 30px; color: #f5b041; border-top: 4px solid #1a1a1a; }
+        /* Dolna sekcja z sumą */
+        .suma-row { display: flex; justify-content: flex-end; font-size: 120px; color: #f5b041; padding-top: 20px; margin-right: 20px; }
         
         #overlay { position: fixed; inset: 0; background: #000; z-index: 4000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .btn-start { background: #f5b041; border: none; padding: 25px 60px; font-size: 40px; font-family: 'VT323'; cursor: pointer; }
+        .btn-start { background: #f5b041; border: none; padding: 30px 80px; font-size: 50px; font-family: 'VT323'; cursor: pointer; border-radius: 15px; }
     </style>
 </head>
 <body>
@@ -50,8 +55,8 @@
     <audio id="sndNo" src="zle.mp3"></audio>
 
     <div id="overlay">
-        <h1 id="peer-id-label">ŁĄCZENIE...</h1>
-        <button class="btn-start" onclick="unlockAudio()">START SYSTEMU</button>
+        <h1 id="peer-id-label" style="font-size: 40px; margin-bottom: 30px;">ŁĄCZENIE...</h1>
+        <button class="btn-start" onclick="unlockAudio()">START</button>
     </div>
 
     <div class="main-container">
@@ -62,10 +67,11 @@
                 <img class="strike-x" id="x3" src="https://i.imgur.com/8W77G3R.png">
             </div>
 
-            <div id="board-ui"></div>
+            <div id="board-ui">
+                </div>
             
             <div class="suma-row">
-                <span style="margin-right: 40px;">SUMA</span>
+                <span style="margin-right: 60px;">SUMA</span>
                 <span id="total-val">0</span>
             </div>
         </div>
@@ -83,7 +89,7 @@
             document.getElementById('sndOk').play().then(() => { 
                 document.getElementById('sndOk').pause(); 
                 document.getElementById('sndOk').currentTime = 0; 
-            });
+            }).catch(e => console.log("Audio unlock failed"));
         }
 
         function playVideo(file) {
@@ -104,7 +110,7 @@
                         <div class="row" id="row-${i}">
                             <div class="row-num">${i+1}</div>
                             <div class="row-content">
-                                <div class="dots">..........</div>
+                                <div class="dots">.......</div>
                                 <div class="ans-text">${ans.t}</div>
                                 <div class="pts-val">${ans.p}</div>
                             </div>
@@ -113,14 +119,16 @@
                 }
 
                 if(m.type === 'REVEAL') {
-                    document.getElementById('sndOk').play();
+                    const sOk = document.getElementById('sndOk');
+                    sOk.currentTime = 0; sOk.play();
                     const row = document.getElementById(`row-${m.index}`);
                     if(row) row.classList.add('revealed');
                     document.getElementById('total-val').innerText = m.total;
                 }
 
                 if(m.type === 'STRIKE') {
-                    document.getElementById('sndNo').play();
+                    const sNo = document.getElementById('sndNo');
+                    sNo.currentTime = 0; sNo.play();
                     strikeCount++;
                     if(strikeCount <= 3) {
                         document.getElementById('x' + strikeCount).style.display = 'block';
