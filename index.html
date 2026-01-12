@@ -2,177 +2,188 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA TV - PROFESSIONAL BOARD</title>
+    <title>FAMILIADA TV - LED BOARD</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root {
-            --bg: #000022;
-            --board-blue: #000080;
+            --bg-color: #050505;
+            --board-blue: #000044;
+            --led-yellow: #ffcc00; /* Klasyczny żółty LED */
+            --led-dim: #332200;    /* Wyłączone punkty LED */
+            --strike-red: #ff0000;
             --gold: #f1c40f;
-            --gold-dark: #b8860b;
-            --red: #d63031;
-            --blue: #0984e3;
-            --text: #fff;
         }
 
         body {
             font-family: 'VT323', monospace;
-            background: var(--bg);
-            color: var(--text);
+            background-color: var(--bg-color);
             margin: 0;
-            overflow: hidden;
+            color: var(--led-yellow);
             text-transform: uppercase;
+            overflow: hidden;
         }
 
-        /* --- NAGŁÓWEK (PUNKTY I RUNDA) --- */
-        .header {
+        /* Tło z siatką (imitacja punktów LED) */
+        .led-grid {
+            position: fixed;
+            inset: 0;
+            background-image: 
+                radial-gradient(circle, rgba(0,0,0,0.5) 1px, transparent 1.5px);
+            background-size: 4px 4px;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        /* --- NAGŁÓWEK --- */
+        .top-bar {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 20px 40px;
-            background: linear-gradient(180deg, #000044 0%, #000 100%);
-            border-bottom: 4px solid var(--gold);
-            height: 120px;
+            padding: 10px 50px;
+            background: #000;
+            border-bottom: 3px solid #222;
         }
 
-        .score-container { display: flex; align-items: center; gap: 20px; }
-        
         .score-box {
-            font-size: 90px;
-            color: white;
-            padding: 5px 30px;
-            border: 4px solid #fff;
-            min-width: 120px;
+            font-size: 80px;
+            padding: 0 20px;
+            border: 4px solid #333;
+            min-width: 100px;
             text-align: center;
-            box-shadow: 0 0 15px rgba(255,255,255,0.3);
+            background: #080808;
         }
 
-        .strikes { font-size: 80px; font-weight: bold; min-width: 150px; color: var(--red); letter-spacing: 5px; }
-        #xB { text-align: right; color: var(--blue); }
-
-        .round-info {
-            text-align: center;
-            border: 3px solid var(--gold);
-            padding: 10px 30px;
-            background: rgba(241, 196, 15, 0.1);
-        }
-        .round-info div:first-child { font-size: 30px; color: var(--gold); }
-        .round-info #r-display { font-size: 60px; color: #fff; }
-
-        /* --- TABLICA Z PYTANIEM --- */
-        #main {
+        /* --- TABLICA --- */
+        .main-container {
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding-top: 40px;
+            justify-content: center;
+            height: 85vh;
         }
 
-        #question {
-            font-size: 50px;
+        #question-display {
+            font-size: 45px;
+            margin-bottom: 20px;
             color: #fff;
-            margin-bottom: 30px;
-            background: rgba(0,0,0,0.5);
-            padding: 10px 40px;
-            border-radius: 50px;
-            border: 2px solid var(--board-blue);
+            text-shadow: 0 0 10px var(--led-yellow);
         }
 
-        .board {
+        .game-board {
             width: 1100px;
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 12px;
+            background: #0a0a0a;
+            border: 10px solid #1a1a1a;
             padding: 20px;
-            background: var(--board-blue);
-            border: 8px solid var(--gold);
-            box-shadow: inset 0 0 50px #000, 0 0 30px rgba(0,0,0,1);
+            box-shadow: inset 0 0 100px #000;
+            position: relative;
         }
 
         .row {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            height: 75px;
-            padding: 0 30px;
-            background: #000055;
-            border: 2px solid #333;
-            font-size: 55px;
-            color: #444; /* Ukryty tekst */
+            height: 70px;
+            font-size: 60px;
+            border-bottom: 1px solid #111;
+            padding: 5px 20px;
+            letter-spacing: 2px;
         }
 
-        .row.revealed {
-            color: var(--gold);
-            background: #0000aa;
-            border-color: var(--gold);
-            text-shadow: 2px 2px #000;
+        .row .num { width: 50px; color: #444; }
+        .row .ans { flex-grow: 1; color: var(--led-dim); }
+        .row .pts { width: 100px; text-align: right; color: var(--led-dim); }
+
+        /* Styl po odkryciu */
+        .row.revealed .ans, .row.revealed .pts {
+            color: var(--led-yellow);
+            text-shadow: 0 0 15px var(--led-yellow);
+        }
+        .row.revealed .num { color: var(--led-yellow); }
+
+        /* --- STRIKE (WIELKI X) --- */
+        #strike-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
         }
 
-        .row .dots { color: #222; flex-grow: 1; margin: 0 10px; overflow: hidden; }
-
-        /* --- EKRANY SPECJALNE --- */
-        #welcome-screen {
-            position: fixed; inset: 0; background: var(--bg);
-            display: none; flex-direction: column; justify-content: center; align-items: center;
-            z-index: 100; text-align: center;
+        /* Stylizacja X z Twojego zdjęcia */
+        .big-x {
+            font-size: 800px;
+            color: var(--strike-red);
+            font-weight: bold;
+            -webkit-text-stroke: 20px white;
+            text-shadow: 0 0 50px #ff0000;
+            transform: scale(1.2);
+            font-family: sans-serif; /* Bardziej kanciasty X */
         }
-        #welcome-screen h1 { font-size: 180px; color: var(--gold); margin: 0; text-shadow: 10px 10px #000; }
-        #welcome-screen h2 { font-size: 70px; color: #fff; margin: -20px 0 0 0; }
 
-        #strike-pop {
-            display: none; position: fixed; inset: 0; 
-            justify-content: center; align-items: center; 
-            background: rgba(0,0,0,0.8); z-index: 1000;
-        }
-        #strike-pop span { font-size: 800px; color: var(--red); -webkit-text-stroke: 15px white; }
-
-        #overlay-start {
+        /* --- EKRAN STARTOWY --- */
+        #start-screen {
             position: fixed; inset: 0; background: #000;
-            display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 5000;
+            display: flex; flex-direction: column; justify-content: center;
+            align-items: center; z-index: 5000;
         }
+        
+        .btn-start {
+            background: var(--led-yellow);
+            color: #000;
+            border: none;
+            padding: 20px 40px;
+            font-size: 30px;
+            font-family: 'VT323';
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        #welcome-screen {
+            position: fixed; inset: 0; background: var(--bg-color);
+            display: none; flex-direction: column; justify-content: center;
+            align-items: center; z-index: 100;
+        }
+        #welcome-screen h1 { font-size: 150px; margin: 0; color: var(--led-yellow); }
     </style>
 </head>
 <body>
 
-    <div id="overlay-start">
-        <h2 id="game-id-display" style="color:var(--gold)">ŁĄCZENIE Z SERWEREM...</h2>
-        <button onclick="document.getElementById('overlay-start').style.display='none'" 
-                style="padding:20px 40px; font-size:30px; cursor:pointer; background:var(--gold); border:none; font-family:'VT323';">
-            OTWÓRZ TABLICĘ
-        </button>
+    <div class="led-grid"></div>
+
+    <div id="start-screen">
+        <h1 id="tv-code" style="color:white">ŁĄCZENIE...</h1>
+        <button class="btn-start" onclick="this.parentElement.style.display='none'">URUCHOM TABLICĘ</button>
     </div>
 
     <div id="welcome-screen">
-        <h1>FAMILIADA</h1>
-        <h2>EDYCJA SZKOŁA</h2>
+        <h1 style="text-shadow: 0 0 30px var(--led-yellow);">FAMILIADA</h1>
+        <h2 style="font-size: 60px; color: #fff;">EDYCJA SZKOŁA</h2>
     </div>
 
-    <div id="strike-pop"><span>X</span></div>
+    <div id="strike-overlay"><div class="big-x">X</div></div>
 
     <audio id="sndOk" src="ok.mp3"></audio>
     <audio id="sndNo" src="zle.mp3"></audio>
     <audio id="sndRunda" src="runda.mp3"></audio>
 
-    <div class="header">
-        <div class="score-container">
-            <div id="xA" class="strikes"></div>
-            <div id="sA" class="score-box" style="background:var(--red)">0</div>
+    <div class="top-bar">
+        <div id="xA" style="font-size: 100px; color: var(--strike-red); min-width: 200px;"></div>
+        <div id="sA" class="score-box" style="color: var(--strike-red); border-color: var(--strike-red);">0</div>
+        
+        <div style="text-align: center;">
+            <div style="font-size: 20px; color: #666;">SUMA</div>
+            <div id="total-score" class="score-box" style="color: var(--led-yellow); border-color: var(--led-yellow);">0</div>
         </div>
 
-        <div class="round-info">
-            <div>RUNDA</div>
-            <div id="r-display">---</div>
-        </div>
-
-        <div class="score-container">
-            <div id="sB" class="score-box" style="background:var(--blue)">0</div>
-            <div id="xB" class="strikes"></div>
-        </div>
+        <div id="sB" class="score-box" style="color: var(--blue); border-color: #0984e3;">0</div>
+        <div id="xB" style="font-size: 100px; color: #0984e3; min-width: 200px; text-align: right;"></div>
     </div>
 
-    <div id="main">
-        <div id="question">CZEKAMY NA PYTANIE...</div>
-        <div class="board" id="board">
+    <div class="main-container">
+        <div id="question-display">...</div>
+        <div class="game-board" id="board">
             </div>
     </div>
 
@@ -182,7 +193,9 @@
 
     <script>
         const peer = new Peer();
-        peer.on('open', id => document.getElementById('game-id-display').innerText = "KOD TV: " + id);
+        peer.on('open', id => document.getElementById('tv-code').innerText = "KOD TV: " + id);
+
+        let currentTotal = 0;
 
         peer.on('connection', conn => {
             conn.on('data', m => {
@@ -199,14 +212,17 @@
 
                 if(m.type === 'SETUP') {
                     document.getElementById('welcome-screen').style.display = 'none';
-                    document.getElementById('question').innerText = m.q;
+                    document.getElementById('question-display').innerText = m.q;
                     const b = document.getElementById('board');
                     b.innerHTML = "";
+                    currentTotal = 0;
+                    document.getElementById('total-score').innerText = "0";
                     m.a.forEach((ans, i) => {
                         b.innerHTML += `
                             <div class="row" id="r-${i}">
-                                <span>${i+1}. ...........................</span>
-                                <span>--</span>
+                                <span class="num">${i+1}</span>
+                                <span class="ans">...............................</span>
+                                <span class="pts">--</span>
                             </div>`;
                     });
                 }
@@ -215,13 +231,18 @@
                     document.getElementById('sndOk').play();
                     const row = document.getElementById(`r-${m.index}`);
                     row.classList.add('revealed');
-                    row.innerHTML = `<span>${m.index+1}. ${m.text}</span><span>${m.pts}</span>`;
+                    row.querySelector('.ans').innerText = m.text;
+                    row.querySelector('.pts').innerText = m.pts;
+                    
+                    // Sumowanie punktów na tablicy
+                    currentTotal += parseInt(m.pts);
+                    document.getElementById('total-score').innerText = currentTotal;
                 }
 
                 if(m.type === 'STRIKE') {
                     document.getElementById('sndNo').play();
-                    document.getElementById('strike-pop').style.display = 'flex';
-                    setTimeout(() => document.getElementById('strike-pop').style.display = 'none', 1200);
+                    document.getElementById('strike-overlay').style.display = 'flex';
+                    setTimeout(() => document.getElementById('strike-overlay').style.display = 'none', 1200);
                 }
 
                 if(m.type === 'UPDATE') {
@@ -229,11 +250,6 @@
                     document.getElementById('sB').innerText = m.scB;
                     document.getElementById('xA').innerText = "X".repeat(m.strikes.A);
                     document.getElementById('xB').innerText = "X".repeat(m.strikes.B);
-                }
-
-                if(m.type === 'NEXT_ROUND') {
-                    document.getElementById('sndRunda').play();
-                    document.getElementById('r-display').innerText = m.round;
                 }
             });
         });
