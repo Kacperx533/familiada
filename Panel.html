@@ -2,204 +2,122 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>PANEL STEROWANIA - FAMILIADA PRO</title>
+    <title>PANEL STEROWANIA</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        :root { --bg: #0a0a0a; --card: #1a1a1a; --accent: #f5b041; --danger: #ff0000; --text: #fff; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); padding: 20px; margin: 0; display: flex; flex-direction: column; align-items: center; }
-        .container { max-width: 800px; width: 100%; }
-        .card { background: var(--card); border-radius: 15px; padding: 20px; margin-bottom: 15px; border: 1px solid #333; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        h3 { color: var(--accent); margin-top: 0; border-bottom: 1px solid #333; padding-bottom: 10px; text-transform: uppercase; font-size: 14px; }
-        
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .btn { border: none; border-radius: 8px; padding: 15px; font-weight: bold; cursor: pointer; color: white; transition: 0.2s; text-transform: uppercase; }
-        .btn:active { transform: scale(0.95); }
-        .btn-dark { background: #333; }
-        .btn-s { background: #27ae60; }
-        .btn-d { background: var(--danger); }
-        .btn-gold { background: var(--accent); color: #000; }
-        
-        input, select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #333; background: #000; color: white; margin-bottom: 10px; box-sizing: border-box; font-size: 16px; }
-        
-        .ans-row { display: flex; justify-content: space-between; align-items: center; background: #222; padding: 10px; border-radius: 8px; margin-top: 5px; border-left: 4px solid var(--accent); }
-        .active-team { outline: 4px solid var(--accent); box-shadow: 0 0 20px rgba(245, 176, 65, 0.4); }
-        
-        .final-input-group { display: grid; grid-template-columns: 3fr 1fr 1fr; gap: 5px; margin-bottom: 5px; }
-        .status-dot { width: 12px; height: 12px; background: red; border-radius: 50%; display: inline-block; margin-right: 5px; }
+        body { font-family: sans-serif; background: #111; color: #fff; padding: 10px; }
+        .card { background: #222; padding: 15px; border-radius: 10px; margin-bottom: 10px; border: 1px solid #444; }
+        .btn { border: none; padding: 12px; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 5px; color: white; }
+        .btn-gold { background: #f5b041; color: #000; }
+        .btn-red { background: #d35400; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+        input, select { width: 100%; padding: 10px; margin: 5px 0; background: #000; color: #fff; border: 1px solid #444; box-sizing: border-box; }
+        .active { outline: 3px solid #f5b041; }
     </style>
 </head>
 <body>
-
-<div class="container">
-    <div id="setup-card" class="card">
-        <h3>1. Połączenie z Ekranem TV</h3>
-        <input type="text" id="tv-id" placeholder="Wpisz KOD TV widoczny na ekranie">
-        <button onclick="connectToTV()" class="btn btn-gold" style="width:100%">POŁĄCZ SYSTEM</button>
+    <div class="card">
+        <input type="text" id="tv-id" placeholder="KOD TV">
+        <button onclick="connect()" class="btn btn-gold">POŁĄCZ</button>
     </div>
 
-    <div id="controls" style="display:none">
+    <div id="ctrl" style="display:none">
         <div class="card">
-            <h3>2. Multimedia i Tryb Gry</h3>
             <div class="grid">
-                <button onclick="send({type:'PLAY_VIDEO', file:'czolowka.mp4'})" class="btn btn-dark">🎬 CZOŁÓWKA</button>
-                <button onclick="send({type:'PLAY_VIDEO', file:'napisy.mp4'})" class="btn btn-dark">🎬 NAPISY</button>
+                <button onclick="s({type:'PLAY_VIDEO', file:'czolowka.mp4'})" class="btn">CZOŁÓWKA</button>
+                <button onclick="s({type:'PLAY_VIDEO', file:'napisy.mp4'})" class="btn">NAPISY</button>
             </div>
-            <div class="grid" style="margin-top:10px">
-                <button onclick="setR(1)" class="btn btn-dark">RUNDA x1</button>
-                <button onclick="setR(2)" class="btn btn-dark">RUNDA x2</button>
-                <button onclick="setR(3)" class="btn btn-dark">RUNDA x3</button>
-                <button onclick="initFinal(15)" class="btn btn-gold">🔥 FINAŁ</button>
+            <div class="grid">
+                <button onclick="setR(1)" class="btn">x1</button>
+                <button onclick="setR(2)" class="btn">x2</button>
+                <button onclick="setR(3)" class="btn">x3</button>
+                <button onclick="goFinal()" class="btn btn-gold">FINAŁ</button>
             </div>
         </div>
 
-        <div id="normal-section" class="card">
-            <h3>3. Pytania i Tablica</h3>
-            <select id="q-sel" onchange="prepQ()"></select>
-            <button onclick="sendQ()" class="btn btn-s" style="width:100%; margin-bottom:15px">WYŚLIJ PYTANIE NA TABLICĘ</button>
-            <div id="ans-list"></div>
-        </div>
-
-        <div id="final-section" class="card" style="display:none; border: 2px solid var(--accent);">
-            <h3>🔥 PANEL FINAŁOWY</h3>
-            <div class="grid">
-                <button onclick="send({type:'FINAL_MODE', time:15})" class="btn btn-dark">G1 (15 sek)</button>
-                <button onclick="send({type:'FINAL_MODE', time:20})" class="btn btn-dark">G2 (20 sek)</button>
+        <div id="norm">
+            <div class="card">
+                <select id="q-sel" onchange="prep()"></select>
+                <button onclick="sendQ()" class="btn btn-gold">WYŚLIJ PYTANIE</button>
+                <div id="ans-list"></div>
             </div>
-            <button onclick="send({type:'START_TIMER'})" class="btn btn-d" style="width:100%; margin: 10px 0;">⏱ START STOPERA</button>
-            <button onclick="send({type:'BUZZER'})" class="btn btn-dark" style="width:100%; margin-bottom:15px; color: #ff0000">🔔 DŹWIĘK POWTÓRZENIA</button>
-            
-            <div id="final-inputs">
+            <div class="card">
+                <div class="grid">
+                    <button id="bA" onclick="setT('A')" class="btn active">TEAM A</button>
+                    <button id="bB" onclick="setT('B')" class="btn">TEAM B</button>
                 </div>
-            <button onclick="closeFinal()" class="btn btn-dark" style="width:100%; margin-top:10px">POWRÓT DO RUND</button>
-        </div>
-
-        <div class="card">
-            <h3>4. Sterowanie i Wyniki</h3>
-            <div class="grid">
-                <button id="btnA" onclick="setTeam('A')" class="btn btn-dark">DRUŻYNA A (Lewe X)</button>
-                <button id="btnB" onclick="setTeam('B')" class="btn btn-dark">DRUŻYNA B (Prawe X)</button>
-            </div>
-            <button onclick="doStrike()" class="btn btn-d" style="font-size:50px; margin-top:10px; height:100px; width:100%">✖</button>
-            <div class="grid" style="margin-top:15px">
-                <div>
-                    <small>PUNKTY A</small>
+                <div class="grid">
+                    <button onclick="doX()" class="btn btn-red" style="font-size:30px">✖</button>
+                    <button onclick="s({type:'RESET_X'})" class="btn">RESET X</button>
+                </div>
+                <div class="grid">
                     <input type="number" id="scA" value="0" onchange="sync()">
-                </div>
-                <div>
-                    <small>PUNKTY B</small>
                     <input type="number" id="scB" value="0" onchange="sync()">
                 </div>
             </div>
         </div>
+
+        <div id="fin" style="display:none">
+            <div class="card">
+                <div class="grid">
+                    <button onclick="s({type:'FINAL_MODE', time:15}); curG=1;" class="btn btn-gold">GRACZ 1 (15s)</button>
+                    <button onclick="s({type:'FINAL_MODE', time:20}); curG=2;" class="btn btn-gold">GRACZ 2 (20s)</button>
+                </div>
+                <button onclick="s({type:'START_TIMER'})" class="btn btn-red">START CZASU</button>
+                <button onclick="s({type:'BUZZER'})" class="btn">POWTÓRZENIE (BUZZ)</button>
+                <div id="f-ins"></div>
+                <button onclick="location.reload()" class="btn">KONIEC FINAŁU (RESET)</button>
+            </div>
+        </div>
     </div>
-</div>
 
-<script>
-    // BAZA PYTAŃ
-    const db = [
-        { q: "Więcej niż jedno zwierzę?", a: [["Owce", 40], ["Lama", 25], ["Stado", 15], ["Wataha", 10], ["Para", 5]] },
-        { q: "Przedmiot szkolny?", a: [["Matematyka", 45], ["Polski", 30], ["WF", 15], ["Historia", 10]] },
-        { q: "Co można robić w lesie?", a: [["Spacerować", 50], ["Zbierać grzyby", 30], ["Biegać", 10], ["Odpoczywać", 10]] },
-        { q: "Rodzaj pieczywa?", a: [["Chleb", 55], ["Bułka", 30], ["Rogal", 10], ["Bagietka", 5]] },
-        { q: "Zimowy sport?", a: [["Narciarstwo", 45], ["Skoki", 30], ["Łyżwiarstwo", 20], ["Sanki", 5]] },
-        { q: "Co pijemy na gorąco?", a: [["Herbata", 50], ["Kawa", 35], ["Kakao", 15]] },
-        { q: "Co kojarzy się z Polską?", a: [["Pierogi", 40], ["Bocian", 30], ["Bałtyk", 20], ["Tatry", 10]] },
-        { q: "Czym podróżujemy?", a: [["Samochód", 40], ["Pociąg", 30], ["Samolot", 20], ["Rower", 10]] },
-        { q: "Zwierzę domowe?", a: [["Pies", 50], ["Kot", 35], ["Chomik", 10], ["Rybka", 5]] },
-        { q: "Co jest czerwone?", a: [["Pomidor", 40], ["Krew", 30], ["Serce", 20], ["Róża", 10]] }
-    ];
+    <script>
+        const db = {
+            norm: [
+                { q: "Więcej niż jedno zwierzę?", a: [["Owce", 40], ["Lama", 25], ["Stado", 15]] },
+                { q: "Przedmiot szkolny?", a: [["Matematyka", 50], ["Polski", 30], ["WF", 20]] }
+            ],
+            fin: [
+                "Zwierzę na K?", "Rzecz w kuchni?", "Kolor kwiatów?", "Marka auta?", "Dyscyplina sportu?"
+            ]
+        };
 
-    let peer = new Peer(), conn, activeTeam = 'A', multiplier = 1, currentA = [], finalTotal = 0;
+        let peer = new Peer(), conn, team = 'A', mult = 1, curA = [], curG = 1, fTot = 0, strikes = {A:0, B:0};
 
-    function connectToTV() {
-        const id = document.getElementById('tv-id').value;
-        conn = peer.connect(id);
-        conn.on('open', () => {
-            document.getElementById('setup-card').style.background = "#1a3a1a";
-            document.getElementById('controls').style.display = 'block';
-            initApp();
-        });
-    }
-
-    function initApp() {
-        const s = document.getElementById('q-sel');
-        db.forEach((d, i) => s.innerHTML += `<option value="${i}">${d.q}</option>`);
-        
-        // Generuj pola finałowe
-        const fDiv = document.getElementById('final-inputs');
-        for(let i=0; i<5; i++) {
-            fDiv.innerHTML += `
-                <div class="final-input-group">
-                    <input type="text" id="fa${i}" placeholder="Odpowiedź ${i+1}">
-                    <input type="number" id="fp${i}" placeholder="Pkt">
-                    <button onclick="revF(${i})" class="btn btn-s" style="padding:5px">OK</button>
-                </div>`;
+        function connect() {
+            conn = peer.connect(document.getElementById('tv-id').value);
+            conn.on('open', () => { 
+                document.getElementById('ctrl').style.display='block';
+                const sel = document.getElementById('q-sel');
+                db.norm.forEach((d,i) => sel.innerHTML += `<option value="${i}">${d.q}</option>`);
+                let fins = document.getElementById('f-ins');
+                for(let i=0; i<5; i++) fins.innerHTML += `<div class="grid"><input id="fa${i}" placeholder="${db.fin[i]}"><input id="fp${i}" type="number" style="width:50px"><button onclick="revF(${i})" class="btn" style="width:40px">OK</button></div>`;
+                prep();
+            });
         }
-        prepQ();
-    }
 
-    function send(m) { if(conn) conn.send(m); }
-
-    function setR(r) { 
-        multiplier = (typeof r === 'number') ? r : 1; 
-        send({type: 'NEXT_ROUND'}); 
-        alert("Zmieniono mnożnik na x" + multiplier + ". Tablica wyczyszczona.");
-    }
-
-    function prepQ() {
-        const d = db[document.getElementById('q-sel').value]; currentA = d.a;
-        const l = document.getElementById('ans-list'); l.innerHTML = "";
-        d.a.forEach((a, i) => {
-            l.innerHTML += `<div class="ans-row">
-                <span>${a[0]} (${a[1]})</span>
-                <button onclick="reveal(${i})" class="btn btn-s" style="padding: 5px 15px">ODKRYJ</button>
-            </div>`;
-        });
-    }
-
-    function sendQ() { send({type:'SETUP', a: currentA.map(x=>({t:x[0], p:x[1]}))}); }
-
-    function reveal(i) {
-        let pts = currentA[i][1] * multiplier;
-        const scField = document.getElementById('sc' + activeTeam);
-        scField.value = parseInt(scField.value) + pts;
-        let total = parseInt(document.getElementById('scA').value) + parseInt(document.getElementById('scB').value);
-        send({type:'REVEAL', index:i, total:total});
-    }
-
-    function doStrike() { send({type:'STRIKE', team: activeTeam}); }
-    
-    function setTeam(t) { 
-        activeTeam = t; 
-        document.getElementById('btnA').className = 'btn btn-dark' + (t==='A' ? ' active-team' : '');
-        document.getElementById('btnB').className = 'btn btn-dark' + (t==='B' ? ' active-team' : '');
-    }
-
-    function sync() { 
-        let s = parseInt(document.getElementById('scA').value) + parseInt(document.getElementById('scB').value);
-        send({type:'UPDATE', sc: s}); 
-    }
-
-    // FUNKCJE FINAŁU
-    function initFinal(time) {
-        document.getElementById('normal-section').style.display = 'none';
-        document.getElementById('final-section').style.display = 'block';
-        finalTotal = 0;
-        send({type:'FINAL_MODE', time: time});
-    }
-
-    function closeFinal() {
-        document.getElementById('normal-section').style.display = 'block';
-        document.getElementById('final-section').style.display = 'none';
-    }
-
-    function revF(i) {
-        const ans = document.getElementById('fa'+i).value;
-        const pts = parseInt(document.getElementById('fp'+i).value) || 0;
-        finalTotal += pts;
-        send({ type: 'FINAL_REVEAL', index: i, ans: ans, pts: pts, total: finalTotal });
-    }
-</script>
-
+        function s(m) { if(conn) conn.send(m); }
+        function setR(r) { mult = r; s({type:'NEXT_ROUND'}); strikes={A:0, B:0}; }
+        function goFinal() { document.getElementById('norm').style.display='none'; document.getElementById('fin').style.display='block'; s({type:'FINAL_MODE', time:15}); }
+        function prep() {
+            const d = db.norm[document.getElementById('q-sel').value]; curA = d.a;
+            const l = document.getElementById('ans-list'); l.innerHTML = "";
+            d.a.forEach((a, i) => l.innerHTML += `<div class="grid"><span>${a[0]}</span><button onclick="rev(${i})" class="btn btn-gold" style="width:60px">OK</button></div>`);
+        }
+        function sendQ() { s({type:'SETUP', a: curA.map(x=>({t:x[0], p:x[1]}))}); }
+        function rev(i) {
+            let pts = curA[i][1] * mult;
+            let el = document.getElementById('sc'+team); el.value = parseInt(el.value) + pts;
+            sync(); s({type:'REVEAL', index:i, total: document.getElementById('scA').value*1 + document.getElementById('scB').value*1});
+        }
+        function doX() { if(strikes[team]<3) { strikes[team]++; s({type:'STRIKE', team: team, num: strikes[team]}); } }
+        function setT(t) { team = t; document.getElementById('bA').className = 'btn '+(t=='A'?'active':''); document.getElementById('bB').className = 'btn '+(t=='B'?'active':''); }
+        function sync() { let val = document.getElementById('scA').value*1 + document.getElementById('scB').value*1; s({type:'UPDATE', sc: val}); }
+        function revF(i) {
+            let p = parseInt(document.getElementById('fp'+i).value) || 0;
+            fTot += p;
+            s({type:'FINAL_REVEAL', gracz: curG, index: i, ans: document.getElementById('fa'+i).value, pts: p, total: fTot});
+        }
+    </script>
 </body>
 </html>
