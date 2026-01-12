@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA TV - MEGA BOARD</title>
+    <title>FAMILIADA TV - PRO BOARD</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
@@ -10,42 +10,56 @@
         .led-bg { position: fixed; inset: 0; background-image: radial-gradient(rgba(0,0,0,0.5) 40%, transparent 45%); background-size: 4px 4px; z-index: 100; pointer-events: none; }
         #video-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 3000; display: none; }
         
-        .main-container { display: flex; flex-direction: column; height: 100vh; align-items: center; justify-content: center; background: #000; }
+        .main-container { display: flex; flex-direction: column; height: 100vh; align-items: center; justify-content: center; }
         
-        /* Maksymalnie powiększona tablica */
+        /* GIGANTYCZNA TABLICA */
         .board-frame { 
-            border: 12px solid #222; border-radius: 25px; padding: 50px; 
-            background: #050505; width: 92vw; height: 85vh; position: relative; 
-            box-shadow: inset 0 0 100px #000; display: flex; flex-direction: column; justify-content: space-between;
+            border: 15px solid #222; border-radius: 30px; padding: 40px; 
+            background: #050505; width: 95vw; height: 90vh; position: relative; 
+            box-shadow: inset 0 0 100px #000; display: flex; flex-direction: column; 
         }
 
-        /* Kontener na X po lewej stronie WEWNĄTRZ tablicy */
+        /* Kontener na X po lewej stronie */
         #strike-container {
-            position: absolute; left: 30px; top: 50%; transform: translateY(-50%);
-            display: flex; flex-direction: column; gap: 20px; z-index: 10;
+            position: absolute; left: 40px; top: 50%; transform: translateY(-50%);
+            display: flex; flex-direction: column; gap: 30px; z-index: 10;
         }
-        .strike-x { width: 120px; height: 120px; filter: drop-shadow(0 0 15px red); display: none; }
 
-        /* Wiersze z odpowiedziami */
-        #board-ui { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; gap: 10px; margin-left: 120px; } /* margines na X */
+        /* KRZYŻYK NARYSOWANY W CSS (Zamiast obrazka) */
+        .strike-x { 
+            width: 100px; height: 100px; position: relative; display: none;
+            filter: drop-shadow(0 0 15px red);
+        }
+        .strike-x::before, .strike-x::after {
+            content: ''; position: absolute; top: 50%; left: 0;
+            width: 100%; height: 20px; background: red;
+        }
+        .strike-x::before { transform: rotate(45deg); }
+        .strike-x::after { transform: rotate(-45deg); }
 
-        .row { display: flex; font-size: 110px; height: 120px; align-items: center; position: relative; }
-        .row-num { width: 80px; color: #f5b041; flex-shrink: 0; }
+        /* Wiersze - Powiekszone */
+        #board-ui { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; margin-left: 150px; }
+
+        .row { display: flex; font-size: 130px; height: 140px; align-items: center; position: relative; }
+        .row-num { width: 90px; color: #f5b041; }
+        .row-content { flex-grow: 1; display: flex; justify-content: space-between; position: relative; }
         
-        .row-content { flex-grow: 1; display: flex; justify-content: space-between; position: relative; border-bottom: 2px solid #111; }
-        .dots { color: #111; letter-spacing: 15px; position: absolute; left: 50%; transform: translateX(-50%); z-index: 1; }
+        /* Kropki - Powiekszone i wyśrodkowane */
+        .dots { 
+            color: #151515; letter-spacing: 25px; position: absolute; 
+            left: 50%; transform: translateX(-50%); z-index: 1; font-weight: bold;
+        }
         
-        .ans-text { position: relative; z-index: 2; background: #050505; padding: 0 20px; display: none; }
-        .pts-val { position: relative; z-index: 2; background: #050505; padding: 0 20px; display: none; width: 140px; text-align: right; border-left: 4px solid #111; }
+        .ans-text { position: relative; z-index: 2; background: #050505; padding: 0 30px; display: none; }
+        .pts-val { position: relative; z-index: 2; background: #050505; padding: 0 30px; display: none; width: 160px; text-align: right; border-left: 6px solid #111; }
         
         .revealed .ans-text, .revealed .pts-val { display: block; }
         .revealed .dots { display: none; }
 
-        /* Dolna sekcja z sumą */
-        .suma-row { display: flex; justify-content: flex-end; font-size: 120px; color: #f5b041; padding-top: 20px; margin-right: 20px; }
+        .suma-row { display: flex; justify-content: flex-end; font-size: 140px; color: #f5b041; margin-right: 40px; padding-bottom: 20px; }
         
         #overlay { position: fixed; inset: 0; background: #000; z-index: 4000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .btn-start { background: #f5b041; border: none; padding: 30px 80px; font-size: 50px; font-family: 'VT323'; cursor: pointer; border-radius: 15px; }
+        .btn-start { background: #f5b041; border: none; padding: 30px 80px; font-size: 50px; font-family: 'VT323'; cursor: pointer; border-radius: 20px; }
     </style>
 </head>
 <body>
@@ -55,20 +69,19 @@
     <audio id="sndNo" src="zle.mp3"></audio>
 
     <div id="overlay">
-        <h1 id="peer-id-label" style="font-size: 40px; margin-bottom: 30px;">ŁĄCZENIE...</h1>
+        <h1 id="peer-id-label" style="font-size: 40px; margin-bottom: 20px;">SYSTEM FAMILIADA</h1>
         <button class="btn-start" onclick="unlockAudio()">START</button>
     </div>
 
     <div class="main-container">
         <div class="board-frame">
             <div id="strike-container">
-                <img class="strike-x" id="x1" src="https://i.imgur.com/8W77G3R.png">
-                <img class="strike-x" id="x2" src="https://i.imgur.com/8W77G3R.png">
-                <img class="strike-x" id="x3" src="https://i.imgur.com/8W77G3R.png">
+                <div class="strike-x" id="x1"></div>
+                <div class="strike-x" id="x2"></div>
+                <div class="strike-x" id="x3"></div>
             </div>
 
-            <div id="board-ui">
-                </div>
+            <div id="board-ui"></div>
             
             <div class="suma-row">
                 <span style="margin-right: 60px;">SUMA</span>
@@ -89,7 +102,7 @@
             document.getElementById('sndOk').play().then(() => { 
                 document.getElementById('sndOk').pause(); 
                 document.getElementById('sndOk').currentTime = 0; 
-            }).catch(e => console.log("Audio unlock failed"));
+            }).catch(e => console.log("Audio unlock required"));
         }
 
         function playVideo(file) {
@@ -105,7 +118,7 @@
                 
                 if(m.type === 'SETUP') {
                     strikeCount = 0;
-                    document.querySelectorAll('.strike-x').forEach(img => img.style.display = 'none');
+                    document.querySelectorAll('.strike-x').forEach(el => el.style.display = 'none');
                     document.getElementById('board-ui').innerHTML = m.a.map((ans, i) => `
                         <div class="row" id="row-${i}">
                             <div class="row-num">${i+1}</div>
@@ -120,7 +133,7 @@
 
                 if(m.type === 'REVEAL') {
                     const sOk = document.getElementById('sndOk');
-                    sOk.currentTime = 0; sOk.play();
+                    sOk.currentTime = 0; sOk.play().catch(()=>{});
                     const row = document.getElementById(`row-${m.index}`);
                     if(row) row.classList.add('revealed');
                     document.getElementById('total-val').innerText = m.total;
@@ -128,7 +141,7 @@
 
                 if(m.type === 'STRIKE') {
                     const sNo = document.getElementById('sndNo');
-                    sNo.currentTime = 0; sNo.play();
+                    sNo.currentTime = 0; sNo.play().catch(()=>{});
                     strikeCount++;
                     if(strikeCount <= 3) {
                         document.getElementById('x' + strikeCount).style.display = 'block';
