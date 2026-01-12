@@ -2,279 +2,248 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA - IDENTICAL BOARD</title>
+    <title>FAMILIADA - REAL LED</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root {
-            --bg: #000;
-            --led-yellow: #ffcc00;
-            --led-off: #3a3000; /* Kolor "zgaszonej" diody */
-            --border-blue: #0055ff;
-            --border-glow: #00aaff;
-            --red: #ff0000;
+            --led-on: #ffcc00;  /* Zapalona żółta dioda */
+            --led-off: #3a2e00; /* Zgaszona (ciemna) dioda */
+            --bg-blue: #0044cc;
+            --board-bg: #000;
         }
 
         body {
-            background-color: var(--bg);
+            background: linear-gradient(to bottom, #0033aa, #001144);
             margin: 0;
             overflow: hidden;
             font-family: 'VT323', monospace;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
             height: 100vh;
         }
 
-        /* Tło imitujące siatkę diod LED */
-        .led-bg {
-            position: fixed; inset: 0; z-index: -1;
-            background-image: radial-gradient(circle, #111 20%, #000 25%);
-            background-size: 6px 6px;
-        }
-
-        /* --- GŁÓWNA RAMA TABLICY --- */
-        .board-frame {
+        /* --- KONTENER GRY --- */
+        .tv-frame {
             position: relative;
             width: 1200px;
+            height: 800px;
+            background: #000;
+            border-radius: 40px;
+            border: 6px solid #2e86de; /* Niebieska ramka TV */
+            box-shadow: 0 0 50px rgba(0, 50, 255, 0.5);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             padding: 20px;
-            border: 8px solid var(--border-blue);
-            border-radius: 25px;
-            box-shadow: 0 0 20px var(--border-blue), inset 0 0 30px var(--border-blue);
-            background: rgba(0,0,0,0.8);
+        }
+
+        /* --- EFEKT SIATKI LED (MASKOWNICA) --- */
+        /* To jest kluczowe! Nakładamy to na napisy, żeby wyglądały jak kropki */
+        .led-overlay {
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(#000 40%, transparent 45%);
+            background-size: 6px 6px; /* Rozmiar pojedynczej diody */
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        /* --- GÓRNA BELKA (SUMA) --- */
+        .header-box {
+            border: 3px solid #0055ff;
+            border-radius: 15px;
+            padding: 5px 30px;
+            margin-bottom: 20px;
+            background: #000;
+            text-align: center;
+            color: var(--led-on);
+            box-shadow: 0 0 15px #0044cc;
+        }
+        .header-box span { display: block; line-height: 1; }
+        .lbl { font-size: 20px; color: #0088ff; margin-bottom: 5px; }
+        .val { font-size: 80px; text-shadow: 0 0 10px var(--led-on); }
+
+        /* --- TABLICA WYNIKÓW --- */
+        .board-grid {
+            width: 90%;
             display: flex;
             flex-direction: column;
             gap: 10px;
         }
 
-        /* Górny licznik (Timer/Runda) */
-        .top-timer {
-            position: absolute;
-            top: -50px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #000;
-            border: 4px solid var(--red);
-            border-radius: 10px;
-            padding: 5px 25px;
-            color: var(--led-yellow);
-            font-size: 60px;
-            line-height: 1;
-            box-shadow: 0 0 15px var(--red);
-            z-index: 10;
-        }
-
-        /* --- WIERSZE ODPOWIEDZI --- */
-        .rows-container {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            padding: 20px 40px;
-        }
-
         .row {
             display: flex;
-            align-items: center;
             justify-content: space-between;
-            height: 65px;
-            font-size: 55px;
-            text-transform: uppercase;
-            letter-spacing: 4px; /* Rozstrzelone litery jak na LED */
-        }
-
-        .row .num {
-            width: 40px;
-            color: var(--led-yellow);
-            text-shadow: 0 0 8px var(--led-yellow);
-        }
-
-        /* Kropki i tekst */
-        .row .content {
-            flex-grow: 1;
-            display: flex;
-            justify-content: space-between; /* Rozrzuca tekst i punkty */
             align-items: center;
-            margin: 0 20px;
+            height: 70px;
+            padding: 0 20px;
+            background: #000; /* Czysta czerń pod diody */
+            font-size: 65px;
             position: relative;
+        }
+
+        /* Symulacja zgaszonych kropek w tle wiersza */
+        .dots-bg {
+            position: absolute;
+            left: 80px; right: 100px; top: 50%;
+            transform: translateY(-50%);
+            color: var(--led-off);
+            letter-spacing: 5px;
+            z-index: 1;
+            font-size: 65px;
+            white-space: nowrap;
             overflow: hidden;
         }
 
-        /* Tło kropek (zawsze widoczne pod spodem) */
-        .dots-bg {
-            position: absolute;
-            left: 0; right: 0; top: 55%;
-            height: 4px;
-            background-image: linear-gradient(to right, var(--led-yellow) 30%, transparent 0%);
-            background-size: 15px 100%; /* Rzadsze kropki */
-            opacity: 0.3; /* Zgaszone kropki */
-            z-index: 1;
-        }
-
-        /* Tekst odpowiedzi */
-        .ans-text {
-            background: #000; /* Przykrywa kropki */
-            padding-right: 15px;
+        /* Tekst aktywny (żółty) */
+        .text-layer {
             z-index: 2;
-            color: var(--led-yellow);
-            text-shadow: 0 0 10px var(--led-yellow);
-            display: none; /* Domyślnie ukryte */
-        }
-
-        .row.revealed .ans-text { display: block; }
-        .row.revealed .dots-bg { opacity: 1; } /* Zapalone kropki */
-
-        .row .pts {
-            width: 80px;
-            text-align: right;
-            background: #000;
-            z-index: 2;
-            color: var(--led-yellow);
-            text-shadow: 0 0 10px var(--led-yellow);
-            visibility: hidden;
-        }
-        .row.revealed .pts { visibility: visible; }
-
-
-        /* --- SUMA --- */
-        .total-row {
+            color: var(--led-on);
+            text-shadow: 0 0 8px var(--led-on);
             display: flex;
-            justify-content: flex-end;
-            align-items: center;
-            padding: 10px 40px;
-            font-size: 55px;
-            color: var(--led-yellow);
-            text-shadow: 0 0 10px var(--led-yellow);
-            margin-top: 10px;
-            border-top: 2px solid #333;
+            width: 100%;
+            justify-content: space-between;
         }
-        .total-label { margin-right: 30px; letter-spacing: 5px; }
+        
+        .num { width: 50px; color: var(--led-on); }
+        .ans { flex-grow: 1; margin-left: 20px; visibility: hidden; letter-spacing: 5px; }
+        .pts { width: 80px; text-align: right; visibility: hidden; }
 
-        /* --- X OVERLAY (IDENTYCZNY JAK NA ZDJĘCIU) --- */
+        /* Stan odkryty */
+        .row.revealed .ans, .row.revealed .pts { visibility: visible; }
+        .row.revealed .dots-bg { opacity: 0; } /* Ukryj zgaszone kropki gdy tekst się świeci */
+
+        /* --- WIELKI X (Zygzak z SVG) --- */
         #strike-overlay {
-            display: none; position: fixed; inset: 0;
-            background: rgba(0,0,0,0.9);
+            display: none;
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.8);
             z-index: 9999;
             justify-content: center; align-items: center;
         }
         
-        /* Stylizacja SVG dla X */
-        .x-svg {
-            width: 600px;
-            height: 800px;
+        /* Stylizacja SVG, aby wyglądało jak na zdjęciu */
+        .x-shape {
             fill: none;
-            stroke: #ff0000;
-            stroke-width: 40;
-            stroke-linejoin: round;
-            stroke-linecap: square;
+            stroke: #ff0033;
+            stroke-width: 45;
+            stroke-linecap: butt; /* Kanciaste końce */
+            stroke-linejoin: miter;
             filter: drop-shadow(0 0 20px #ff0000);
         }
-        /* Biała obwódka wewnątrz X */
         .x-inner {
-            stroke: white;
-            stroke-width: 8;
             fill: none;
+            stroke: #fff;
+            stroke-width: 5;
+            opacity: 0.8;
         }
 
-        /* Drużyny i punkty boczne (poza ramką) */
-        .teams-bar {
-            position: absolute;
-            bottom: 30px;
-            width: 90%;
+        /* --- PUNKTY DRUŻYN (NA DOLE) --- */
+        .score-bar {
+            margin-top: auto;
+            width: 100%;
             display: flex;
             justify-content: space-between;
-            color: white;
-            font-size: 40px;
+            padding: 0 40px;
+            box-sizing: border-box;
         }
-        .team-score { border: 2px solid white; padding: 5px 20px; border-radius: 10px; background: #111; }
-        .active-team { box-shadow: 0 0 20px var(--led-yellow); border-color: var(--led-yellow); }
+        .team-score {
+            font-size: 60px;
+            color: var(--led-on);
+            border: 2px solid #0055ff;
+            padding: 5px 20px;
+            border-radius: 10px;
+            min-width: 100px;
+            text-align: center;
+            background: #000;
+        }
 
-        /* Ekran powitalny */
-        #welcome { position:fixed; inset:0; background:#000; z-index:5000; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+        /* Ekran startowy */
+        #start-layer {
+            position: absolute; inset: 0; background: #000; z-index: 5000;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
     </style>
 </head>
 <body>
 
-    <div class="led-bg"></div>
+    <div class="led-overlay"></div>
+
+    <div id="start-layer">
+        <h1 style="color:var(--led-on); font-size:100px; margin:0; text-shadow:0 0 20px var(--led-on)">FAMILIADA</h1>
+        <h2 id="id-disp" style="color:#0088ff; margin-top:0">CZEKAM NA KOD...</h2>
+        <button onclick="document.getElementById('start-layer').style.display='none'" 
+                style="padding:15px 30px; font-size:25px; background:var(--led-on); border:none; cursor:pointer; font-family:'VT323'; font-weight:bold;">
+            WŁĄCZ TABLICĘ
+        </button>
+    </div>
+
+    <div id="strike-overlay">
+        <svg width="600" height="600" viewBox="0 0 300 300">
+            <path d="M 50,20 L 110,150 L 50,280 M 250,20 L 190,150 L 250,280 M 90,150 L 210,150" 
+                  class="x-shape" />
+            <path d="M 50,20 L 110,150 L 50,280 M 250,20 L 190,150 L 250,280 M 90,150 L 210,150" 
+                  class="x-shape x-inner" stroke-width="3" stroke="white" />
+        </svg>
+    </div>
+
+    <div class="tv-frame">
+        <div class="header-box">
+            <span class="lbl">SUMA</span>
+            <span class="val" id="total-score">0</span>
+        </div>
+
+        <div class="board-grid" id="board">
+            </div>
+
+        <div class="score-bar">
+            <div id="scA" class="team-score">0</div>
+            <div id="scB" class="team-score">0</div>
+        </div>
+    </div>
 
     <audio id="sndOk" src="ok.mp3"></audio>
     <audio id="sndNo" src="zle.mp3"></audio>
     <audio id="sndRunda" src="runda.mp3"></audio>
 
-    <div id="welcome">
-        <h1 style="color:var(--led-yellow); font-size:100px; margin:0; text-shadow:0 0 20px var(--led-yellow)">FAMILIADA</h1>
-        <h2 id="id-disp" style="color:white; font-family:sans-serif;">ŁĄCZENIE...</h2>
-        <button onclick="document.getElementById('welcome').style.display='none'" style="padding:15px; font-size:20px; cursor:pointer; background:var(--led-yellow); border:none; margin-top:20px;">URUCHOM EKRAN</button>
-    </div>
-
-    <div id="strike-overlay">
-        <svg class="x-svg" viewBox="0 0 200 300">
-            <path d="M 20,20 L 80,150 L 20,280 M 180,20 L 120,150 L 180,280" stroke="red" stroke-width="35" stroke-linecap="butt" />
-            <path d="M 20,20 L 80,150 L 20,280 M 180,20 L 120,150 L 180,280" class="x-inner" />
-            <rect x="80" y="135" width="40" height="30" fill="red" />
-            <rect x="82" y="137" width="36" height="26" stroke="white" stroke-width="2" fill="none" />
-        </svg>
-    </div>
-
-    <div class="board-frame">
-        <div class="top-timer" id="round-display">--</div>
-
-        <div class="rows-container" id="board">
-            </div>
-
-        <div class="total-row">
-            <span class="total-label">SUMA</span>
-            <span id="total-score">0</span>
-        </div>
-    </div>
-
-    <div class="teams-bar">
-        <div id="boxA" class="team-score">0</div>
-        <div id="strikes-display" style="color: red; font-size:60px;"></div> 
-        <div id="boxB" class="team-score">0</div>
-    </div>
-
     <script>
         const peer = new Peer();
         let total = 0;
-        
-        peer.on('open', id => document.getElementById('id-disp').innerText = "KOD DO WPISANIA: " + id);
+
+        peer.on('open', id => document.getElementById('id-disp').innerText = "KOD TV: " + id);
 
         peer.on('connection', conn => {
             conn.on('data', m => {
-                // Multimedia
-                if(m.type === 'SETUP' || m.type === 'NEXT_ROUND') {
-                    document.getElementById('welcome').style.display='none';
-                }
                 
                 if(m.type === 'SETUP') {
+                    document.getElementById('start-layer').style.display = 'none';
                     total = 0;
                     document.getElementById('total-score').innerText = "0";
-                    document.getElementById('round-display').innerText = "???"; // Pytanie ukryte lub numer
-                    
                     const b = document.getElementById('board');
                     b.innerHTML = "";
-                    
-                    // Generowanie wierszy 1-6 (pustych)
-                    m.a.forEach((ans, i) => {
+
+                    // Tworzenie 6 wierszy (nawet jak jest mniej odpowiedzi, to puste wiersze zostają dla wyglądu)
+                    for(let i=0; i<6; i++) {
+                        let num = (i < m.a.length) ? (i+1) : ""; // Numer tylko jak jest odpowiedź
+                        let text = (i < m.a.length) ? m.a[i].text : "";
+                        let pts = (i < m.a.length) ? m.a[i].pts : "";
+                        
+                        // Generujemy kropki tła: ........................
+                        let dots = (i < m.a.length) ? "............................." : ".............................";
+                        
+                        // Jeśli wiersz jest pusty (nie ma odpowiedzi), kropki też są puste
+                        if(i >= m.a.length) dots = "";
+
                         b.innerHTML += `
                             <div class="row" id="r-${i}">
-                                <span class="num">${i+1}</span>
-                                <div class="content">
-                                    <span class="ans-text">${m.text}</span> <div class="dots-bg"></div>
+                                <div class="dots-bg">${dots}</div>
+                                <div class="text-layer">
+                                    <span class="num">${num}</span>
+                                    <span class="ans">${text}</span>
+                                    <span class="pts">${pts}</span>
                                 </div>
-                                <span class="pts">0</span>
-                            </div>
-                        `;
-                    });
-                    
-                    // Wypełniamy puste miejsca do 6 wierszy, żeby tablica wyglądała pełnie (opcjonalne)
-                    for(let j=m.a.length; j<5; j++) {
-                        b.innerHTML += `
-                            <div class="row">
-                                <span class="num">${j+1}</span>
-                                <div class="content"><div class="dots-bg" style="opacity:0.1"></div></div>
-                                <span class="pts"></span>
                             </div>
                         `;
                     }
@@ -283,11 +252,7 @@
                 if(m.type === 'REVEAL') {
                     document.getElementById('sndOk').play();
                     const r = document.getElementById(`r-${m.index}`);
-                    // Podmieniamy treść i odkrywamy
-                    r.querySelector('.ans-text').innerText = m.text;
-                    r.querySelector('.pts').innerText = m.pts;
                     r.classList.add('revealed');
-                    
                     total += parseInt(m.pts);
                     document.getElementById('total-score').innerText = total;
                 }
@@ -300,18 +265,13 @@
                 }
 
                 if(m.type === 'UPDATE') {
-                    document.getElementById('boxA').innerText = m.scA;
-                    document.getElementById('boxB').innerText = m.scB;
-                    // Wyświetlanie błędów na dole (małe X)
-                    let sStr = "";
-                    if(m.strikes.A > 0) sStr += "A: " + "X".repeat(m.strikes.A) + " ";
-                    if(m.strikes.B > 0) sStr += "B: " + "X".repeat(m.strikes.B);
-                    document.getElementById('strikes-display').innerText = sStr;
+                    document.getElementById('scA').innerText = m.scA;
+                    document.getElementById('scB').innerText = m.scB;
                 }
-                
+
                 if(m.type === 'NEXT_ROUND') {
-                     document.getElementById('sndRunda').play();
-                     document.getElementById('round-display').innerText = m.round;
+                    document.getElementById('sndRunda').play();
+                    // Opcjonalnie reset sumy itp.
                 }
             });
         });
