@@ -2,107 +2,158 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA TV - FINAL FIX</title>
+    <title>FAMILIADA TV - PRO ULTIMATE</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        body { background: #000; color: #f5b041; font-family: 'VT323', monospace; margin: 0; overflow: hidden; text-transform: uppercase; }
-        .led-bg { position: fixed; inset: 0; background-image: radial-gradient(rgba(0,0,0,0.5) 40%, transparent 45%); background-size: 4px 4px; z-index: 100; pointer-events: none; }
-        #video-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 3000; display: none; }
-        .main-container { display: flex; height: 100vh; align-items: center; justify-content: center; padding: 0 20px; }
+        :root { --gold: #f5b041; --dark-gold: #b37d26; --bg: #050505; --led-off: #121212; }
+        body { background: #000; color: var(--gold); font-family: 'VT323', monospace; margin: 0; overflow: hidden; text-transform: uppercase; }
         
-        .strike-zone { width: 150px; display: flex; flex-direction: column; gap: 20px; align-items: center; }
-        .strike-x { width: 110px; height: 110px; position: relative; display: none; filter: drop-shadow(0 0 15px red); }
-        .strike-x::before, .strike-x::after { content: ''; position: absolute; top: 50%; left: 0; width: 100%; height: 20px; background: red; }
-        .strike-x::before { transform: rotate(45deg); }
-        .strike-x::after { transform: rotate(-45deg); }
+        /* Tło LED */
+        .led-bg { position: fixed; inset: 0; background-image: radial-gradient(rgba(0,0,0,0.4) 40%, transparent 45%); background-size: 4px 4px; z-index: 100; pointer-events: none; }
+        
+        #video-layer { position: fixed; inset: 0; width: 100%; height: 100%; background: #000; z-index: 5000; display: none; }
 
-        .board-frame { border: 10px solid #222; border-radius: 25px; padding: 30px; background: #050505; width: 70vw; height: 80vh; position: relative; display: flex; flex-direction: column; }
-        #board-ui { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; }
-        .row { display: flex; font-size: 100px; height: 115px; align-items: center; position: relative; }
-        .row-num { width: 80px; }
+        .main-container { display: flex; height: 100vh; align-items: center; justify-content: center; gap: 20px; }
+
+        /* Boczne sekcje X */
+        .strike-zone { width: 120px; display: flex; flex-direction: column; gap: 15px; }
+        .strike-x { width: 100px; height: 100px; position: relative; display: none; filter: drop-shadow(0 0 15px red); }
+        .strike-x::before, .strike-x::after { content: ''; position: absolute; top: 45%; width: 100%; height: 15px; background: red; box-shadow: 0 0 10px red; }
+        .strike-x::before { transform: rotate(45deg); } .strike-x::after { transform: rotate(-45deg); }
+
+        /* Rama Tablicy */
+        .board-frame { 
+            border: 10px solid #222; border-radius: 30px; padding: 40px; 
+            background: linear-gradient(145deg, #0a0a0a, #050505); width: 75vw; height: 85vh; 
+            position: relative; box-shadow: 0 0 50px rgba(0,0,0,1), inset 0 0 30px #000;
+            display: flex; flex-direction: column;
+        }
+
+        /* Tryb Normalny */
+        #normal-ui { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; }
+        .row { display: flex; font-size: 100px; height: 110px; align-items: center; margin-bottom: 5px; border-bottom: 2px solid #111; }
+        .row-num { width: 70px; color: var(--dark-gold); }
         .row-content { flex-grow: 1; display: flex; justify-content: space-between; position: relative; }
-        .dots { color: #121212; letter-spacing: 20px; position: absolute; left: 50%; transform: translateX(-50%); z-index: 1; }
-        .ans-text, .pts-val { position: relative; z-index: 2; background: #050505; display: none; }
-        .revealed .ans-text, .revealed .pts-val { display: block; }
+        .dots { color: var(--led-off); letter-spacing: 15px; position: absolute; left: 50%; transform: translateX(-50%); }
+
+        /* TRYB FINAŁOWY */
+        #final-ui { display: none; flex-direction: column; height: 100%; }
+        .final-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; flex-grow: 1; align-content: center; }
+        .final-slot { border: 4px solid #111; height: 100px; display: flex; align-items: center; font-size: 80px; padding: 0 20px; background: #080808; }
+        .f-ans { flex-grow: 1; }
+        .f-pts { width: 120px; text-align: right; color: var(--gold); border-left: 4px solid #111; padding-left: 10px; }
+        .timer { font-size: 150px; text-align: center; color: red; text-shadow: 0 0 20px red; margin-bottom: 20px; }
+
+        .revealed .ans-text, .revealed .pts-val, .revealed .f-ans, .revealed .f-pts { display: block !important; }
         .revealed .dots { display: none; }
-        .suma-row { display: flex; justify-content: flex-end; font-size: 110px; border-top: 4px solid #111; }
-        
-        #overlay { position: fixed; inset: 0; background: #000; z-index: 4000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .btn-start { background: #f5b041; border: none; padding: 30px 80px; font-size: 50px; font-family: 'VT323'; cursor: pointer; border-radius: 20px; }
+
+        .suma-row { display: flex; justify-content: flex-end; font-size: 120px; margin-top: 20px; border-top: 5px double #222; }
+
+        #overlay { position: fixed; inset: 0; background: #000; z-index: 6000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .btn-start { background: var(--gold); border: none; padding: 30px 80px; font-size: 50px; font-family: 'VT323'; cursor: pointer; border-radius: 20px; box-shadow: 0 0 30px var(--gold); }
     </style>
 </head>
 <body>
     <div class="led-bg"></div>
     <video id="video-layer" playsinline></video>
+    
     <audio id="sndOk" src="ok.mp3"></audio>
     <audio id="sndNo" src="zle.mp3"></audio>
-
-    <div id="overlay">
-        <h1 id="peer-id-label">ŁĄCZENIE...</h1>
-        <button class="btn-start" onclick="unlockAudio()">START</button>
+    <audio id="sndBuzz" src="powtorzenie.mp3"></audio> <div id="overlay">
+        <h1 id="peer-id-label">ŁĄCZENIE SYSTEMU...</h1>
+        <button class="btn-start" onclick="this.parentElement.style.display='none'">START</button>
     </div>
 
     <div class="main-container">
         <div class="strike-zone">
-            <div class="strike-x" id="xA1"></div>
-            <div class="strike-x" id="xA2"></div>
-            <div class="strike-x" id="xA3"></div>
+            <div class="strike-x" id="xA1"></div><div class="strike-x" id="xA2"></div><div class="strike-x" id="xA3"></div>
         </div>
 
         <div class="board-frame">
-            <div id="board-ui"></div>
+            <div id="normal-ui"></div>
+
+            <div id="final-ui">
+                <div class="timer" id="timer">15</div>
+                <div class="final-grid" id="final-grid">
+                    </div>
+            </div>
+
             <div class="suma-row"><span>SUMA </span><span id="total-val">0</span></div>
         </div>
 
         <div class="strike-zone">
-            <div class="strike-x" id="xB1"></div>
-            <div class="strike-x" id="xB2"></div>
-            <div class="strike-x" id="xB3"></div>
+            <div class="strike-x" id="xB1"></div><div class="strike-x" id="xB2"></div><div class="strike-x" id="xB3"></div>
         </div>
     </div>
 
     <script>
         const peer = new Peer();
-        const videoPlayer = document.getElementById('video-layer');
         let strikes = { A: 0, B: 0 };
+        let timerInt;
 
         peer.on('open', id => document.getElementById('peer-id-label').innerText = "KOD TV: " + id);
 
-        function unlockAudio() {
-            document.getElementById('overlay').style.display = 'none';
-        }
-
-        function playSnd(id) {
-            const s = document.getElementById(id);
-            s.currentTime = 0; s.play().catch(()=>{});
+        function playSnd(id) { 
+            const s = document.getElementById(id); 
+            s.currentTime = 0; s.play().catch(()=>{}); 
         }
 
         peer.on('connection', conn => {
             conn.on('data', m => {
                 if(m.type === 'PLAY_VIDEO') {
-                    videoPlayer.src = m.file; videoPlayer.style.display = 'block'; videoPlayer.play();
-                    videoPlayer.onended = () => { videoPlayer.style.display = 'none'; };
+                    const v = document.getElementById('video-layer');
+                    v.src = m.file; v.style.display = 'block'; v.play();
+                    v.onended = () => v.style.display = 'none';
                 }
-                
-                if(m.type === 'SETUP' || m.type === 'NEXT_ROUND') {
-                    strikes = { A: 0, B: 0 };
+
+                if(m.type === 'SETUP') {
+                    document.getElementById('normal-ui').style.display = 'flex';
+                    document.getElementById('final-ui').style.display = 'none';
                     document.querySelectorAll('.strike-x').forEach(el => el.style.display = 'none');
-                    if(m.type === 'NEXT_ROUND') playSnd('sndOk'); // Dźwięk nowej rundy
-                    
-                    if(m.a) {
-                        document.getElementById('board-ui').innerHTML = m.a.map((ans, i) => `
-                            <div class="row" id="row-${i}">
-                                <div class="row-num">${i+1}</div>
-                                <div class="row-content">
-                                    <div class="dots">.......</div>
-                                    <div class="ans-text">${ans.t}</div>
-                                    <div class="pts-val">${ans.p}</div>
-                                </div>
-                            </div>`).join('');
-                        document.getElementById('total-val').innerText = "0";
-                    }
+                    strikes = { A: 0, B: 0 };
+                    document.getElementById('normal-ui').innerHTML = m.a.map((ans, i) => `
+                        <div class="row" id="row-${i}">
+                            <div class="row-num">${i+1}</div>
+                            <div class="row-content">
+                                <div class="dots">..........</div>
+                                <div class="ans-text" style="display:none">${ans.t}</div>
+                                <div class="pts-val" style="display:none">${ans.p}</div>
+                            </div>
+                        </div>`).join('');
+                    document.getElementById('total-val').innerText = "0";
                 }
+
+                if(m.type === 'FINAL_MODE') {
+                    document.getElementById('normal-ui').style.display = 'none';
+                    document.getElementById('final-ui').style.display = 'flex';
+                    document.getElementById('timer').innerText = m.time;
+                    document.getElementById('final-grid').innerHTML = Array(5).fill(0).map((_, i) => `
+                        <div class="final-slot" id="f-row-${i}">
+                            <div class="f-ans" style="display:none"></div>
+                            <div class="f-pts" style="display:none">0</div>
+                        </div>`).join('');
+                }
+
+                if(m.type === 'START_TIMER') {
+                    let t = parseInt(document.getElementById('timer').innerText);
+                    clearInterval(timerInt);
+                    timerInt = setInterval(() => {
+                        t--; document.getElementById('timer').innerText = t;
+                        if(t <= 0) { clearInterval(timerInt); playSnd('sndNo'); }
+                    }, 1000);
+                }
+
+                if(m.type === 'FINAL_REVEAL') {
+                    playSnd('sndOk');
+                    const row = document.getElementById(`f-row-${m.index}`);
+                    row.querySelector('.f-ans').innerText = m.ans;
+                    row.querySelector('.f-pts').innerText = m.pts;
+                    row.classList.add('revealed');
+                    document.getElementById('total-val').innerText = m.total;
+                }
+
+                if(m.type === 'BUZZER') playSnd('sndBuzz');
 
                 if(m.type === 'REVEAL') {
                     playSnd('sndOk');
@@ -113,13 +164,7 @@
                 if(m.type === 'STRIKE') {
                     playSnd('sndNo');
                     strikes[m.team]++;
-                    if(strikes[m.team] <= 3) {
-                        document.getElementById(`x${m.team}${strikes[m.team]}`).style.display = 'block';
-                    }
-                }
-
-                if(m.type === 'UPDATE') {
-                    document.getElementById('total-val').innerText = m.sc;
+                    if(strikes[m.team] <= 3) document.getElementById(`x${m.team}${strikes[m.team]}`).style.display = 'block';
                 }
             });
         });
