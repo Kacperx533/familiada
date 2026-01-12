@@ -2,140 +2,116 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA TV - TABLICA</title>
+    <title>FAMILIADA TV - FINAL</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        :root { --gold: #ffcc00; --dim: #1a1500; --red: #ff0000; }
-        body { background: #000; color: var(--gold); font-family: 'VT323', monospace; margin: 0; overflow: hidden; text-transform: uppercase; }
-
-        /* Siatka LED */
-        .led-matrix { position: fixed; inset: 0; background-image: radial-gradient(rgba(0,0,0,0.6) 40%, transparent 45%); background-size: 5px 5px; z-index: 100; pointer-events: none; }
-
-        .container { display: flex; flex-direction: column; height: 100vh; padding: 40px 80px; box-sizing: border-box; }
-
-        /* NAGŁÓWEK */
-        .header { display: flex; justify-content: space-between; align-items: center; height: 160px; }
-        .score { font-size: 160px; text-shadow: 0 0 20px var(--gold); min-width: 220px; }
-        .round-box { border: 5px solid var(--gold); padding: 10px 40px; font-size: 80px; box-shadow: 0 0 15px var(--gold); background: #000; }
-
-        /* TABLICA */
-        .board { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; gap: 10px; }
-        .row { display: flex; font-size: 100px; height: 110px; align-items: center; border-bottom: 2px solid #080808; position: relative; }
-        .row-num { width: 90px; }
-        .row-content { flex-grow: 1; display: flex; justify-content: space-between; position: relative; }
+        body { background: #000; color: #f5b041; font-family: 'VT323', monospace; margin: 0; overflow: hidden; }
         
-        /* Kropki są pod tekstem */
-        .dots { color: var(--dim); position: absolute; left: 0; width: 100%; z-index: 1; letter-spacing: 2px; }
-        .ans-text { position: relative; z-index: 5; background: #000; padding-right: 20px; display: none; }
-        .pts-val { position: relative; z-index: 5; background: #000; padding-left: 20px; display: none; }
-
-        .revealed .ans-text, .revealed .pts-val { display: block; }
-        .revealed .dots { display: none; }
-
-        /* SUMA */
-        .footer { display: flex; justify-content: flex-end; font-size: 100px; margin-top: 20px; }
-        .total-label { margin-right: 40px; color: #333; }
-
-        /* --- WIELKIE X --- */
-        #strike-overlay { 
-            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); 
-            z-index: 1000; justify-content: center; align-items: center; 
+        /* Tło tablicy z kropkami */
+        .board-container {
+            width: 100vw; height: 100vh;
+            background: radial-gradient(circle, #1a1a1a 1px, transparent 1px);
+            background-size: 4px 4px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
-        .x-svg { width: 600px; height: 600px; filter: drop-shadow(0 0 30px red); }
-        .x-path { fill: none; stroke: var(--red); stroke-width: 40; stroke-linecap: square; }
-        .x-white { fill: none; stroke: #fff; stroke-width: 6; }
 
-        /* Ekran powitalny */
-        #boot { position: fixed; inset: 0; background: #000; z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .btn-start { background: var(--gold); border: none; padding: 20px 50px; font-size: 30px; font-family: 'VT323'; cursor: pointer; font-weight: bold; margin-top: 20px; }
+        .board-frame {
+            border: 8px solid #333; border-radius: 20px;
+            padding: 40px; background: #050505; width: 80%;
+            box-shadow: inset 0 0 50px #000; position: relative;
+        }
+
+        .row { display: flex; font-size: 70px; height: 80px; align-items: center; margin-bottom: 5px; }
+        .row-num { width: 60px; color: #f5b041; text-align: left; }
+        .row-text { flex-grow: 1; color: #f5b041; }
+        .row-pts { width: 100px; text-align: right; }
+        .dots { color: #222; letter-spacing: 5px; }
+
+        .suma-row { 
+            display: flex; justify-content: flex-end; 
+            font-size: 80px; margin-top: 30px; border-top: 2px solid #222; padding-top: 10px;
+        }
+
+        /* Multimedia - Video */
+        #video-player {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 2000; display: none;
+        }
+
+        /* Wielki X */
+        #strike-overlay {
+            display: none; position: fixed; inset: 0; z-index: 1500;
+            background: rgba(0,0,0,0.8); justify-content: center; align-items: center;
+        }
     </style>
 </head>
 <body>
-    <div class="led-matrix"></div>
 
-    <div id="boot">
-        <h1 id="my-id">ŁĄCZENIE...</h1>
-        <button id="start-btn" class="btn-start" style="display:none" onclick="document.getElementById('boot').style.display='none'">OTWÓRZ TABLICĘ</button>
-    </div>
+    <video id="video-player"></video>
 
     <div id="strike-overlay">
-        <svg class="x-svg" viewBox="0 0 300 300">
-            <path class="x-path" d="M 50,50 L 125,150 L 50,250 M 250,50 L 175,150 L 250,250 M 125,150 L 175,150" />
-            <path class="x-white" d="M 50,50 L 125,150 L 50,250 M 250,50 L 175,150 L 250,250 M 125,150 L 175,150" />
-        </svg>
-    </div>
+        <img src="https://i.imgur.com/8W77G3R.png" width="500"> </div>
 
-    <div class="container">
-        <div class="header">
-            <div id="scA" class="score">000</div>
-            <div id="round-title" class="round-box">RUNDA 1</div>
-            <div id="scB" class="score" style="text-align:right">000</div>
-        </div>
-
-        <div class="board" id="board-ui"></div>
-
-        <div class="footer">
-            <span class="total-label">SUMA</span>
-            <div id="total-pts">000</div>
+    <div class="board-container">
+        <div class="board-frame">
+            <div id="board-ui"></div>
+            <div class="suma-row">
+                <span style="margin-right: 50px;">SUMA</span>
+                <span id="total-val">0</span>
+            </div>
         </div>
     </div>
-
-    <audio id="sndOk" src="ok.mp3"></audio>
-    <audio id="sndNo" src="zle.mp3"></audio>
 
     <script>
         const peer = new Peer();
-        let sum = 0;
+        const vPlayer = document.getElementById('video-player');
 
-        peer.on('open', id => {
-            document.getElementById('my-id').innerText = "KOD TV: " + id;
-            document.getElementById('start-btn').style.display = 'block';
-        });
+        peer.on('open', id => console.log('ID:', id));
 
         peer.on('connection', conn => {
             conn.on('data', m => {
                 if(m.type === 'SETUP') {
-                    sum = 0;
-                    document.getElementById('total-pts').innerText = "000";
                     const b = document.getElementById('board-ui');
                     b.innerHTML = "";
                     m.a.forEach((ans, i) => {
                         b.innerHTML += `
-                            <div class="row" id="r-${i}">
-                                <div class="row-num">${i+1}.</div>
-                                <div class="row-content">
-                                    <div class="dots">................................................</div>
-                                    <div class="ans-text">${ans.t}</div>
-                                    <div class="pts-val">${ans.p}</div>
-                                </div>
+                            <div class="row" id="row-${i}">
+                                <span class="row-num">${i+1}</span>
+                                <span class="row-text"><span class="dots">............................</span></span>
+                                <span class="row-pts"></span>
                             </div>`;
                     });
                 }
+                
                 if(m.type === 'REVEAL') {
-                    document.getElementById('sndOk').play();
-                    const row = document.getElementById(`r-${m.index}`);
-                    if(row) {
-                        row.classList.add('revealed');
-                        sum += parseInt(m.pts);
-                        document.getElementById('total-pts').innerText = sum.toString().padStart(3, '0');
-                    }
+                    const r = document.getElementById(`row-${m.index}`);
+                    r.querySelector('.row-text').innerText = m.text.toUpperCase();
+                    r.querySelector('.row-pts').innerText = m.pts;
+                    updateTotal(m.total);
                 }
+
                 if(m.type === 'STRIKE') {
-                    document.getElementById('sndNo').play();
                     const ov = document.getElementById('strike-overlay');
                     ov.style.display = 'flex';
-                    setTimeout(() => ov.style.display = 'none', 1200);
+                    setTimeout(() => ov.style.display = 'none', 1500);
                 }
-                if(m.type === 'NEXT_ROUND') {
-                    document.getElementById('round-title').innerText = m.round === 'F' ? "FINAŁ" : "RUNDA " + m.round;
-                }
-                if(m.type === 'UPDATE') {
-                    document.getElementById('scA').innerText = m.scA.toString().padStart(3, '0');
-                    document.getElementById('scB').innerText = m.scB.toString().padStart(3, '0');
-                }
+
+                if(m.type === 'START_INTRO') playMedia('intro.mp4');
+                if(m.type === 'START_OUTRO') playMedia('outro.mp4');
             });
         });
+
+        function playMedia(file) {
+            vPlayer.src = file;
+            vPlayer.style.display = 'block';
+            vPlayer.play();
+            vPlayer.onended = () => vPlayer.style.display = 'none';
+        }
+
+        function updateTotal(val) {
+            document.getElementById('total-val').innerText = val;
+        }
     </script>
 </body>
 </html>
