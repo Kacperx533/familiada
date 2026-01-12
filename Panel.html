@@ -2,149 +2,97 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PANEL STEROWANIA - FAMILIADA</title>
+    <title>PANEL STEROWANIA</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        :root { 
-            --bg: #0f172a; --card: #1e293b; --accent: #8b5cf6; 
-            --success: #10b981; --danger: #ef4444; --gold: #f59e0b; --text: #f8fafc; 
-        }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); padding: 10px; margin: 0; }
-        .card { background: var(--card); border-radius: 12px; padding: 15px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.1); }
-        h4 { margin: 0 0 10px 0; font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; }
+        :root { --bg: #0a0a0a; --card: #1a1a1a; --accent: #f5b041; --text: #fff; }
+        body { font-family: sans-serif; background: var(--bg); color: var(--text); padding: 10px; margin: 0; }
+        .card { background: var(--card); border-radius: 12px; padding: 15px; margin-bottom: 10px; border: 1px solid #333; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .btn { border: none; border-radius: 8px; padding: 12px; font-weight: bold; cursor: pointer; color: white; transition: 0.2s; font-size: 14px; }
-        .btn:active { transform: scale(0.98); }
-        .btn-p { background: var(--accent); }
-        .btn-s { background: var(--success); }
-        .btn-d { background: var(--danger); }
-        .btn-dark { background: #334155; }
-        .btn-gold { background: var(--gold); color: black; }
-        input, select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: white; margin-bottom: 10px; box-sizing: border-box; }
-        .ans-row { display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; margin-top: 5px; border-left: 4px solid var(--accent); }
-        .active-team { outline: 4px solid var(--gold); box-shadow: 0 0 15px var(--gold); }
-        .multiplier-info { text-align: center; font-weight: bold; color: var(--gold); margin-bottom: 8px; font-size: 16px; }
+        .btn { border: none; border-radius: 8px; padding: 12px; font-weight: bold; cursor: pointer; color: white; }
+        .btn-p { background: #5a32a8; }
+        .btn-s { background: #27ae60; }
+        .btn-d { background: #ff0000; }
+        .btn-dark { background: #333; }
+        .btn-gold { background: var(--accent); color: #000; }
+        input, select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #333; background: #000; color: white; margin-bottom: 10px; box-sizing: border-box; }
+        .ans-row { display: flex; justify-content: space-between; align-items: center; background: #222; padding: 10px; border-radius: 8px; margin-top: 5px; border-left: 4px solid var(--accent); }
+        .active-team { outline: 3px solid var(--accent); }
     </style>
 </head>
 <body>
-
     <div id="setup" class="card">
-        <h4>1. Połączenie</h4>
         <input type="text" id="tv-id" placeholder="ID Z EKRANU TV">
-        <button onclick="connectToTV()" class="btn btn-p" style="width:100%">POŁĄCZ Z TV</button>
+        <button onclick="connectToTV()" class="btn btn-p" style="width:100%">POŁĄCZ</button>
     </div>
 
     <div id="controls" style="display:none">
         <div class="card">
-            <h4>2. Multimedia i Rundy</h4>
-            <div class="grid" style="margin-bottom:10px">
-                <button onclick="sendToTV({type:'START_INTRO'})" class="btn btn-dark">🎬 CZOŁÓWKA</button>
-                <button onclick="sendToTV({type:'START_OUTRO'})" class="btn btn-dark">🎬 NAPISY</button>
+            <h4>MULTIMEDIA</h4>
+            <div class="grid">
+                <button onclick="sendToTV({type:'PLAY_VIDEO', file:'czolowka.mp4'})" class="btn btn-dark">🎬 CZOŁÓWKA</button>
+                <button onclick="sendToTV({type:'PLAY_VIDEO', file:'napisy.mp4'})" class="btn btn-dark">🎬 NAPISY</button>
             </div>
-            <div id="m-display" class="multiplier-info">Mnożnik: x1</div>
-            <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:5px">
+            <div class="grid" style="margin-top:10px">
                 <button onclick="setR(1)" class="btn btn-dark">x1</button>
                 <button onclick="setR(2)" class="btn btn-dark">x2</button>
                 <button onclick="setR(3)" class="btn btn-dark">x3</button>
-                <button onclick="setR('F')" class="btn btn-gold">FIN</button>
+                <button onclick="setR('F')" class="btn btn-gold">FINAŁ</button>
             </div>
         </div>
 
         <div class="card">
-            <h4>3. Baza Pytań</h4>
+            <h4>PYTANIA</h4>
             <select id="q-sel" onchange="prepQ()"></select>
-            <button onclick="sendQ()" class="btn btn-s" style="width:100%">WYŚLIJ NA TABLICĘ</button>
+            <button onclick="sendQ()" class="btn btn-s" style="width:100%">WYŚLIJ PYTANIE</button>
             <div id="ans-list"></div>
         </div>
 
         <div class="card">
-            <h4>4. Zarządzanie Grą</h4>
             <div class="grid">
-                <button id="btnA" onclick="setTeam('A')" class="btn btn-dark">TEAM A</button>
-                <button id="btnB" onclick="setTeam('B')" class="btn btn-dark">TEAM B</button>
+                <button id="btnA" onclick="setTeam('A')" class="btn btn-dark">DRUŻYNA A</button>
+                <button id="btnB" onclick="setTeam('B')" class="btn btn-dark">DRUŻYNA B</button>
             </div>
-            <button onclick="doStrike()" class="btn btn-d" style="font-size:50px; margin-top:10px; height:80px; width:100%">✖</button>
+            <button onclick="doStrike()" class="btn btn-d" style="font-size:40px; margin-top:10px; height:80px; width:100%">✖</button>
             <div class="grid" style="margin-top:10px">
-                <div><small>PUNKTY A</small><input type="number" id="scA" value="0" onchange="sync()"></div>
-                <div><small>PUNKTY B</small><input type="number" id="scB" value="0" onchange="sync()"></div>
+                <input type="number" id="scA" value="0" onchange="sync()">
+                <input type="number" id="scB" value="0" onchange="sync()">
             </div>
         </div>
     </div>
 
     <script>
         const db = [
-            { q: "Przedmiot szkolny z kalkulatorem?", a: [["Matematyka", 55], ["Fizyka", 25], ["Chemia", 15], ["Geografia", 5]] },
-            { q: "Zwierzę na literę K?", a: [["Kot", 50], ["Koń", 25], ["Krowa", 15], ["Kura", 10]] },
-            { q: "Co uczeń robi na przerwie?", a: [["Je śniadanie", 35], ["Rozmawia", 30], ["Telefon", 20], ["Biega", 10]] },
-            { q: "Miejsce w szkole poza salą?", a: [["Korytarz", 35], ["Stołówka", 25], ["Biblioteka", 20], ["Szatnia", 15]] },
-            { q: "Co pijemy na gorąco?", a: [["Herbata", 45], ["Kawa", 35], ["Kakao", 20]] },
-            { q: "Owoc cytrusowy?", a: [["Cytryna", 45], ["Pomarańcza", 30], ["Mandarynka", 25]] },
-            { q: "Dyscyplina na WF-ie?", a: [["Piłka nożna", 40], ["Siatkówka", 30], ["Biegi", 20], ["Gimnastyka", 10]] },
-            { q: "Imię męskie na M?", a: [["Michał", 40], ["Marek", 30], ["Marcin", 30]] },
-            { q: "Co kojarzy się z zimą?", a: [["Śnieg", 50], ["Mróz", 30], ["Sanki", 20]] },
-            { q: "Pojazd bez silnika?", a: [["Rower", 55], ["Hulajnoga", 35], ["Wóz", 10]] },
-            { q: "Co rośnie w lesie?", a: [["Drzewa", 45], ["Grzyby", 35], ["Jagody", 20]] },
-            { q: "Polska potrawa?", a: [["Pierogi", 50], ["Bigos", 30], ["Schabowy", 20]] },
-            { q: "Zwierzę na farmie?", a: [["Krowa", 45], ["Świnia", 35], ["Kura", 20]] },
-            { q: "Dzień tygodnia na S?", a: [["Sobota", 65], ["Środa", 35]] },
-            { q: "Co można otworzyć?", a: [["Drzwi", 45], ["Okno", 35], ["Książkę", 20]] },
-            { q: "Gdzie na wakacje?", a: [["Morze", 55], ["Góry", 35], ["Jezioro", 10]] },
-            { q: "Urządzenie w kuchni?", a: [["Lodówka", 45], ["Kuchenka", 35], ["Czajnik", 20]] },
-            { q: "Część twarzy?", a: [["Oczy", 40], ["Nos", 30], ["Usta", 20]] },
-            { q: "Instrument strunowy?", a: [["Gitara", 50], ["Skrzypce", 35], ["Harfa", 15]] },
-            { q: "Kolor tęczy?", a: [["Czerwony", 40], ["Niebieski", 30], ["Zielony", 30]] }
-            // Możesz dopisać tutaj kolejne pytania zgodnie ze schematem
+            { q: "Przedmiot szkolny?", a: [["Matematyka", 55], ["Fizyka", 25], ["Polski", 20]] },
+            { q: "Zwierzę na K?", a: [["Kot", 50], ["Koń", 30], ["Krowa", 20]] }
         ];
 
         let peer = new Peer(), tvConn, activeTeam = null, multiplier = 1, currentA = [];
 
         function connectToTV() {
-            const id = document.getElementById('tv-id').value;
-            tvConn = peer.connect(id);
-            tvConn.on('open', () => {
-                document.getElementById('setup').style.display='none';
-                document.getElementById('controls').style.display='block';
-                const s = document.getElementById('q-sel');
-                db.forEach((d,i) => s.innerHTML += `<option value="${i}">${d.q}</option>`);
-                prepQ();
+            tvConn = peer.connect(document.getElementById('tv-id').value);
+            tvConn.on('open', () => { document.getElementById('setup').style.display='none'; document.getElementById('controls').style.display='block';
+                const s = document.getElementById('q-sel'); db.forEach((d,i) => s.innerHTML += `<option value="${i}">${d.q}</option>`); prepQ();
             });
         }
 
         function sendToTV(m) { if(tvConn) tvConn.send(m); }
-
-        function setR(r) { 
-            multiplier = (typeof r === 'number') ? r : 1; 
-            document.getElementById('m-display').innerText = "Mnożnik: x" + multiplier + (r === 'F' ? " (FINAŁ)" : "");
-            sendToTV({type:'NEXT_ROUND', round:r}); 
-        }
-
+        function setR(r) { multiplier = (typeof r === 'number') ? r : 1; }
         function prepQ() {
             const d = db[document.getElementById('q-sel').value]; currentA = d.a;
             const l = document.getElementById('ans-list'); l.innerHTML = "";
-            d.a.forEach((a, i) => { 
-                l.innerHTML += `<div class="ans-row"><span>${a[0]} (${a[1]})</span><button onclick="reveal(${i})" class="btn btn-s" style="width:70px">OK</button></div>`; 
-            });
+            d.a.forEach((a, i) => l.innerHTML += `<div class="ans-row"><span>${a[0]} (${a[1]})</span><button onclick="reveal(${i})" class="btn btn-s">OK</button></div>`);
         }
-
-        function sendQ() {
-            const d = db[document.getElementById('q-sel').value];
-            sendToTV({type:'SETUP', a: d.a.map(x=>({t:x[0], p:x[1]}))});
-        }
-
+        function sendQ() { sendToTV({type:'SETUP', a: currentA.map(x=>({t:x[0], p:x[1]}))}); }
         function reveal(i) {
             let pts = currentA[i][1] * multiplier;
-            if(activeTeam) {
-                const el = document.getElementById('sc' + activeTeam);
-                el.value = parseInt(el.value) + pts;
-            }
+            if(activeTeam) { const el = document.getElementById('sc' + activeTeam); el.value = parseInt(el.value) + pts; }
             let total = parseInt(document.getElementById('scA').value) + parseInt(document.getElementById('scB').value);
-            sendToTV({type:'REVEAL', index:i, text:currentA[i][0], pts:pts, total:total});
+            sendToTV({type:'REVEAL', index:i, total:total});
             sync();
         }
-
         function doStrike() { sendToTV({type:'STRIKE'}); }
-        function setTeam(t) { activeTeam = t; document.getElementById('btnA').className = 'btn ' + (t==='A' ? 'active-team btn-p' : 'btn-dark'); document.getElementById('btnB').className = 'btn ' + (t==='B' ? 'active-team btn-p' : 'btn-dark'); }
+        function setTeam(t) { activeTeam = t; document.getElementById('btnA').classList.toggle('active-team', t==='A'); document.getElementById('btnB').classList.toggle('active-team', t==='B'); }
         function sync() { sendToTV({type:'UPDATE', scA:document.getElementById('scA').value, scB:document.getElementById('scB').value}); }
     </script>
 </body>
