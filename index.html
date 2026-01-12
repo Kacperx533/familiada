@@ -2,30 +2,44 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA TV - MEGA FINAŁ</title>
+    <title>FAMILIADA TV - REKORD</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root { --gold: #f5b041; --led-off: #121212; }
         body { background: #000; color: var(--gold); font-family: 'VT323', monospace; margin: 0; overflow: hidden; text-transform: uppercase; }
+        
+        /* Ekran powitalny z kodem */
+        #overlay { 
+            position: fixed; inset: 0; background: #000; z-index: 9999; 
+            display: flex; flex-direction: column; justify-content: center; align-items: center; 
+        }
+        #peer-id-display { 
+            font-size: 80px; color: var(--gold); margin-bottom: 20px; 
+            border: 4px solid var(--gold); padding: 20px 40px; border-radius: 15px;
+            text-shadow: 0 0 20px var(--gold);
+        }
+        .btn-start { 
+            padding: 30px 60px; font-size: 40px; font-family: 'VT323'; 
+            background: var(--gold); border: none; cursor: pointer; border-radius: 10px;
+        }
+
         .led-bg { position: fixed; inset: 0; background-image: radial-gradient(rgba(0,0,0,0.4) 40%, transparent 45%); background-size: 4px 4px; z-index: 100; pointer-events: none; }
         #video-layer { position: fixed; inset: 0; width: 100%; height: 100%; background: #000; z-index: 5000; display: none; }
         .main-container { display: flex; height: 100vh; align-items: center; justify-content: center; padding: 0 10px; }
         
-        /* Sekcja X */
+        /* Reszta stylów tablicy */
         .strike-zone { width: 100px; display: flex; flex-direction: column; gap: 15px; }
         .strike-x { width: 80px; height: 80px; position: relative; display: none; filter: drop-shadow(0 0 10px red); }
         .strike-x::before, .strike-x::after { content: ''; position: absolute; top: 45%; width: 100%; height: 12px; background: red; }
         .strike-x::before { transform: rotate(45deg); } .strike-x::after { transform: rotate(-45deg); }
 
-        /* Tablica */
         .board-frame { 
             border: 8px solid #222; border-radius: 20px; padding: 30px; 
             background: #050505; width: 85vw; height: 85vh; position: relative;
             display: flex; flex-direction: column;
         }
 
-        /* Tryb Normalny */
         #normal-ui { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; }
         .row { display: flex; font-size: 90px; height: 100px; border-bottom: 2px solid #111; }
         .row-num { width: 60px; color: #444; }
@@ -33,7 +47,6 @@
         .dots { color: var(--led-off); letter-spacing: 15px; position: absolute; left: 50%; transform: translateX(-50%); }
         .ans-text, .pts-val { display: none; background: #050505; position: relative; z-index: 2; padding: 0 10px; }
 
-        /* NOWY FINAŁ - ROZDZIELONY */
         #final-ui { display: none; height: 100%; flex-direction: column; }
         .timer { font-size: 120px; text-align: center; color: red; margin-bottom: 10px; height: 120px; }
         .final-tables { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; flex-grow: 1; }
@@ -49,15 +62,17 @@
     </style>
 </head>
 <body>
+    <div id="overlay">
+        <div style="font-size: 30px; margin-bottom: 10px;">TWÓJ KOD TV:</div>
+        <div id="peer-id-display">ŁADOWANIE...</div>
+        <button class="btn-start" onclick="this.parentElement.style.display='none'">KLIKNIJ ABY ZACZĄĆ</button>
+    </div>
+
     <div class="led-bg"></div>
     <video id="video-layer" playsinline></video>
     <audio id="sndOk" src="ok.mp3"></audio>
     <audio id="sndNo" src="zle.mp3"></audio>
     <audio id="sndBuzz" src="powtorzenie.mp3"></audio>
-
-    <div id="overlay" style="position:fixed; inset:0; background:#000; z-index:9000; display:flex; justify-content:center; align-items:center;">
-        <button onclick="this.parentElement.style.display='none'" style="padding:40px; font-size:40px; cursor:pointer;">URUCHOM SYSTEM</button>
-    </div>
 
     <div class="main-container">
         <div class="strike-zone">
@@ -66,15 +81,15 @@
 
         <div class="board-frame">
             <div id="normal-ui"></div>
-
             <div id="final-ui">
                 <div class="timer" id="timer">15</div>
                 <div class="final-tables">
-                    <div class="final-col" id="col-G1"></div> <div class="final-col" id="col-G2"></div> </div>
+                    <div class="final-col" id="col-G1"></div>
+                    <div class="final-col" id="col-G2"></div>
+                </div>
             </div>
-
             <div class="footer">
-                <span id="label-suma">SUMA</span>
+                <span>SUMA</span>
                 <span id="total-val">0</span>
             </div>
         </div>
@@ -87,7 +102,12 @@
     <script>
         const peer = new Peer();
         let timerInt;
-        peer.on('open', id => console.log("KOD:", id));
+
+        // WYŚWIETLENIE KODU OD RAZU PO OTWARCIU
+        peer.on('open', id => {
+            document.getElementById('peer-id-display').innerText = id;
+            console.log("Twój kod to: " + id);
+        });
 
         peer.on('connection', conn => {
             conn.on('data', m => {
@@ -105,6 +125,7 @@
                             <div class="row" id="row-${i}"><div class="row-num">${i+1}</div>
                             <div class="row-content"><div class="dots">.......</div>
                             <div class="ans-text">${ans.t}</div><div class="pts-val">${ans.p}</div></div></div>`).join('');
+                        document.getElementById('total-val').innerText = "0";
                     }
                 }
                 if(m.type === 'FINAL_MODE') {
@@ -138,11 +159,11 @@
                 }
                 if(m.type === 'RESET_X') document.querySelectorAll('.strike-x').forEach(el => el.style.display = 'none');
                 if(m.type === 'REVEAL') {
-                    document.getElementById('sndOk').play();
+                    document.getElementById('sndOk').currentTime = 0; document.getElementById('sndOk').play();
                     document.getElementById(`row-${m.index}`).classList.add('revealed');
                     document.getElementById('total-val').innerText = m.total;
                 }
-                if(m.type === 'BUZZER') document.getElementById('sndBuzz').play();
+                if(m.type === 'BUZZER') { document.getElementById('sndBuzz').currentTime = 0; document.getElementById('sndBuzz').play(); }
                 if(m.type === 'UPDATE') document.getElementById('total-val').innerText = m.sc;
             });
         });
