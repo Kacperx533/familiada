@@ -2,254 +2,316 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA TV - LED BOARD</title>
+    <title>FAMILIADA - IDENTICAL BOARD</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root {
-            --bg-color: #050505;
-            --board-blue: #000044;
-            --led-yellow: #ffcc00; /* Klasyczny żółty LED */
-            --led-dim: #332200;    /* Wyłączone punkty LED */
-            --strike-red: #ff0000;
-            --gold: #f1c40f;
+            --bg: #000;
+            --led-yellow: #ffcc00;
+            --led-off: #3a3000; /* Kolor "zgaszonej" diody */
+            --border-blue: #0055ff;
+            --border-glow: #00aaff;
+            --red: #ff0000;
         }
 
         body {
-            font-family: 'VT323', monospace;
-            background-color: var(--bg-color);
+            background-color: var(--bg);
             margin: 0;
-            color: var(--led-yellow);
-            text-transform: uppercase;
             overflow: hidden;
-        }
-
-        /* Tło z siatką (imitacja punktów LED) */
-        .led-grid {
-            position: fixed;
-            inset: 0;
-            background-image: 
-                radial-gradient(circle, rgba(0,0,0,0.5) 1px, transparent 1.5px);
-            background-size: 4px 4px;
-            pointer-events: none;
-            z-index: 10;
-        }
-
-        /* --- NAGŁÓWEK --- */
-        .top-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 50px;
-            background: #000;
-            border-bottom: 3px solid #222;
-        }
-
-        .score-box {
-            font-size: 80px;
-            padding: 0 20px;
-            border: 4px solid #333;
-            min-width: 100px;
-            text-align: center;
-            background: #080808;
-        }
-
-        /* --- TABLICA --- */
-        .main-container {
+            font-family: 'VT323', monospace;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 85vh;
+            height: 100vh;
         }
 
-        #question-display {
-            font-size: 45px;
-            margin-bottom: 20px;
-            color: #fff;
-            text-shadow: 0 0 10px var(--led-yellow);
+        /* Tło imitujące siatkę diod LED */
+        .led-bg {
+            position: fixed; inset: 0; z-index: -1;
+            background-image: radial-gradient(circle, #111 20%, #000 25%);
+            background-size: 6px 6px;
         }
 
-        .game-board {
-            width: 1100px;
-            background: #0a0a0a;
-            border: 10px solid #1a1a1a;
-            padding: 20px;
-            box-shadow: inset 0 0 100px #000;
+        /* --- GŁÓWNA RAMA TABLICY --- */
+        .board-frame {
             position: relative;
+            width: 1200px;
+            padding: 20px;
+            border: 8px solid var(--border-blue);
+            border-radius: 25px;
+            box-shadow: 0 0 20px var(--border-blue), inset 0 0 30px var(--border-blue);
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        /* Górny licznik (Timer/Runda) */
+        .top-timer {
+            position: absolute;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #000;
+            border: 4px solid var(--red);
+            border-radius: 10px;
+            padding: 5px 25px;
+            color: var(--led-yellow);
+            font-size: 60px;
+            line-height: 1;
+            box-shadow: 0 0 15px var(--red);
+            z-index: 10;
+        }
+
+        /* --- WIERSZE ODPOWIEDZI --- */
+        .rows-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 20px 40px;
         }
 
         .row {
             display: flex;
             align-items: center;
-            height: 70px;
-            font-size: 60px;
-            border-bottom: 1px solid #111;
-            padding: 5px 20px;
-            letter-spacing: 2px;
+            justify-content: space-between;
+            height: 65px;
+            font-size: 55px;
+            text-transform: uppercase;
+            letter-spacing: 4px; /* Rozstrzelone litery jak na LED */
         }
 
-        .row .num { width: 50px; color: #444; }
-        .row .ans { flex-grow: 1; color: var(--led-dim); }
-        .row .pts { width: 100px; text-align: right; color: var(--led-dim); }
-
-        /* Styl po odkryciu */
-        .row.revealed .ans, .row.revealed .pts {
+        .row .num {
+            width: 40px;
             color: var(--led-yellow);
-            text-shadow: 0 0 15px var(--led-yellow);
+            text-shadow: 0 0 8px var(--led-yellow);
         }
-        .row.revealed .num { color: var(--led-yellow); }
 
-        /* --- STRIKE (WIELKI X) --- */
-        #strike-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.85);
-            z-index: 1000;
-            justify-content: center;
+        /* Kropki i tekst */
+        .row .content {
+            flex-grow: 1;
+            display: flex;
+            justify-content: space-between; /* Rozrzuca tekst i punkty */
             align-items: center;
+            margin: 0 20px;
+            position: relative;
+            overflow: hidden;
         }
 
-        /* Stylizacja X z Twojego zdjęcia */
-        .big-x {
-            font-size: 800px;
-            color: var(--strike-red);
-            font-weight: bold;
-            -webkit-text-stroke: 20px white;
-            text-shadow: 0 0 50px #ff0000;
-            transform: scale(1.2);
-            font-family: sans-serif; /* Bardziej kanciasty X */
+        /* Tło kropek (zawsze widoczne pod spodem) */
+        .dots-bg {
+            position: absolute;
+            left: 0; right: 0; top: 55%;
+            height: 4px;
+            background-image: linear-gradient(to right, var(--led-yellow) 30%, transparent 0%);
+            background-size: 15px 100%; /* Rzadsze kropki */
+            opacity: 0.3; /* Zgaszone kropki */
+            z-index: 1;
         }
 
-        /* --- EKRAN STARTOWY --- */
-        #start-screen {
-            position: fixed; inset: 0; background: #000;
-            display: flex; flex-direction: column; justify-content: center;
-            align-items: center; z-index: 5000;
+        /* Tekst odpowiedzi */
+        .ans-text {
+            background: #000; /* Przykrywa kropki */
+            padding-right: 15px;
+            z-index: 2;
+            color: var(--led-yellow);
+            text-shadow: 0 0 10px var(--led-yellow);
+            display: none; /* Domyślnie ukryte */
+        }
+
+        .row.revealed .ans-text { display: block; }
+        .row.revealed .dots-bg { opacity: 1; } /* Zapalone kropki */
+
+        .row .pts {
+            width: 80px;
+            text-align: right;
+            background: #000;
+            z-index: 2;
+            color: var(--led-yellow);
+            text-shadow: 0 0 10px var(--led-yellow);
+            visibility: hidden;
+        }
+        .row.revealed .pts { visibility: visible; }
+
+
+        /* --- SUMA --- */
+        .total-row {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            padding: 10px 40px;
+            font-size: 55px;
+            color: var(--led-yellow);
+            text-shadow: 0 0 10px var(--led-yellow);
+            margin-top: 10px;
+            border-top: 2px solid #333;
+        }
+        .total-label { margin-right: 30px; letter-spacing: 5px; }
+
+        /* --- X OVERLAY (IDENTYCZNY JAK NA ZDJĘCIU) --- */
+        #strike-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.9);
+            z-index: 9999;
+            justify-content: center; align-items: center;
         }
         
-        .btn-start {
-            background: var(--led-yellow);
-            color: #000;
-            border: none;
-            padding: 20px 40px;
-            font-size: 30px;
-            font-family: 'VT323';
-            cursor: pointer;
-            border-radius: 5px;
+        /* Stylizacja SVG dla X */
+        .x-svg {
+            width: 600px;
+            height: 800px;
+            fill: none;
+            stroke: #ff0000;
+            stroke-width: 40;
+            stroke-linejoin: round;
+            stroke-linecap: square;
+            filter: drop-shadow(0 0 20px #ff0000);
+        }
+        /* Biała obwódka wewnątrz X */
+        .x-inner {
+            stroke: white;
+            stroke-width: 8;
+            fill: none;
         }
 
-        #welcome-screen {
-            position: fixed; inset: 0; background: var(--bg-color);
-            display: none; flex-direction: column; justify-content: center;
-            align-items: center; z-index: 100;
+        /* Drużyny i punkty boczne (poza ramką) */
+        .teams-bar {
+            position: absolute;
+            bottom: 30px;
+            width: 90%;
+            display: flex;
+            justify-content: space-between;
+            color: white;
+            font-size: 40px;
         }
-        #welcome-screen h1 { font-size: 150px; margin: 0; color: var(--led-yellow); }
+        .team-score { border: 2px solid white; padding: 5px 20px; border-radius: 10px; background: #111; }
+        .active-team { box-shadow: 0 0 20px var(--led-yellow); border-color: var(--led-yellow); }
+
+        /* Ekran powitalny */
+        #welcome { position:fixed; inset:0; background:#000; z-index:5000; display:flex; flex-direction:column; align-items:center; justify-content:center; }
     </style>
 </head>
 <body>
 
-    <div class="led-grid"></div>
-
-    <div id="start-screen">
-        <h1 id="tv-code" style="color:white">ŁĄCZENIE...</h1>
-        <button class="btn-start" onclick="this.parentElement.style.display='none'">URUCHOM TABLICĘ</button>
-    </div>
-
-    <div id="welcome-screen">
-        <h1 style="text-shadow: 0 0 30px var(--led-yellow);">FAMILIADA</h1>
-        <h2 style="font-size: 60px; color: #fff;">EDYCJA SZKOŁA</h2>
-    </div>
-
-    <div id="strike-overlay"><div class="big-x">X</div></div>
+    <div class="led-bg"></div>
 
     <audio id="sndOk" src="ok.mp3"></audio>
     <audio id="sndNo" src="zle.mp3"></audio>
     <audio id="sndRunda" src="runda.mp3"></audio>
 
-    <div class="top-bar">
-        <div id="xA" style="font-size: 100px; color: var(--strike-red); min-width: 200px;"></div>
-        <div id="sA" class="score-box" style="color: var(--strike-red); border-color: var(--strike-red);">0</div>
-        
-        <div style="text-align: center;">
-            <div style="font-size: 20px; color: #666;">SUMA</div>
-            <div id="total-score" class="score-box" style="color: var(--led-yellow); border-color: var(--led-yellow);">0</div>
-        </div>
-
-        <div id="sB" class="score-box" style="color: var(--blue); border-color: #0984e3;">0</div>
-        <div id="xB" style="font-size: 100px; color: #0984e3; min-width: 200px; text-align: right;"></div>
+    <div id="welcome">
+        <h1 style="color:var(--led-yellow); font-size:100px; margin:0; text-shadow:0 0 20px var(--led-yellow)">FAMILIADA</h1>
+        <h2 id="id-disp" style="color:white; font-family:sans-serif;">ŁĄCZENIE...</h2>
+        <button onclick="document.getElementById('welcome').style.display='none'" style="padding:15px; font-size:20px; cursor:pointer; background:var(--led-yellow); border:none; margin-top:20px;">URUCHOM EKRAN</button>
     </div>
 
-    <div class="main-container">
-        <div id="question-display">...</div>
-        <div class="game-board" id="board">
+    <div id="strike-overlay">
+        <svg class="x-svg" viewBox="0 0 200 300">
+            <path d="M 20,20 L 80,150 L 20,280 M 180,20 L 120,150 L 180,280" stroke="red" stroke-width="35" stroke-linecap="butt" />
+            <path d="M 20,20 L 80,150 L 20,280 M 180,20 L 120,150 L 180,280" class="x-inner" />
+            <rect x="80" y="135" width="40" height="30" fill="red" />
+            <rect x="82" y="137" width="36" height="26" stroke="white" stroke-width="2" fill="none" />
+        </svg>
+    </div>
+
+    <div class="board-frame">
+        <div class="top-timer" id="round-display">--</div>
+
+        <div class="rows-container" id="board">
             </div>
+
+        <div class="total-row">
+            <span class="total-label">SUMA</span>
+            <span id="total-score">0</span>
+        </div>
     </div>
 
-    <div id="layer-intro" style="display:none; position:fixed; inset:0; z-index:9000; background:#000;">
-        <video id="vidIntro" src="czolowka.mp4" style="width:100%; height:100%"></video>
+    <div class="teams-bar">
+        <div id="boxA" class="team-score">0</div>
+        <div id="strikes-display" style="color: red; font-size:60px;"></div> 
+        <div id="boxB" class="team-score">0</div>
     </div>
 
     <script>
         const peer = new Peer();
-        peer.on('open', id => document.getElementById('tv-code').innerText = "KOD TV: " + id);
-
-        let currentTotal = 0;
+        let total = 0;
+        
+        peer.on('open', id => document.getElementById('id-disp').innerText = "KOD DO WPISANIA: " + id);
 
         peer.on('connection', conn => {
             conn.on('data', m => {
-                if(m.type === 'START_INTRO') {
-                    const l = document.getElementById('layer-intro');
-                    l.style.display = 'block';
-                    const v = document.getElementById('vidIntro');
-                    v.play();
-                    v.onended = () => {
-                        l.style.display = 'none';
-                        document.getElementById('welcome-screen').style.display = 'flex';
-                    };
+                // Multimedia
+                if(m.type === 'SETUP' || m.type === 'NEXT_ROUND') {
+                    document.getElementById('welcome').style.display='none';
                 }
-
+                
                 if(m.type === 'SETUP') {
-                    document.getElementById('welcome-screen').style.display = 'none';
-                    document.getElementById('question-display').innerText = m.q;
+                    total = 0;
+                    document.getElementById('total-score').innerText = "0";
+                    document.getElementById('round-display').innerText = "???"; // Pytanie ukryte lub numer
+                    
                     const b = document.getElementById('board');
                     b.innerHTML = "";
-                    currentTotal = 0;
-                    document.getElementById('total-score').innerText = "0";
+                    
+                    // Generowanie wierszy 1-6 (pustych)
                     m.a.forEach((ans, i) => {
                         b.innerHTML += `
                             <div class="row" id="r-${i}">
                                 <span class="num">${i+1}</span>
-                                <span class="ans">...............................</span>
-                                <span class="pts">--</span>
-                            </div>`;
+                                <div class="content">
+                                    <span class="ans-text">${m.text}</span> <div class="dots-bg"></div>
+                                </div>
+                                <span class="pts">0</span>
+                            </div>
+                        `;
                     });
+                    
+                    // Wypełniamy puste miejsca do 6 wierszy, żeby tablica wyglądała pełnie (opcjonalne)
+                    for(let j=m.a.length; j<5; j++) {
+                        b.innerHTML += `
+                            <div class="row">
+                                <span class="num">${j+1}</span>
+                                <div class="content"><div class="dots-bg" style="opacity:0.1"></div></div>
+                                <span class="pts"></span>
+                            </div>
+                        `;
+                    }
                 }
 
                 if(m.type === 'REVEAL') {
                     document.getElementById('sndOk').play();
-                    const row = document.getElementById(`r-${m.index}`);
-                    row.classList.add('revealed');
-                    row.querySelector('.ans').innerText = m.text;
-                    row.querySelector('.pts').innerText = m.pts;
+                    const r = document.getElementById(`r-${m.index}`);
+                    // Podmieniamy treść i odkrywamy
+                    r.querySelector('.ans-text').innerText = m.text;
+                    r.querySelector('.pts').innerText = m.pts;
+                    r.classList.add('revealed');
                     
-                    // Sumowanie punktów na tablicy
-                    currentTotal += parseInt(m.pts);
-                    document.getElementById('total-score').innerText = currentTotal;
+                    total += parseInt(m.pts);
+                    document.getElementById('total-score').innerText = total;
                 }
 
                 if(m.type === 'STRIKE') {
                     document.getElementById('sndNo').play();
-                    document.getElementById('strike-overlay').style.display = 'flex';
-                    setTimeout(() => document.getElementById('strike-overlay').style.display = 'none', 1200);
+                    const ov = document.getElementById('strike-overlay');
+                    ov.style.display = 'flex';
+                    setTimeout(() => ov.style.display = 'none', 1200);
                 }
 
                 if(m.type === 'UPDATE') {
-                    document.getElementById('sA').innerText = m.scA;
-                    document.getElementById('sB').innerText = m.scB;
-                    document.getElementById('xA').innerText = "X".repeat(m.strikes.A);
-                    document.getElementById('xB').innerText = "X".repeat(m.strikes.B);
+                    document.getElementById('boxA').innerText = m.scA;
+                    document.getElementById('boxB').innerText = m.scB;
+                    // Wyświetlanie błędów na dole (małe X)
+                    let sStr = "";
+                    if(m.strikes.A > 0) sStr += "A: " + "X".repeat(m.strikes.A) + " ";
+                    if(m.strikes.B > 0) sStr += "B: " + "X".repeat(m.strikes.B);
+                    document.getElementById('strikes-display').innerText = sStr;
+                }
+                
+                if(m.type === 'NEXT_ROUND') {
+                     document.getElementById('sndRunda').play();
+                     document.getElementById('round-display').innerText = m.round;
                 }
             });
         });
