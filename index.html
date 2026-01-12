@@ -2,159 +2,82 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA - EKRAN TV</title>
+    <title>FAMILIADA TV - TABLICA</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        :root {
-            --gold: #ffcc00;
-            --dim: #1a1500;
-            --red: #ff0000;
-        }
+        :root { --gold: #ffcc00; --dim: #1a1500; --red: #ff0000; }
+        body { background: #000; color: var(--gold); font-family: 'VT323', monospace; margin: 0; overflow: hidden; text-transform: uppercase; }
 
-        body {
-            background-color: #000;
-            color: var(--gold);
-            font-family: 'VT323', monospace;
-            margin: 0;
-            overflow: hidden;
-            text-transform: uppercase;
-        }
+        /* Siatka LED */
+        .led-matrix { position: fixed; inset: 0; background-image: radial-gradient(rgba(0,0,0,0.6) 40%, transparent 45%); background-size: 5px 5px; z-index: 100; pointer-events: none; }
 
-        /* Efekt siatki diodowej LED */
-        .led-overlay {
-            position: fixed;
-            inset: 0;
-            background-image: radial-gradient(rgba(0,0,0,0.7) 40%, transparent 45%);
-            background-size: 5px 5px;
-            z-index: 100;
-            pointer-events: none;
-        }
+        .container { display: flex; flex-direction: column; height: 100vh; padding: 40px 80px; box-sizing: border-box; }
 
-        .container {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            padding: 40px 60px;
-            box-sizing: border-box;
-        }
+        /* NAGŁÓWEK */
+        .header { display: flex; justify-content: space-between; align-items: center; height: 160px; }
+        .score { font-size: 160px; text-shadow: 0 0 20px var(--gold); min-width: 220px; }
+        .round-box { border: 5px solid var(--gold); padding: 10px 40px; font-size: 80px; box-shadow: 0 0 15px var(--gold); background: #000; }
 
-        /* GÓRA - PUNKTY I RUNDA */
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        .team-score { font-size: 150px; text-shadow: 0 0 20px var(--gold); min-width: 250px; }
-        .round-info { 
-            border: 5px solid var(--gold); 
-            padding: 10px 40px; 
-            font-size: 80px; 
-            background: #000;
-            box-shadow: 0 0 15px var(--gold);
-        }
-
-        /* TABLICA GŁÓWNA */
-        .board {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .row {
-            display: flex;
-            font-size: 100px; /* Wielkie napisy */
-            height: 110px;
-            align-items: center;
-            border-bottom: 2px solid #080808;
-        }
-
-        .row-num { width: 90px; color: var(--gold); }
-        .row-content { 
-            flex-grow: 1; 
-            display: flex; 
-            justify-content: space-between; 
-            position: relative; 
-        }
+        /* TABLICA */
+        .board { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; gap: 10px; }
+        .row { display: flex; font-size: 100px; height: 110px; align-items: center; border-bottom: 2px solid #080808; position: relative; }
+        .row-num { width: 90px; }
+        .row-content { flex-grow: 1; display: flex; justify-content: space-between; position: relative; }
         
-        .dots { color: var(--dim); position: absolute; left: 0; width: 100%; z-index: 1; }
+        /* Kropki są pod tekstem */
+        .dots { color: var(--dim); position: absolute; left: 0; width: 100%; z-index: 1; letter-spacing: 2px; }
         .ans-text { position: relative; z-index: 5; background: #000; padding-right: 20px; display: none; }
         .pts-val { position: relative; z-index: 5; background: #000; padding-left: 20px; display: none; }
 
         .revealed .ans-text, .revealed .pts-val { display: block; }
         .revealed .dots { display: none; }
 
-        /* STOPKA - SUMA */
-        .footer {
-            display: flex;
-            justify-content: flex-end;
-            font-size: 90px;
-            margin-top: 20px;
-        }
-        .total-label { margin-right: 40px; color: #444; }
+        /* SUMA */
+        .footer { display: flex; justify-content: flex-end; font-size: 100px; margin-top: 20px; }
+        .total-label { margin-right: 40px; color: #333; }
 
-        /* --- WIELKI X (BŁĄD) --- */
-        #strike-zone {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.9);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
+        /* --- WIELKIE X --- */
+        #strike-overlay { 
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); 
+            z-index: 1000; justify-content: center; align-items: center; 
         }
-        .big-x {
-            width: 600px;
-            height: 600px;
-            filter: drop-shadow(0 0 30px var(--red));
-        }
-        .x-shape { fill: none; stroke: var(--red); stroke-width: 40; stroke-linecap: square; }
-        .x-line { fill: none; stroke: white; stroke-width: 6; }
+        .x-svg { width: 600px; height: 600px; filter: drop-shadow(0 0 30px red); }
+        .x-path { fill: none; stroke: var(--red); stroke-width: 40; stroke-linecap: square; }
+        .x-white { fill: none; stroke: #fff; stroke-width: 6; }
 
-        /* Ekran startowy */
-        #boot {
-            position: fixed; inset: 0; background: #000; z-index: 9999;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-        }
-        #boot h1 { font-size: 50px; }
-        .btn-start {
-            background: var(--gold); color: #000; border: none; padding: 20px 50px;
-            font-size: 30px; font-family: 'VT323'; cursor: pointer; font-weight: bold;
-        }
+        /* Ekran powitalny */
+        #boot { position: fixed; inset: 0; background: #000; z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .btn-start { background: var(--gold); border: none; padding: 20px 50px; font-size: 30px; font-family: 'VT323'; cursor: pointer; font-weight: bold; margin-top: 20px; }
     </style>
 </head>
 <body>
-
-    <div class="led-overlay"></div>
+    <div class="led-matrix"></div>
 
     <div id="boot">
-        <h1 id="peer-id-display">ŁĄCZENIE...</h1>
-        <button id="start-btn" class="btn-start" style="display:none" onclick="document.getElementById('boot').style.display='none'">URUCHOM TABLICĘ</button>
+        <h1 id="my-id">ŁĄCZENIE...</h1>
+        <button id="start-btn" class="btn-start" style="display:none" onclick="document.getElementById('boot').style.display='none'">OTWÓRZ TABLICĘ</button>
     </div>
 
-    <div id="strike-zone">
-        <svg class="big-x" viewBox="0 0 300 300">
-            <path class="x-shape" d="M 40,40 L 110,150 L 40,260 M 260,40 L 190,150 L 260,260 M 110,150 L 190,150" />
-            <path class="x-line" d="M 40,40 L 110,150 L 40,260 M 260,40 L 190,150 L 260,260 M 110,150 L 190,150" />
+    <div id="strike-overlay">
+        <svg class="x-svg" viewBox="0 0 300 300">
+            <path class="x-path" d="M 50,50 L 125,150 L 50,250 M 250,50 L 175,150 L 250,250 M 125,150 L 175,150" />
+            <path class="x-white" d="M 50,50 L 125,150 L 50,250 M 250,50 L 175,150 L 250,250 M 125,150 L 175,150" />
         </svg>
     </div>
 
     <div class="container">
         <div class="header">
-            <div id="disp-scA" class="team-score">000</div>
-            <div id="disp-round" class="round-info">RUNDA 1</div>
-            <div id="disp-scB" class="team-score" style="text-align: right;">000</div>
+            <div id="scA" class="score">000</div>
+            <div id="round-title" class="round-box">RUNDA 1</div>
+            <div id="scB" class="score" style="text-align:right">000</div>
         </div>
 
-        <div class="board" id="main-board">
-            </div>
+        <div class="board" id="board-ui"></div>
 
         <div class="footer">
             <span class="total-label">SUMA</span>
-            <div id="disp-total">000</div>
+            <div id="total-pts">000</div>
         </div>
     </div>
 
@@ -163,69 +86,53 @@
 
     <script>
         const peer = new Peer();
-        let currentTotal = 0;
+        let sum = 0;
 
         peer.on('open', id => {
-            document.getElementById('peer-id-display').innerText = "ID TV: " + id;
+            document.getElementById('my-id').innerText = "KOD TV: " + id;
             document.getElementById('start-btn').style.display = 'block';
         });
 
         peer.on('connection', conn => {
             conn.on('data', m => {
-                // ŁADOWANIE PYTANIA
                 if(m.type === 'SETUP') {
-                    currentTotal = 0;
-                    document.getElementById('disp-total').innerText = "000";
-                    const board = document.getElementById('main-board');
-                    board.innerHTML = "";
+                    sum = 0;
+                    document.getElementById('total-pts').innerText = "000";
+                    const b = document.getElementById('board-ui');
+                    b.innerHTML = "";
                     m.a.forEach((ans, i) => {
-                        board.innerHTML += `
-                            <div class="row" id="row-${i}">
+                        b.innerHTML += `
+                            <div class="row" id="r-${i}">
                                 <div class="row-num">${i+1}.</div>
                                 <div class="row-content">
                                     <div class="dots">................................................</div>
                                     <div class="ans-text">${ans.t}</div>
                                     <div class="pts-val">${ans.p}</div>
                                 </div>
-                            </div>
-                        `;
+                            </div>`;
                     });
                 }
-
-                // ODKRYWANIE ODPOWIEDZI
                 if(m.type === 'REVEAL') {
                     document.getElementById('sndOk').play();
-                    const r = document.getElementById(`row-${m.index}`);
-                    if(r) {
-                        r.classList.add('revealed');
-                        currentTotal += parseInt(m.pts);
-                        document.getElementById('disp-total').innerText = currentTotal.toString().padStart(3, '0');
+                    const row = document.getElementById(`r-${m.index}`);
+                    if(row) {
+                        row.classList.add('revealed');
+                        sum += parseInt(m.pts);
+                        document.getElementById('total-pts').innerText = sum.toString().padStart(3, '0');
                     }
                 }
-
-                // BŁĄD X
                 if(m.type === 'STRIKE') {
                     document.getElementById('sndNo').play();
-                    const strikeZone = document.getElementById('strike-zone');
-                    strikeZone.style.display = 'flex';
-                    setTimeout(() => { strikeZone.style.display = 'none'; }, 1200);
+                    const ov = document.getElementById('strike-overlay');
+                    ov.style.display = 'flex';
+                    setTimeout(() => ov.style.display = 'none', 1200);
                 }
-
-                // ZMIANA RUNDY / FINAŁ
                 if(m.type === 'NEXT_ROUND') {
-                    const rName = m.round === 'F' ? 'FINAŁ' : 'RUNDA ' + m.round;
-                    document.getElementById('disp-round').innerText = rName;
-                    if(m.round === 'F') {
-                        document.body.style.color = "#00ff00"; // Finał może być zielony (opcjonalnie)
-                    } else {
-                        document.body.style.color = "var(--gold)";
-                    }
+                    document.getElementById('round-title').innerText = m.round === 'F' ? "FINAŁ" : "RUNDA " + m.round;
                 }
-
-                // SYNCHRONIZACJA PUNKTÓW
                 if(m.type === 'UPDATE') {
-                    document.getElementById('disp-scA').innerText = m.scA.toString().padStart(3, '0');
-                    document.getElementById('disp-scB').innerText = m.scB.toString().padStart(3, '0');
+                    document.getElementById('scA').innerText = m.scA.toString().padStart(3, '0');
+                    document.getElementById('scB').innerText = m.scB.toString().padStart(3, '0');
                 }
             });
         });
