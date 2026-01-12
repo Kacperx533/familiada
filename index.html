@@ -2,13 +2,13 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA TV - LED MATRIX</title>
+    <title>FAMILIADA TV - LED BOARD</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root {
             --led-yellow: #ffcc00;
-            --led-dim: #1a1500;
+            --led-dim: #3a3000; /* Kolor "zgaszonych" diod */
             --strike-red: #ff0000;
         }
 
@@ -17,141 +17,147 @@
             color: var(--led-yellow);
             font-family: 'VT323', monospace;
             margin: 0;
+            padding: 0;
             overflow: hidden;
             text-transform: uppercase;
         }
 
-        /* Efekt siatki diodowej na całym ekranie */
-        .matrix-overlay {
+        /* Siatka LED na całym ekranie */
+        .led-matrix {
             position: fixed;
             inset: 0;
-            background-image: radial-gradient(rgba(0,0,0,0.7) 40%, transparent 45%);
+            background-image: radial-gradient(rgba(0,0,0,0.8) 35%, transparent 40%);
             background-size: 5px 5px;
             z-index: 100;
             pointer-events: none;
         }
 
-        /* Układ główny */
         .container {
             display: flex;
             flex-direction: column;
             height: 100vh;
-            padding: 40px;
+            padding: 20px 60px;
             box-sizing: border-box;
         }
 
-        /* Punkty drużyn na górze - duże i proste */
-        .scores-top {
+        /* PUNKTY DRUŻYN NA GÓRZE */
+        .header {
             display: flex;
             justify-content: space-between;
-            font-size: 140px;
-            margin-bottom: 20px;
+            font-size: 150px;
+            height: 180px;
+            align-items: center;
         }
-        .score-val { text-shadow: 0 0 20px var(--led-yellow); }
 
-        /* GŁÓWNA TABLICA */
+        /* TABLICA */
         .board {
             flex-grow: 1;
             display: flex;
             flex-direction: column;
             justify-content: center;
-            gap: 15px;
-            max-width: 1400px;
-            margin: 0 auto;
-            width: 100%;
+            gap: 5px;
         }
 
         .row {
             display: flex;
             align-items: center;
-            font-size: 90px; /* Bardzo duże napisy */
-            height: 100px;
-            border-bottom: 2px solid #080808;
-            letter-spacing: 4px;
+            font-size: 95px; /* Duże litery */
+            height: 110px;
+            position: relative;
+            letter-spacing: 3px;
         }
 
-        .row-num { width: 80px; color: var(--led-dim); }
-        .row-ans { flex-grow: 1; color: var(--led-dim); }
-        .row-pts { width: 150px; text-align: right; color: var(--led-dim); }
-
-        /* Gdy wiersz jest odkryty */
-        .revealed .row-num,
-        .revealed .row-ans,
-        .revealed .row-pts {
-            color: var(--led-yellow);
-            text-shadow: 0 0 15px var(--led-yellow);
+        .num-part { width: 100px; color: var(--led-yellow); }
+        
+        /* Kontener na kropki i odpowiedź */
+        .content-part {
+            flex-grow: 1;
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+            overflow: hidden;
         }
 
-        /* Sekcja SUMA pod tablicą */
-        .total-section {
+        /* Kropki - widoczne zawsze, ale przyciemnione */
+        .dots-filler {
+            position: absolute;
+            left: 0;
+            color: var(--led-dim);
+            z-index: 1;
+        }
+
+        /* Odpowiedź i punkty - nakładane na kropki */
+        .ans-text { position: relative; z-index: 2; background: #000; padding-right: 10px; display: none; }
+        .pts-val { position: relative; z-index: 2; background: #000; padding-left: 10px; display: none; width: 120px; text-align: right; }
+
+        /* Styl po odkryciu */
+        .revealed .ans-text { display: block; }
+        .revealed .pts-val { display: block; }
+        .revealed .dots-filler { display: none; }
+
+        /* SUMA */
+        .footer {
             display: flex;
             justify-content: flex-end;
-            font-size: 80px;
-            margin-top: 20px;
-            padding-right: 20px;
+            font-size: 90px;
+            padding-top: 10px;
         }
-        .total-label { margin-right: 40px; }
+        .total-label { margin-right: 50px; }
 
-        /* WIELKI X - Identyczny jak na zdjęciu */
+        /* --- WIELKI X (POP-UP) --- */
         #strike-overlay {
             display: none;
-            position: fixed; inset: 0;
-            background: rgba(0,0,0,0.9);
+            position: fixed; 
+            inset: 0;
+            background: rgba(0,0,0,0.85);
             z-index: 1000;
-            justify-content: center; align-items: center;
-        }
-        .x-graphic {
-            width: 600px; height: 500px;
-            fill: none;
-            stroke: var(--strike-red);
-            stroke-width: 40;
-            filter: drop-shadow(0 0 30px var(--strike-red));
-        }
-        .x-white-line {
-            stroke: #fff;
-            stroke-width: 6;
-            opacity: 0.9;
+            justify-content: center; 
+            align-items: center;
         }
 
-        /* Ekran startowy (czarny) */
-        #boot-screen {
-            position: fixed; inset: 0; background: #000; z-index: 9999;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        .big-x {
+            width: 500px;
+            height: 500px;
+            stroke: var(--strike-red);
+            stroke-width: 45;
+            fill: none;
+            filter: drop-shadow(0 0 30px var(--strike-red));
         }
-        button {
-            background: none; border: 2px solid var(--led-yellow); color: var(--led-yellow);
-            padding: 20px 40px; font-family: 'VT323'; font-size: 30px; cursor: pointer;
-        }
+        .x-inner { stroke: #fff; stroke-width: 6; }
+
+        /* Start screen */
+        #overlay { position: fixed; inset: 0; background: #000; z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        button { background: none; border: 3px solid var(--led-yellow); color: var(--led-yellow); padding: 20px 50px; font-size: 30px; font-family: 'VT323'; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <div class="matrix-overlay"></div>
+    <div class="led-matrix"></div>
 
-    <div id="boot-screen">
-        <h1 id="status-text">ŁĄCZENIE...</h1>
-        <button id="start-btn" style="display:none" onclick="document.getElementById('boot-screen').style.display='none'">URUCHOM TABLICĘ</button>
+    <div id="overlay">
+        <h1 id="status">ŁĄCZENIE...</h1>
+        <button id="start-btn" style="display:none" onclick="document.getElementById('overlay').style.display='none'">OTWÓRZ TABLICĘ</button>
     </div>
 
     <div id="strike-overlay">
-        <svg class="x-graphic" viewBox="0 0 300 200">
-            <path d="M 40,20 L 100,100 L 40,180 M 260,20 L 200,100 L 260,180 M 100,100 L 200,100" />
-            <path class="x-white-line" d="M 40,20 L 100,100 L 40,180 M 260,20 L 200,100 L 260,180 M 100,100 L 200,100" />
+        <svg class="big-x" viewBox="0 0 300 300">
+            <path d="M 50,50 L 120,150 L 50,250 M 250,50 L 180,150 L 250,250 M 120,150 L 180,150" />
+            <path class="x-inner" d="M 50,50 L 120,150 L 50,250 M 250,50 L 180,150 L 250,250 M 120,150 L 180,150" />
         </svg>
     </div>
 
     <div class="container">
-        <div class="scores-top">
-            <div id="disp-scA" class="score-val">000</div>
-            <div id="disp-scB" class="score-val">000</div>
+        <div class="header">
+            <div id="scA">000</div>
+            <div id="scB">000</div>
         </div>
 
-        <div class="board" id="board-main">
+        <div class="board" id="board-ui">
             </div>
 
-        <div class="total-section">
+        <div class="footer">
             <span class="total-label">SUMA</span>
-            <span id="disp-total" class="score-val">0</span>
+            <div id="total">000</div>
         </div>
     </div>
 
@@ -160,29 +166,32 @@
 
     <script>
         const peer = new Peer();
-        let currentTotal = 0;
+        let currentSum = 0;
 
         peer.on('open', id => {
-            document.getElementById('status-text').innerText = "KOD: " + id;
+            document.getElementById('status').innerText = "KOD TV: " + id;
             document.getElementById('start-btn').style.display = "block";
         });
 
         peer.on('connection', conn => {
             conn.on('data', m => {
                 if(m.type === 'SETUP') {
-                    currentTotal = 0;
-                    document.getElementById('disp-total').innerText = "0";
-                    const b = document.getElementById('board-main');
-                    b.innerHTML = "";
+                    currentSum = 0;
+                    document.getElementById('total').innerText = "000";
+                    const board = document.getElementById('board-ui');
+                    board.innerHTML = "";
                     
-                    // Zawsze generujemy 6 wierszy dla estetyki tablicy
+                    // Generujemy 6 wierszy. Kropki i numery są widoczne od razu.
                     for(let i=0; i<6; i++) {
-                        let hasData = i < m.a.length;
-                        b.innerHTML += `
+                        let isData = i < m.a.length;
+                        board.innerHTML += `
                             <div class="row" id="row-${i}">
-                                <div class="row-num">${hasData ? (i+1) : ""}</div>
-                                <div class="row-ans">${hasData ? "............................" : ""}</div>
-                                <div class="row-pts">${hasData ? "--" : ""}</div>
+                                <div class="num-part">${isData ? (i+1) + "." : ""}</div>
+                                <div class="content-part">
+                                    <div class="dots-filler">${isData ? ".................................." : ""}</div>
+                                    <div class="ans-text">${isData ? m.a[i].text : ""}</div>
+                                    <div class="pts-val">${isData ? m.a[i].pts : ""}</div>
+                                </div>
                             </div>
                         `;
                     }
@@ -192,21 +201,23 @@
                     document.getElementById('sndOk').play();
                     const r = document.getElementById(`row-${m.index}`);
                     r.classList.add('revealed');
-                    r.querySelector('.row-ans').innerText = m.text;
-                    r.querySelector('.row-pts').innerText = m.pts;
-                    currentTotal += parseInt(m.pts);
-                    document.getElementById('disp-total').innerText = currentTotal;
+                    
+                    // Pobieramy punkty bezpośrednio z elementu, który właśnie odkryliśmy
+                    let p = parseInt(r.querySelector('.pts-val').innerText);
+                    currentSum += p;
+                    document.getElementById('total').innerText = currentSum.toString().padStart(3, '0');
                 }
 
                 if(m.type === 'STRIKE') {
                     document.getElementById('sndNo').play();
-                    document.getElementById('strike-overlay').style.display = 'flex';
-                    setTimeout(() => document.getElementById('strike-overlay').style.display = 'none', 1200);
+                    const strike = document.getElementById('strike-overlay');
+                    strike.style.display = 'flex';
+                    setTimeout(() => strike.style.display = 'none', 1200);
                 }
 
                 if(m.type === 'UPDATE') {
-                    document.getElementById('disp-scA').innerText = m.scA.toString().padStart(3, '0');
-                    document.getElementById('disp-scB').innerText = m.scB.toString().padStart(3, '0');
+                    document.getElementById('scA').innerText = m.scA.toString().padStart(3, '0');
+                    document.getElementById('scB').innerText = m.scB.toString().padStart(3, '0');
                 }
             });
         });
