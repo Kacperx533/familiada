@@ -2,182 +2,146 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA TV - FINAL VERSION</title>
+    <title>FAMILIADA TV - PRO</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root {
-            --led-yellow: #ffcc00;
-            --led-dim: #221a00;
-            --strike-red: #ff0000;
+            --led-yellow: #FFD700;
+            --led-dim: #222;
+            --strike-red: #FF0000;
         }
 
         body {
             background-color: #000;
             color: var(--led-yellow);
             font-family: 'VT323', monospace;
-            margin: 0;
+            margin: 0; padding: 0;
             overflow: hidden;
             text-transform: uppercase;
         }
 
-        /* Siatka LED */
-        .matrix {
+        /* Siatka LED - delikatniejsza, żeby nie zasłaniała tekstu */
+        .led-grid {
             position: fixed; inset: 0;
-            background-image: radial-gradient(rgba(0,0,0,0.8) 35%, transparent 40%);
-            background-size: 5px 5px;
-            z-index: 1000; pointer-events: none;
+            background-image: radial-gradient(rgba(0,0,0,0.6) 30%, transparent 35%);
+            background-size: 4px 4px;
+            z-index: 50; pointer-events: none;
         }
 
         .container {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            padding: 20px 60px;
-            box-sizing: border-box;
+            display: flex; flex-direction: column;
+            height: 100vh; padding: 40px 80px; box-sizing: border-box;
         }
 
-        /* GÓRA: PUNKTY I RUNDA */
-        .top-info {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            height: 150px;
+        /* GÓRA: WYNIKI I RUNDA */
+        .header {
+            display: flex; justify-content: space-between; align-items: center;
+            height: 150px; margin-bottom: 20px;
         }
-        .score { font-size: 160px; text-shadow: 0 0 20px var(--led-yellow); }
-        .round-box { 
-            border: 4px solid var(--led-yellow); 
-            padding: 10px 40px; 
-            font-size: 80px;
-            background: #000;
+        .score-box { font-size: 140px; text-shadow: 0 0 20px var(--led-yellow); min-width: 200px; }
+        .round-indicator { 
+            border: 5px solid var(--led-yellow); padding: 10px 40px; 
+            font-size: 70px; background: #000; box-shadow: 0 0 15px var(--led-yellow);
         }
 
         /* TABLICA */
-        .board {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            gap: 10px;
-        }
-
+        .board { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; gap: 15px; }
+        
         .row {
-            display: flex;
-            font-size: 95px;
-            height: 100px;
-            align-items: center;
+            display: flex; align-items: center; font-size: 85px; height: 90px;
+            border-bottom: 1px solid #111;
         }
-        .row-num { width: 90px; }
-        .row-content { flex-grow: 1; display: flex; justify-content: space-between; position: relative; }
-        .dots { color: var(--led-dim); position: absolute; left: 0; width: 100%; z-index: 1; }
-        .ans-txt { position: relative; z-index: 2; background: #000; padding-right: 15px; display: none; }
-        .pts-val { position: relative; z-index: 2; background: #000; padding-left: 15px; display: none; }
+        .row-num { width: 80px; color: var(--led-yellow); }
+        .row-body { 
+            flex-grow: 1; display: flex; justify-content: space-between; 
+            position: relative; overflow: hidden;
+        }
+        .dots { color: #111; position: absolute; left: 0; width: 100%; z-index: 1; letter-spacing: 2px; }
+        .ans-text { position: relative; z-index: 5; background: #000; padding-right: 20px; display: none; }
+        .pts-val { position: relative; z-index: 5; background: #000; padding-left: 20px; display: none; }
 
-        .revealed .ans-txt, .revealed .pts-val { display: block; }
+        .revealed .ans-text, .revealed .pts-val { display: block; }
         .revealed .dots { display: none; }
 
         /* SUMA */
-        .total-box { display: flex; justify-content: flex-end; font-size: 90px; margin-top: 20px; }
-        .total-label { margin-right: 40px; color: #555; }
+        .footer { display: flex; justify-content: flex-end; font-size: 90px; margin-top: 20px; }
+        .total-lbl { margin-right: 40px; color: #444; }
 
-        /* --- WIELKIE X (BŁĄD) --- */
+        /* --- WIELKIE X (NAPRAWIONE) --- */
         #strike-overlay {
-            display: none; 
-            position: fixed; inset: 0; 
-            background: rgba(0,0,0,0.9);
-            z-index: 9999; 
+            display: none; position: fixed; inset: 0; 
+            background: rgba(0,0,0,0.95); z-index: 9999;
             justify-content: center; align-items: center;
         }
-        .big-x-svg {
-            width: 70%; height: 70%;
-            stroke: var(--strike-red);
-            stroke-width: 40;
-            fill: none;
-            filter: drop-shadow(0 0 40px var(--strike-red));
-        }
-        .inner-x { stroke: #fff; stroke-width: 8; }
+        .x-svg { width: 600px; height: 600px; filter: drop-shadow(0 0 30px red); }
+        .x-path { fill: none; stroke: var(--strike-red); stroke-width: 35; stroke-linecap: square; }
+        .x-line { fill: none; stroke: white; stroke-width: 5; }
 
-        /* INTRO VIDEO / EKRAN POWITALNY */
-        #intro-layer {
-            position: fixed; inset: 0; background: #000; z-index: 9000;
-            display: none; align-items: center; justify-content: center;
-        }
-        video { width: 100%; height: 100%; object-fit: cover; }
-
-        #start-overlay { position: fixed; inset: 0; background: #000; z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        button { background: none; border: 3px solid var(--led-yellow); color: var(--led-yellow); padding: 20px 40px; font-size: 30px; font-family: 'VT323'; cursor: pointer; }
+        /* Start Screen */
+        #overlay { position: fixed; inset: 0; background: #000; z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        #overlay h1 { font-size: 60px; }
+        #overlay button { background: var(--led-yellow); color: #000; border: none; padding: 20px 50px; font-size: 30px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <div class="matrix"></div>
+    <div class="led-grid"></div>
 
-    <div id="start-overlay">
-        <h1 id="status">ŁĄCZENIE...</h1>
-        <button onclick="document.getElementById('start-overlay').style.display='none'">OTWÓRZ TABLICĘ</button>
-    </div>
-
-    <div id="intro-layer">
-        <video id="vid" src="czolowka.mp4"></video>
+    <div id="overlay">
+        <h1 id="peer-status">ŁĄCZENIE...</h1>
+        <button id="btn-start" style="display:none" onclick="document.getElementById('overlay').style.display='none'">URUCHOM SYSTEM</button>
     </div>
 
     <div id="strike-overlay">
-        <svg class="big-x-svg" viewBox="0 0 300 300">
-            <path d="M 40,40 L 120,150 L 40,260 M 260,40 L 180,150 L 260,260 M 120,150 L 180,150" />
-            <path class="inner-x" d="M 40,40 L 120,150 L 40,260 M 260,40 L 180,150 L 260,260 M 120,150 L 180,150" />
+        <svg class="x-svg" viewBox="0 0 300 300">
+            <path class="x-path" d="M 40,40 L 110,150 L 40,260 M 260,40 L 190,150 L 260,260 M 110,150 L 190,150" />
+            <path class="x-line" d="M 40,40 L 110,150 L 40,260 M 260,40 L 190,150 L 260,260 M 110,150 L 190,150" />
         </svg>
     </div>
 
     <div class="container">
-        <div class="top-info">
-            <div id="scA" class="score">000</div>
-            <div id="round-name" class="round-box">RUNDA 1</div>
-            <div id="scB" class="score">000</div>
+        <div class="header">
+            <div id="disp-scA" class="score-box">000</div>
+            <div id="disp-round" class="round-indicator">RUNDA 1</div>
+            <div id="disp-scB" class="score-box" style="text-align: right;">000</div>
         </div>
 
-        <div class="board" id="main-board">
+        <div class="board" id="board-ui">
             </div>
 
-        <div class="total-box">
-            <span class="total-label">SUMA</span>
-            <div id="total-val">000</div>
+        <div class="footer">
+            <span class="total-lbl">SUMA</span>
+            <div id="disp-total">000</div>
         </div>
     </div>
 
     <audio id="sndOk" src="ok.mp3"></audio>
     <audio id="sndNo" src="zle.mp3"></audio>
-    <audio id="sndStart" src="runda.mp3"></audio>
 
     <script>
         const peer = new Peer();
-        let currentTotal = 0;
+        let currentSum = 0;
 
-        peer.on('open', id => document.getElementById('status').innerText = "KOD TV: " + id);
+        peer.on('open', id => {
+            document.getElementById('peer-status').innerText = "KOD TV: " + id;
+            document.getElementById('btn-start').style.display = 'block';
+        });
 
         peer.on('connection', conn => {
             conn.on('data', m => {
-                console.log("Odebrano:", m);
-
-                if(m.type === 'INTRO') {
-                    const layer = document.getElementById('intro-layer');
-                    const v = document.getElementById('vid');
-                    layer.style.display = 'flex';
-                    v.play();
-                    v.onended = () => layer.style.display = 'none';
-                }
-
                 if(m.type === 'SETUP') {
-                    currentTotal = 0;
-                    document.getElementById('total-val').innerText = "000";
-                    const b = document.getElementById('main-board');
+                    currentSum = 0;
+                    document.getElementById('disp-total').innerText = "000";
+                    const b = document.getElementById('board-ui');
                     b.innerHTML = "";
                     m.a.forEach((ans, i) => {
                         b.innerHTML += `
-                            <div class="row" id="r-${i}">
+                            <div class="row" id="row-${i}">
                                 <div class="row-num">${i+1}.</div>
-                                <div class="row-content">
-                                    <div class="dots">......................................</div>
-                                    <div class="ans-txt">${ans.text}</div>
+                                <div class="row-body">
+                                    <div class="dots">................................................</div>
+                                    <div class="ans-text">${ans.text}</div>
                                     <div class="pts-val">${ans.pts}</div>
                                 </div>
                             </div>
@@ -187,33 +151,26 @@
 
                 if(m.type === 'REVEAL') {
                     document.getElementById('sndOk').play();
-                    const row = document.getElementById(`r-${m.index}`);
-                    row.classList.add('revealed');
-                    currentTotal += parseInt(m.pts);
-                    document.getElementById('total-val').innerText = currentTotal.toString().padStart(3, '0');
+                    const r = document.getElementById(`row-${m.index}`);
+                    r.classList.add('revealed');
+                    currentSum += parseInt(m.pts);
+                    document.getElementById('disp-total').innerText = currentSum.toString().padStart(3, '0');
                 }
 
                 if(m.type === 'STRIKE') {
-                    console.log("POKAZUJĘ X");
-                    document.getElementById('sndNo').play();
                     const ov = document.getElementById('strike-overlay');
+                    document.getElementById('sndNo').play();
                     ov.style.display = 'flex';
-                    setTimeout(() => ov.style.display = 'none', 1500);
-                }
-
-                if(m.type === 'UPDATE') {
-                    document.getElementById('scA').innerText = m.scA.toString().padStart(3, '0');
-                    document.getElementById('scB').innerText = m.scB.toString().padStart(3, '0');
+                    setTimeout(() => { ov.style.display = 'none'; }, 1500);
                 }
 
                 if(m.type === 'ROUND') {
-                    document.getElementById('sndStart').play();
-                    document.getElementById('round-name').innerText = m.val === 'FIN' ? 'FINAŁ' : 'RUNDA ' + m.val;
-                    if(m.val === 'FIN') {
-                        document.body.style.color = "#00ff00"; // Zielony finał (opcjonalnie)
-                    } else {
-                        document.body.style.color = "var(--led-yellow)";
-                    }
+                    document.getElementById('disp-round').innerText = m.val === 'FIN' ? 'FINAŁ' : 'RUNDA ' + m.val;
+                }
+
+                if(m.type === 'UPDATE') {
+                    document.getElementById('disp-scA').innerText = m.scA.toString().padStart(3, '0');
+                    document.getElementById('disp-scB').innerText = m.scB.toString().padStart(3, '0');
                 }
             });
         });
