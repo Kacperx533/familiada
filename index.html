@@ -2,13 +2,13 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA TV - LED BOARD</title>
+    <title>FAMILIADA TV - FINAL VERSION</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root {
             --led-yellow: #ffcc00;
-            --led-dim: #3a3000; /* Kolor "zgaszonych" diod */
+            --led-dim: #221a00;
             --strike-red: #ff0000;
         }
 
@@ -17,19 +17,16 @@
             color: var(--led-yellow);
             font-family: 'VT323', monospace;
             margin: 0;
-            padding: 0;
             overflow: hidden;
             text-transform: uppercase;
         }
 
-        /* Siatka LED na całym ekranie */
-        .led-matrix {
-            position: fixed;
-            inset: 0;
+        /* Siatka LED */
+        .matrix {
+            position: fixed; inset: 0;
             background-image: radial-gradient(rgba(0,0,0,0.8) 35%, transparent 40%);
             background-size: 5px 5px;
-            z-index: 100;
-            pointer-events: none;
+            z-index: 1000; pointer-events: none;
         }
 
         .container {
@@ -40,13 +37,19 @@
             box-sizing: border-box;
         }
 
-        /* PUNKTY DRUŻYN NA GÓRZE */
-        .header {
+        /* GÓRA: PUNKTY I RUNDA */
+        .top-info {
             display: flex;
             justify-content: space-between;
-            font-size: 150px;
-            height: 180px;
             align-items: center;
+            height: 150px;
+        }
+        .score { font-size: 160px; text-shadow: 0 0 20px var(--led-yellow); }
+        .round-box { 
+            border: 4px solid var(--led-yellow); 
+            padding: 10px 40px; 
+            font-size: 80px;
+            background: #000;
         }
 
         /* TABLICA */
@@ -55,169 +58,162 @@
             display: flex;
             flex-direction: column;
             justify-content: center;
-            gap: 5px;
+            gap: 10px;
         }
 
         .row {
             display: flex;
+            font-size: 95px;
+            height: 100px;
             align-items: center;
-            font-size: 95px; /* Duże litery */
-            height: 110px;
-            position: relative;
-            letter-spacing: 3px;
         }
+        .row-num { width: 90px; }
+        .row-content { flex-grow: 1; display: flex; justify-content: space-between; position: relative; }
+        .dots { color: var(--led-dim); position: absolute; left: 0; width: 100%; z-index: 1; }
+        .ans-txt { position: relative; z-index: 2; background: #000; padding-right: 15px; display: none; }
+        .pts-val { position: relative; z-index: 2; background: #000; padding-left: 15px; display: none; }
 
-        .num-part { width: 100px; color: var(--led-yellow); }
-        
-        /* Kontener na kropki i odpowiedź */
-        .content-part {
-            flex-grow: 1;
-            position: relative;
-            display: flex;
-            justify-content: space-between;
-            overflow: hidden;
-        }
-
-        /* Kropki - widoczne zawsze, ale przyciemnione */
-        .dots-filler {
-            position: absolute;
-            left: 0;
-            color: var(--led-dim);
-            z-index: 1;
-        }
-
-        /* Odpowiedź i punkty - nakładane na kropki */
-        .ans-text { position: relative; z-index: 2; background: #000; padding-right: 10px; display: none; }
-        .pts-val { position: relative; z-index: 2; background: #000; padding-left: 10px; display: none; width: 120px; text-align: right; }
-
-        /* Styl po odkryciu */
-        .revealed .ans-text { display: block; }
-        .revealed .pts-val { display: block; }
-        .revealed .dots-filler { display: none; }
+        .revealed .ans-txt, .revealed .pts-val { display: block; }
+        .revealed .dots { display: none; }
 
         /* SUMA */
-        .footer {
-            display: flex;
-            justify-content: flex-end;
-            font-size: 90px;
-            padding-top: 10px;
-        }
-        .total-label { margin-right: 50px; }
+        .total-box { display: flex; justify-content: flex-end; font-size: 90px; margin-top: 20px; }
+        .total-label { margin-right: 40px; color: #555; }
 
-        /* --- WIELKI X (POP-UP) --- */
+        /* --- WIELKIE X (BŁĄD) --- */
         #strike-overlay {
-            display: none;
-            position: fixed; 
-            inset: 0;
-            background: rgba(0,0,0,0.85);
-            z-index: 1000;
-            justify-content: center; 
-            align-items: center;
+            display: none; 
+            position: fixed; inset: 0; 
+            background: rgba(0,0,0,0.9);
+            z-index: 9999; 
+            justify-content: center; align-items: center;
         }
-
-        .big-x {
-            width: 500px;
-            height: 500px;
+        .big-x-svg {
+            width: 70%; height: 70%;
             stroke: var(--strike-red);
-            stroke-width: 45;
+            stroke-width: 40;
             fill: none;
-            filter: drop-shadow(0 0 30px var(--strike-red));
+            filter: drop-shadow(0 0 40px var(--strike-red));
         }
-        .x-inner { stroke: #fff; stroke-width: 6; }
+        .inner-x { stroke: #fff; stroke-width: 8; }
 
-        /* Start screen */
-        #overlay { position: fixed; inset: 0; background: #000; z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        button { background: none; border: 3px solid var(--led-yellow); color: var(--led-yellow); padding: 20px 50px; font-size: 30px; font-family: 'VT323'; cursor: pointer; }
+        /* INTRO VIDEO / EKRAN POWITALNY */
+        #intro-layer {
+            position: fixed; inset: 0; background: #000; z-index: 9000;
+            display: none; align-items: center; justify-content: center;
+        }
+        video { width: 100%; height: 100%; object-fit: cover; }
+
+        #start-overlay { position: fixed; inset: 0; background: #000; z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        button { background: none; border: 3px solid var(--led-yellow); color: var(--led-yellow); padding: 20px 40px; font-size: 30px; font-family: 'VT323'; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <div class="led-matrix"></div>
+    <div class="matrix"></div>
 
-    <div id="overlay">
+    <div id="start-overlay">
         <h1 id="status">ŁĄCZENIE...</h1>
-        <button id="start-btn" style="display:none" onclick="document.getElementById('overlay').style.display='none'">OTWÓRZ TABLICĘ</button>
+        <button onclick="document.getElementById('start-overlay').style.display='none'">OTWÓRZ TABLICĘ</button>
+    </div>
+
+    <div id="intro-layer">
+        <video id="vid" src="czolowka.mp4"></video>
     </div>
 
     <div id="strike-overlay">
-        <svg class="big-x" viewBox="0 0 300 300">
-            <path d="M 50,50 L 120,150 L 50,250 M 250,50 L 180,150 L 250,250 M 120,150 L 180,150" />
-            <path class="x-inner" d="M 50,50 L 120,150 L 50,250 M 250,50 L 180,150 L 250,250 M 120,150 L 180,150" />
+        <svg class="big-x-svg" viewBox="0 0 300 300">
+            <path d="M 40,40 L 120,150 L 40,260 M 260,40 L 180,150 L 260,260 M 120,150 L 180,150" />
+            <path class="inner-x" d="M 40,40 L 120,150 L 40,260 M 260,40 L 180,150 L 260,260 M 120,150 L 180,150" />
         </svg>
     </div>
 
     <div class="container">
-        <div class="header">
-            <div id="scA">000</div>
-            <div id="scB">000</div>
+        <div class="top-info">
+            <div id="scA" class="score">000</div>
+            <div id="round-name" class="round-box">RUNDA 1</div>
+            <div id="scB" class="score">000</div>
         </div>
 
-        <div class="board" id="board-ui">
+        <div class="board" id="main-board">
             </div>
 
-        <div class="footer">
+        <div class="total-box">
             <span class="total-label">SUMA</span>
-            <div id="total">000</div>
+            <div id="total-val">000</div>
         </div>
     </div>
 
     <audio id="sndOk" src="ok.mp3"></audio>
     <audio id="sndNo" src="zle.mp3"></audio>
+    <audio id="sndStart" src="runda.mp3"></audio>
 
     <script>
         const peer = new Peer();
-        let currentSum = 0;
+        let currentTotal = 0;
 
-        peer.on('open', id => {
-            document.getElementById('status').innerText = "KOD TV: " + id;
-            document.getElementById('start-btn').style.display = "block";
-        });
+        peer.on('open', id => document.getElementById('status').innerText = "KOD TV: " + id);
 
         peer.on('connection', conn => {
             conn.on('data', m => {
+                console.log("Odebrano:", m);
+
+                if(m.type === 'INTRO') {
+                    const layer = document.getElementById('intro-layer');
+                    const v = document.getElementById('vid');
+                    layer.style.display = 'flex';
+                    v.play();
+                    v.onended = () => layer.style.display = 'none';
+                }
+
                 if(m.type === 'SETUP') {
-                    currentSum = 0;
-                    document.getElementById('total').innerText = "000";
-                    const board = document.getElementById('board-ui');
-                    board.innerHTML = "";
-                    
-                    // Generujemy 6 wierszy. Kropki i numery są widoczne od razu.
-                    for(let i=0; i<6; i++) {
-                        let isData = i < m.a.length;
-                        board.innerHTML += `
-                            <div class="row" id="row-${i}">
-                                <div class="num-part">${isData ? (i+1) + "." : ""}</div>
-                                <div class="content-part">
-                                    <div class="dots-filler">${isData ? ".................................." : ""}</div>
-                                    <div class="ans-text">${isData ? m.a[i].text : ""}</div>
-                                    <div class="pts-val">${isData ? m.a[i].pts : ""}</div>
+                    currentTotal = 0;
+                    document.getElementById('total-val').innerText = "000";
+                    const b = document.getElementById('main-board');
+                    b.innerHTML = "";
+                    m.a.forEach((ans, i) => {
+                        b.innerHTML += `
+                            <div class="row" id="r-${i}">
+                                <div class="row-num">${i+1}.</div>
+                                <div class="row-content">
+                                    <div class="dots">......................................</div>
+                                    <div class="ans-txt">${ans.text}</div>
+                                    <div class="pts-val">${ans.pts}</div>
                                 </div>
                             </div>
                         `;
-                    }
+                    });
                 }
 
                 if(m.type === 'REVEAL') {
                     document.getElementById('sndOk').play();
-                    const r = document.getElementById(`row-${m.index}`);
-                    r.classList.add('revealed');
-                    
-                    // Pobieramy punkty bezpośrednio z elementu, który właśnie odkryliśmy
-                    let p = parseInt(r.querySelector('.pts-val').innerText);
-                    currentSum += p;
-                    document.getElementById('total').innerText = currentSum.toString().padStart(3, '0');
+                    const row = document.getElementById(`r-${m.index}`);
+                    row.classList.add('revealed');
+                    currentTotal += parseInt(m.pts);
+                    document.getElementById('total-val').innerText = currentTotal.toString().padStart(3, '0');
                 }
 
                 if(m.type === 'STRIKE') {
+                    console.log("POKAZUJĘ X");
                     document.getElementById('sndNo').play();
-                    const strike = document.getElementById('strike-overlay');
-                    strike.style.display = 'flex';
-                    setTimeout(() => strike.style.display = 'none', 1200);
+                    const ov = document.getElementById('strike-overlay');
+                    ov.style.display = 'flex';
+                    setTimeout(() => ov.style.display = 'none', 1500);
                 }
 
                 if(m.type === 'UPDATE') {
                     document.getElementById('scA').innerText = m.scA.toString().padStart(3, '0');
                     document.getElementById('scB').innerText = m.scB.toString().padStart(3, '0');
+                }
+
+                if(m.type === 'ROUND') {
+                    document.getElementById('sndStart').play();
+                    document.getElementById('round-name').innerText = m.val === 'FIN' ? 'FINAŁ' : 'RUNDA ' + m.val;
+                    if(m.val === 'FIN') {
+                        document.body.style.color = "#00ff00"; // Zielony finał (opcjonalnie)
+                    } else {
+                        document.body.style.color = "var(--led-yellow)";
+                    }
                 }
             });
         });
