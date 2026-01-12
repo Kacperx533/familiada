@@ -2,27 +2,45 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA TV - TABLICA</title>
+    <title>FAMILIADA TV - FINAL</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         body { background: #000; color: #f5b041; font-family: 'VT323', monospace; margin: 0; overflow: hidden; text-transform: uppercase; }
         .led-bg { position: fixed; inset: 0; background-image: radial-gradient(rgba(0,0,0,0.5) 40%, transparent 45%); background-size: 4px 4px; z-index: 100; pointer-events: none; }
         #video-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 3000; display: none; }
-        .main-container { display: flex; flex-direction: column; height: 100vh; padding: 40px; align-items: center; justify-content: center; }
-        .board-frame { border: 6px solid #333; border-radius: 15px; padding: 30px; background: #050505; width: 850px; position: relative; box-shadow: 0 0 40px rgba(0,0,0,1); }
-        .row { display: flex; font-size: 60px; height: 70px; align-items: center; position: relative; margin-bottom: 5px; }
-        .row-num { width: 50px; color: #f5b041; }
-        .row-content { flex-grow: 1; display: flex; justify-content: space-between; position: relative; }
-        .dots { color: #151515; letter-spacing: 4px; position: absolute; width: 100%; z-index: 1; }
-        .ans-text { position: relative; z-index: 2; background: #050505; padding-right: 10px; display: none; }
-        .pts-val { position: relative; z-index: 2; background: #050505; padding-left: 10px; display: none; }
+        
+        .main-container { display: flex; flex-direction: column; height: 100vh; align-items: center; justify-content: center; }
+        
+        .board-frame { 
+            border: 8px solid #333; border-radius: 20px; padding: 40px; 
+            background: #050505; width: 950px; position: relative; 
+            box-shadow: 0 0 50px rgba(0,0,0,1);
+        }
+
+        /* Kontener na X po lewej stronie */
+        #strike-container {
+            position: absolute; left: -100px; top: 50%; transform: translateY(-50%);
+            display: flex; flex-direction: column; gap: 10px;
+        }
+        .strike-x { width: 80px; height: 80px; filter: drop-shadow(0 0 10px red); display: none; }
+
+        .row { display: flex; font-size: 85px; height: 95px; align-items: center; position: relative; margin-bottom: 10px; justify-content: center; }
+        .row-num { width: 60px; color: #f5b041; position: absolute; left: 0; }
+        
+        .row-content { width: 100%; display: flex; justify-content: space-between; position: relative; padding: 0 10px; }
+        .dots { color: #1a1a1a; letter-spacing: 8px; position: absolute; left: 50%; transform: translateX(-50%); z-index: 1; }
+        
+        .ans-text { position: relative; z-index: 2; background: #050505; padding: 0 15px; display: none; flex-grow: 1; text-align: left; }
+        .pts-val { position: relative; z-index: 2; background: #050505; padding: 0 15px; display: none; width: 100px; text-align: right; }
+        
         .revealed .ans-text, .revealed .pts-val { display: block; }
         .revealed .dots { display: none; }
-        #strike-icon { position: absolute; bottom: 25px; left: 25px; width: 80px; height: 80px; display: none; z-index: 10; filter: drop-shadow(0 0 10px red); }
-        .suma-row { display: flex; justify-content: flex-end; font-size: 70px; margin-top: 20px; color: #f5b041; }
+
+        .suma-row { display: flex; justify-content: flex-end; font-size: 90px; margin-top: 30px; color: #f5b041; border-top: 4px solid #1a1a1a; }
+        
         #overlay { position: fixed; inset: 0; background: #000; z-index: 4000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .btn-start { background: #f5b041; border: none; padding: 20px 50px; font-size: 30px; font-family: 'VT323'; cursor: pointer; font-weight: bold; }
+        .btn-start { background: #f5b041; border: none; padding: 25px 60px; font-size: 40px; font-family: 'VT323'; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -33,25 +51,39 @@
 
     <div id="overlay">
         <h1 id="peer-id-label">ŁĄCZENIE...</h1>
-        <button class="btn-start" onclick="unlockAudio()">URUCHOM SYSTEM</button>
+        <button class="btn-start" onclick="unlockAudio()">START SYSTEMU</button>
     </div>
 
     <div class="main-container">
         <div class="board-frame">
+            <div id="strike-container">
+                <img class="strike-x" id="x1" src="https://i.imgur.com/8W77G3R.png">
+                <img class="strike-x" id="x2" src="https://i.imgur.com/8W77G3R.png">
+                <img class="strike-x" id="x3" src="https://i.imgur.com/8W77G3R.png">
+            </div>
+
             <div id="board-ui"></div>
-            <img id="strike-icon" src="https://i.imgur.com/8W77G3R.png"> 
-            <div class="suma-row"><span style="margin-right: 30px;">SUMA</span><span id="total-val">0</span></div>
+            
+            <div class="suma-row">
+                <span style="margin-right: 40px;">SUMA</span>
+                <span id="total-val">0</span>
+            </div>
         </div>
     </div>
 
     <script>
         const peer = new Peer();
         const videoPlayer = document.getElementById('video-layer');
+        let strikeCount = 0;
+
         peer.on('open', id => document.getElementById('peer-id-label').innerText = "KOD TV: " + id);
 
         function unlockAudio() {
             document.getElementById('overlay').style.display = 'none';
-            document.getElementById('sndOk').play().then(() => { document.getElementById('sndOk').pause(); document.getElementById('sndOk').currentTime = 0; });
+            document.getElementById('sndOk').play().then(() => { 
+                document.getElementById('sndOk').pause(); 
+                document.getElementById('sndOk').currentTime = 0; 
+            });
         }
 
         function playVideo(file) {
@@ -64,30 +96,37 @@
         peer.on('connection', conn => {
             conn.on('data', m => {
                 if(m.type === 'PLAY_VIDEO') playVideo(m.file);
+                
                 if(m.type === 'SETUP') {
+                    strikeCount = 0;
+                    document.querySelectorAll('.strike-x').forEach(img => img.style.display = 'none');
                     document.getElementById('board-ui').innerHTML = m.a.map((ans, i) => `
                         <div class="row" id="row-${i}">
                             <div class="row-num">${i+1}</div>
                             <div class="row-content">
-                                <div class="dots">.........................................</div>
+                                <div class="dots">..........</div>
                                 <div class="ans-text">${ans.t}</div>
                                 <div class="pts-val">${ans.p}</div>
                             </div>
                         </div>`).join('');
                     document.getElementById('total-val').innerText = "0";
                 }
+
                 if(m.type === 'REVEAL') {
                     document.getElementById('sndOk').play();
                     const row = document.getElementById(`row-${m.index}`);
                     if(row) row.classList.add('revealed');
                     document.getElementById('total-val').innerText = m.total;
                 }
+
                 if(m.type === 'STRIKE') {
                     document.getElementById('sndNo').play();
-                    const icon = document.getElementById('strike-icon');
-                    icon.style.display = 'block';
-                    setTimeout(() => icon.style.display = 'none', 1500);
+                    strikeCount++;
+                    if(strikeCount <= 3) {
+                        document.getElementById('x' + strikeCount).style.display = 'block';
+                    }
                 }
+
                 if(m.type === 'UPDATE') {
                     document.getElementById('total-val').innerText = parseInt(m.scA) + parseInt(m.scB);
                 }
