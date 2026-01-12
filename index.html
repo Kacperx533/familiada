@@ -2,62 +2,60 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA TV - FINAL</title>
+    <title>FAMILIADA TV - TABLICA PRO</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        body { background: #000; color: #f5b041; font-family: 'VT323', monospace; margin: 0; overflow: hidden; }
+        body { background: #000; color: #f5b041; font-family: 'VT323', monospace; margin: 0; overflow: hidden; text-transform: uppercase; }
         
-        /* Tło tablicy z kropkami */
-        .board-container {
-            width: 100vw; height: 100vh;
-            background: radial-gradient(circle, #1a1a1a 1px, transparent 1px);
-            background-size: 4px 4px;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-        }
+        /* Siatka LED z kropek */
+        .led-bg { position: fixed; inset: 0; background-image: radial-gradient(rgba(0,0,0,0.5) 40%, transparent 45%); background-size: 4px 4px; z-index: 100; pointer-events: none; }
 
-        .board-frame {
-            border: 8px solid #333; border-radius: 20px;
-            padding: 40px; background: #050505; width: 80%;
-            box-shadow: inset 0 0 50px #000; position: relative;
-        }
+        .main-container { display: flex; flex-direction: column; height: 100vh; padding: 20px 60px; box-sizing: border-box; justify-content: center; }
 
-        .row { display: flex; font-size: 70px; height: 80px; align-items: center; margin-bottom: 5px; }
-        .row-num { width: 60px; color: #f5b041; text-align: left; }
-        .row-text { flex-grow: 1; color: #f5b041; }
-        .row-pts { width: 100px; text-align: right; }
-        .dots { color: #222; letter-spacing: 5px; }
+        /* Ramka tablicy */
+        .board-frame { border: 10px solid #222; border-radius: 30px; padding: 40px; background: #080808; box-shadow: inset 0 0 100px #000; position: relative; }
 
-        .suma-row { 
-            display: flex; justify-content: flex-end; 
-            font-size: 80px; margin-top: 30px; border-top: 2px solid #222; padding-top: 10px;
-        }
+        .row { display: flex; font-size: 80px; height: 90px; align-items: center; margin-bottom: 5px; position: relative; }
+        .row-num { width: 70px; color: #f5b041; }
+        .row-content { flex-grow: 1; display: flex; justify-content: space-between; position: relative; }
+        
+        .dots { color: #1a1a1a; letter-spacing: 4px; position: absolute; left: 0; width: 100%; z-index: 1; }
+        .ans-text { position: relative; z-index: 2; background: #080808; padding-right: 15px; visibility: hidden; }
+        .pts-val { position: relative; z-index: 2; background: #080808; padding-left: 15px; visibility: hidden; }
 
-        /* Multimedia - Video */
-        #video-player {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; z-index: 2000; display: none;
-        }
+        .revealed .ans-text, .revealed .pts-val { visibility: visible; }
+        .revealed .dots { display: none; }
+
+        .suma-box { display: flex; justify-content: flex-end; font-size: 90px; margin-top: 30px; border-top: 4px solid #1a1a1a; padding-top: 10px; }
 
         /* Wielki X */
-        #strike-overlay {
-            display: none; position: fixed; inset: 0; z-index: 1500;
-            background: rgba(0,0,0,0.8); justify-content: center; align-items: center;
-        }
+        #strike-overlay { display: none; position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,0.7); justify-content: center; align-items: center; }
+        .x-graphic { color: #ff0000; font-size: 500px; font-weight: bold; text-shadow: 0 0 50px red; }
+
+        /* Ekran startowy */
+        #status { position: fixed; top: 10px; left: 10px; font-size: 20px; color: #444; z-index: 500; }
+        #intro-screen { position: fixed; inset: 0; background: #000; z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .btn-ready { background: #f5b041; border: none; padding: 20px 40px; font-size: 30px; font-family: 'VT323'; cursor: pointer; margin-top: 20px; }
     </style>
 </head>
 <body>
+    <div class="led-bg"></div>
+    <div id="status">ŁĄCZENIE...</div>
 
-    <video id="video-player"></video>
+    <div id="intro-screen">
+        <h1 id="peer-id-display">GENEROWANIE KODU...</h1>
+        <button class="btn-ready" onclick="document.getElementById('intro-screen').style.display='none'">START (OTWÓRZ TABLICĘ)</button>
+    </div>
 
-    <div id="strike-overlay">
-        <img src="https://i.imgur.com/8W77G3R.png" width="500"> </div>
+    <div id="strike-overlay"><div class="x-graphic">X</div></div>
 
-    <div class="board-container">
+    <div class="main-container">
         <div class="board-frame">
-            <div id="board-ui"></div>
-            <div class="suma-row">
-                <span style="margin-right: 50px;">SUMA</span>
+            <div id="board-ui">
+                </div>
+            <div class="suma-box">
+                <span style="margin-right: 40px; color: #f5b041;">SUMA</span>
                 <span id="total-val">0</span>
             </div>
         </div>
@@ -65,53 +63,46 @@
 
     <script>
         const peer = new Peer();
-        const vPlayer = document.getElementById('video-player');
-
-        peer.on('open', id => console.log('ID:', id));
+        
+        peer.on('open', id => {
+            document.getElementById('peer-id-display').innerText = "KOD DO PANELU: " + id;
+            document.getElementById('status').innerText = "OCZEKIWANIE NA PANEL (ID: " + id + ")";
+        });
 
         peer.on('connection', conn => {
+            document.getElementById('status').innerText = "POŁĄCZONO Z PANNELEM";
+            
             conn.on('data', m => {
                 if(m.type === 'SETUP') {
                     const b = document.getElementById('board-ui');
                     b.innerHTML = "";
+                    document.getElementById('total-val').innerText = "0";
                     m.a.forEach((ans, i) => {
                         b.innerHTML += `
                             <div class="row" id="row-${i}">
-                                <span class="row-num">${i+1}</span>
-                                <span class="row-text"><span class="dots">............................</span></span>
-                                <span class="row-pts"></span>
+                                <div class="row-num">${i+1}</div>
+                                <div class="row-content">
+                                    <div class="dots">......................................................</div>
+                                    <div class="ans-text">${ans.t}</div>
+                                    <div class="pts-val">${ans.p}</div>
+                                </div>
                             </div>`;
                     });
                 }
                 
                 if(m.type === 'REVEAL') {
-                    const r = document.getElementById(`row-${m.index}`);
-                    r.querySelector('.row-text').innerText = m.text.toUpperCase();
-                    r.querySelector('.row-pts').innerText = m.pts;
-                    updateTotal(m.total);
+                    const row = document.getElementById(`row-${m.index}`);
+                    if(row) row.classList.add('revealed');
+                    document.getElementById('total-val').innerText = m.total;
                 }
 
                 if(m.type === 'STRIKE') {
                     const ov = document.getElementById('strike-overlay');
                     ov.style.display = 'flex';
-                    setTimeout(() => ov.style.display = 'none', 1500);
+                    setTimeout(() => ov.style.display = 'none', 1200);
                 }
-
-                if(m.type === 'START_INTRO') playMedia('intro.mp4');
-                if(m.type === 'START_OUTRO') playMedia('outro.mp4');
             });
         });
-
-        function playMedia(file) {
-            vPlayer.src = file;
-            vPlayer.style.display = 'block';
-            vPlayer.play();
-            vPlayer.onended = () => vPlayer.style.display = 'none';
-        }
-
-        function updateTotal(val) {
-            document.getElementById('total-val').innerText = val;
-        }
     </script>
 </body>
 </html>
