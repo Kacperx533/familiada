@@ -2,150 +2,108 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PANEL STEROWANIA</title>
+    <title>PANEL STEROWANIA - FAMILIADA</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        body { font-family: sans-serif; background: #222; color: #fff; padding: 10px; max-width: 600px; margin: 0 auto; }
-        .box { background: #333; padding: 15px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #444; }
-        h3 { margin: 0 0 10px 0; color: #aaa; font-size: 14px; text-transform: uppercase; }
-        input, select { width: 100%; padding: 10px; background: #111; color: white; border: 1px solid #555; margin-bottom: 10px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; margin-bottom: 5px; cursor: pointer; border: none; border-radius: 4px; font-weight: bold; color: white; transition: 0.2s; }
-        .btn-ok { background: #27ae60; } .btn-ok:hover { background: #219150; }
-        .btn-bad { background: #c0392b; } .btn-bad:hover { background: #a93226; }
-        .btn-blue { background: #2980b9; }
-        .ans-row { display: flex; justify-content: space-between; align-items: center; background: #222; padding: 8px; margin-top: 5px; border-bottom: 1px solid #444; }
-        .active { outline: 3px solid #f1c40f; }
+        body { font-family: sans-serif; background: #1a1a1a; color: white; padding: 20px; }
+        .card { background: #2a2a2a; border-radius: 10px; padding: 20px; margin-bottom: 15px; }
+        button { width: 100%; padding: 15px; margin: 5px 0; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 16px; }
+        .btn-green { background: #2ecc71; color: white; }
+        .btn-red { background: #e74c3c; color: white; }
+        .btn-blue { background: #3498db; color: white; }
+        .btn-yellow { background: #f1c40f; color: black; }
+        input, select { width: 100%; padding: 10px; margin-bottom: 10px; box-sizing: border-box; }
+        .ans-row { display: flex; justify-content: space-between; padding: 10px; background: #333; margin-top: 5px; }
     </style>
 </head>
 <body>
-    <div class="box">
-        <h3>Połączenie</h3>
-        <input type="text" id="tv-id" placeholder="WPISZ KOD Z EKRANU TV">
-        <button onclick="connect()" class="btn-ok">POŁĄCZ Z TV</button>
+
+    <div class="card">
+        <h3>1. POŁĄCZ Z TV</h3>
+        <input type="text" id="peer-id" placeholder="WPISZ KOD Z TV">
+        <button onclick="connect()" class="btn-green">POŁĄCZ</button>
     </div>
 
-    <div id="game-panel" style="display:none">
-        <div class="box">
-            <h3>Runda</h3>
-            <div style="display:flex; gap:5px;">
-                <button onclick="setR(1)" class="btn-blue">x1</button>
-                <button onclick="setR(2)" class="btn-blue">x2</button>
-                <button onclick="setR(3)" class="btn-blue">x3</button>
-            </div>
-            <button onclick="setR('FIN')" class="btn-blue" style="margin-top:5px; background:#f39c12; color:black;">FINAŁ</button>
+    <div id="controls" style="display:none">
+        <div class="card">
+            <h3>2. MULTIMEDIA</h3>
+            <button onclick="sendToTV({type:'INTRO'})" class="btn-blue">START CZOŁÓWKA / INTRO</button>
         </div>
 
-        <div class="box">
-            <h3>Pytanie</h3>
-            <select id="q-sel" onchange="prepQ()"></select>
-            <button onclick="sendQ()" class="btn-ok">WYŚLIJ NA TABLICĘ</button>
+        <div class="card">
+            <h3>3. RUNDY</h3>
+            <div style="display:flex; gap:5px">
+                <button onclick="setRound(1)" class="btn-blue">RUNDA 1 (x1)</button>
+                <button onclick="setRound(2)" class="btn-blue">RUNDA 2 (x2)</button>
+                <button onclick="setRound(3)" class="btn-blue">RUNDA 3 (x3)</button>
+            </div>
+            <button onclick="setRound('FIN')" class="btn-yellow">TRYB FINAŁOWY</button>
+        </div>
+
+        <div class="card">
+            <h3>4. PYTANIE</h3>
+            <select id="q-select" onchange="loadQ()"></select>
+            <button onclick="sendQ()" class="btn-green">WYŚLIJ PYTANIE NA TV</button>
             <div id="ans-list"></div>
         </div>
 
-        <div class="box">
-            <h3>Sterowanie</h3>
-            <button onclick="doStrike()" class="btn-bad" style="height:60px; font-size:24px;">X (BŁĄD)</button>
-            
+        <div class="card">
+            <h3>5. AKCJE</h3>
+            <button onclick="sendToTV({type:'STRIKE'})" class="btn-red" style="height:80px; font-size:30px;">X - BŁĄD!</button>
             <div style="display:flex; gap:10px; margin-top:10px;">
-                <div style="flex:1">
-                    <button id="btnA" onclick="setTeam('A')" class="btn-blue">TEAM A</button>
-                    <input type="number" id="scA" value="0" onchange="sync()">
-                </div>
-                <div style="flex:1">
-                    <button id="btnB" onclick="setTeam('B')" class="btn-blue">TEAM B</button>
-                    <input type="number" id="scB" value="0" onchange="sync()">
-                </div>
+                <div>A: <input type="number" id="scA" value="0" onchange="syncScores()"></div>
+                <div>B: <input type="number" id="scB" value="0" onchange="syncScores()"></div>
             </div>
         </div>
     </div>
 
     <script>
-        // BAZA PYTAŃ - możesz tu dopisać własne
         const db = [
-            { q: "Przedmiot szkolny?", a: [["MATEMATYKA", 35], ["POLSKI", 25], ["WF", 20], ["HISTORIA", 12], ["CHEMIA", 5]] },
-            { q: "Co jest w piórniku?", a: [["DŁUGOPIS", 40], ["OŁÓWEK", 30], ["GUMKA", 15], ["LINIJKA", 10]] },
-            { q: "Zwierzę domowe?", a: [["PIES", 45], ["KOT", 35], ["CHOMIK", 10], ["RYBKI", 5]] },
-            { q: "Pora roku?", a: [["LATO", 40], ["WIOSNA", 30], ["ZIMA", 20], ["JESIEŃ", 10]] },
-            { q: "Co pijemy rano?", a: [["KAWA", 50], ["HERBATA", 30], ["WODA", 10], ["SOK", 5]] }
+            { q: "Szkolny przedmiot?", a: [["MATEMATYKA", 35], ["POLSKI", 25], ["WF", 20], ["HISTORIA", 10]] },
+            { q: "Zwierzę domowe?", a: [["PIES", 45], ["KOT", 35], ["CHOMIK", 10], ["RYBKI", 5]] }
         ];
 
-        const peer = new Peer();
-        let conn, activeTeam = null, multiplier = 1, currentA = [];
+        let peer = new Peer(), conn, multiplier = 1, currentAns = [];
 
         function connect() {
-            const id = document.getElementById('tv-id').value;
-            if(!id) return alert("Podaj kod!");
+            const id = document.getElementById('peer-id').value;
             conn = peer.connect(id);
             conn.on('open', () => {
-                document.querySelector('.box').style.display = 'none';
-                document.getElementById('game-panel').style.display = 'block';
-                const s = document.getElementById('q-sel');
+                document.getElementById('controls').style.display = 'block';
+                const s = document.getElementById('q-select');
                 s.innerHTML = '<option value="">-- Wybierz pytanie --</option>';
-                db.forEach((d,i) => s.innerHTML += `<option value="${i}">${d.q}</option>`);
+                db.forEach((d, i) => s.innerHTML += `<option value="${i}">${d.q}</option>`);
             });
         }
 
-        function setR(r) { 
-            multiplier = (typeof r === 'number') ? r : 1; 
-            if(conn) conn.send({type:'NEXT_ROUND', round:r});
+        function sendToTV(data) { if(conn) conn.send(data); }
+
+        function setRound(val) {
+            multiplier = (typeof val === 'number') ? val : 1;
+            sendToTV({type: 'ROUND', val: val});
         }
 
-        function prepQ() {
-            const val = document.getElementById('q-sel').value;
-            if(val==="") return;
-            const d = db[val];
-            currentA = d.a;
-            const l = document.getElementById('ans-list');
-            l.innerHTML = "";
-            d.a.forEach((a, i) => {
-                l.innerHTML += `
-                    <div class="ans-row">
-                        <span>${i+1}. ${a[0]} (${a[1]})</span>
-                        <button onclick="reveal(${i})" class="btn-ok" style="width:60px; padding:5px;">OK</button>
-                    </div>`;
+        function loadQ() {
+            const idx = document.getElementById('q-select').value;
+            if(idx==="") return;
+            currentAns = db[idx].a;
+            const list = document.getElementById('ans-list');
+            list.innerHTML = "";
+            currentAns.forEach((a, i) => {
+                list.innerHTML += `<div class="ans-row"><span>${a[0]} (${a[1]})</span><button onclick="reveal(${i})" style="width:50px">OK</button></div>`;
             });
         }
 
         function sendQ() {
-            const val = document.getElementById('q-sel').value;
-            if(val==="") return;
-            const d = db[val];
-            // Wysyłamy strukturę do TV
-            if(conn) conn.send({
-                type: 'SETUP', 
-                q: d.q, 
-                a: d.a.map(x => ({text: x[0], pts: x[1]}))
-            });
+            sendToTV({type: 'SETUP', a: currentAns.map(x => ({text: x[0], pts: x[1]}))});
         }
 
         function reveal(i) {
-            let pts = currentA[i][1] * multiplier;
-            if(conn) conn.send({type: 'REVEAL', index: i, text: currentA[i][0], pts: pts});
-            
-            if(activeTeam) {
-                const el = document.getElementById('sc' + activeTeam);
-                el.value = parseInt(el.value) + pts;
-                sync();
-            }
+            sendToTV({type: 'REVEAL', index: i, text: currentAns[i][0], pts: currentAns[i][1] * multiplier});
         }
 
-        function doStrike() {
-            if(conn) conn.send({type: 'STRIKE'});
-        }
-
-        function setTeam(t) {
-            activeTeam = t;
-            document.getElementById('btnA').classList.toggle('active', t==='A');
-            document.getElementById('btnB').classList.toggle('active', t==='B');
-        }
-
-        function sync() {
-            if(conn) conn.send({
-                type: 'UPDATE', 
-                scA: document.getElementById('scA').value, 
-                scB: document.getElementById('scB').value
-            });
+        function syncScores() {
+            sendToTV({type: 'UPDATE', scA: document.getElementById('scA').value, scB: document.getElementById('scB').value});
         }
     </script>
 </body>
