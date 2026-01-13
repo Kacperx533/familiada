@@ -2,207 +2,145 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA TV ULTIMATE - RETRO LOOK</title>
+    <title>FAMILIADA TV - ULTIMATE STUDIO</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root { 
-            --gold: #f5b041; 
-            --red: #ff0000; 
-            --blue: #0044ff;
-            --bg-blue: #001133; /* Ciemny błękit tła ze zdjęcia */
+            --gold: #f5b041; --red: #ff0000; --blue: #0044ff;
         }
         
         body { 
-            /* Tło imitujące studio ze zdjęcia */
-            background: radial-gradient(circle at center, #002266 0%, #00081a 100%);
-            color: var(--gold); 
-            font-family: 'VT323', monospace; 
-            margin: 0; 
-            overflow: hidden; 
-            text-transform: uppercase;
-            height: 100vh;
+            background: radial-gradient(circle at center, #001a4d 0%, #000511 100%);
+            color: var(--gold); font-family: 'VT323', monospace; 
+            margin: 0; overflow: hidden; text-transform: uppercase; height: 100vh;
         }
 
-        /* Warstwa "Scanlines" i kropki LED */
-        .overlay-fx {
+        /* Nakładka starego telewizora */
+        .crt-overlay {
             position: fixed; inset: 0; z-index: 1000; pointer-events: none;
-            background: 
-                linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
-                linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
-            background-size: 100% 4px, 3px 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%),
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
+            background-size: 100% 3px, 3px 100%;
         }
 
-        #video-player {
-            position: fixed; inset: 0; width: 100%; height: 100%;
-            background: #000; z-index: 2000; display: none; object-fit: cover;
+        #video-layer { position: fixed; inset: 0; width: 100%; height: 100%; background: #000; z-index: 5000; display: none; }
+
+        .main-layout {
+            display: flex; align-items: center; justify-content: center;
+            height: 100vh; width: 100vw; gap: 30px; padding: 0 20px; box-sizing: border-box;
         }
 
-        .board-container {
-            display: flex; flex-direction: column; align-items: center;
-            justify-content: center; height: 100vh; gap: 15px;
-            position: relative; z-index: 5;
+        /* Wielkie błędy po bokach (jak na zdjęciu) */
+        .strike-column {
+            width: 150px; display: flex; flex-direction: column; gap: 20px; align-items: center;
+        }
+        .big-x {
+            font-size: 160px; color: var(--red); line-height: 1;
+            text-shadow: 0 0 30px var(--red); display: none;
+            animation: blink 0.5s ease-in-out 3;
+        }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+        /* Konstrukcja tablicy */
+        .board-wrapper { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+
+        .top-counter {
+            background: #000; border: 4px solid #222; border-radius: 15px;
+            padding: 5px 40px; font-size: 110px; line-height: 1;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5); border-bottom: 4px solid var(--blue);
         }
 
-        /* Górny licznik punktów - identyczny jak na foto */
-        .top-score {
-            border: 5px solid #222; 
-            border-radius: 10px; 
-            background: #000;
-            padding: 5px 30px; 
-            font-size: 110px; 
-            line-height: 1;
-            color: var(--gold);
-            text-shadow: 0 0 15px var(--gold);
-            box-shadow: 0 0 30px rgba(0,0,0,0.8), inset 0 0 15px rgba(245, 176, 65, 0.2);
-        }
-
-        /* Główna Tablica z gradientową ramką */
         .main-frame {
-            width: 85vw; height: 72vh; 
-            background: rgba(0, 0, 0, 0.95);
-            border: 10px solid;
-            border-radius: 30px;
-            /* Gradient ramki: Czerwony góra, Niebieski dół */
-            border-image: linear-gradient(to bottom, #cc0000 0%, #333 40%, #333 60%, #0033cc 100%) 1;
-            padding: 20px 40px; 
-            display: flex; 
-            flex-direction: column; 
-            box-shadow: 0 0 50px rgba(0,0,0,1);
+            width: 70vw; height: 70vh; background: #000;
+            border: 10px solid; border-radius: 50px;
+            border-image: linear-gradient(to bottom, var(--red) 0%, #333 50%, var(--blue) 100%) 1;
+            padding: 30px 50px; position: relative;
+            box-shadow: inset 0 0 50px #000;
         }
 
-        .rows-area { 
-            flex-grow: 1; 
-            display: flex; 
-            flex-direction: column; 
-            justify-content: space-evenly; 
+        .row {
+            display: flex; font-size: 75px; height: 16%; align-items: center;
+            border-bottom: 2px solid #111; overflow: hidden;
         }
-
-        .row { 
-            display: flex; 
-            font-size: 75px; 
-            align-items: center; 
-            height: 85px; 
-            border-bottom: 2px solid #111; 
-        }
-        
-        .row-idx { width: 60px; color: #222; font-weight: bold; }
+        .row-num { width: 60px; color: #1a1a1a; }
         .row-content { flex-grow: 1; display: flex; justify-content: space-between; position: relative; }
-        
-        /* Kropki - teraz bardziej "wygaszone" */
-        .row-dots { 
-            color: #1a1a1a; 
-            letter-spacing: 12px; 
-            position: absolute; 
-            left: 50%; transform: translateX(-50%);
-            width: 100%; text-align: center; z-index: 1; 
-        }
-        
-        .row-text { z-index: 2; background: #000; padding: 0 15px; display: none; text-shadow: 0 0 10px var(--gold); }
-        .row-pts { z-index: 2; background: #000; padding: 0 15px; display: none; text-shadow: 0 0 10px var(--gold); }
+        .dots { color: #0a0a0a; letter-spacing: 15px; position: absolute; width: 100%; text-align: center; }
+        .ans, .pts { display: none; z-index: 2; background: #000; padding: 0 10px; }
+        .revealed .ans, .revealed .pts { display: block; }
+        .revealed .dots { display: none; }
 
-        .revealed .row-text, .revealed .row-pts { display: block; }
-        .revealed .row-dots { display: none; }
+        .footer { width: 100%; display: flex; justify-content: flex-end; margin-top: 20px; font-size: 70px; }
+        .total-label { color: var(--gold); opacity: 0.4; font-size: 40px; margin-right: 15px; }
 
-        /* Stopka */
-        .footer { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            width: 100%; 
-            margin-top: 10px;
-            border-top: 4px double #222;
-            padding-top: 10px;
-        }
-        
-        /* Czerwone X-y */
-        .strikes { display: flex; gap: 20px; font-size: 100px; color: var(--red); text-shadow: 0 0 20px var(--red); }
-        
-        .total-box { font-size: 70px; display: flex; gap: 20px; align-items: center; }
-        .total-label { color: var(--gold); opacity: 0.5; font-size: 40px; }
-
-        #init-screen {
-            position: fixed; inset: 0; background: #000; z-index: 5000;
+        #id-screen {
+            position: fixed; inset: 0; background: #000; z-index: 9999;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
     </style>
 </head>
 <body>
+    <div class="crt-overlay"></div>
+    <video id="video-layer"></video>
 
-    <div class="overlay-fx"></div>
-    <video id="video-player"></video>
-
-    <div id="init-screen">
-        <div style="font-size:30px; letter-spacing:2px">IDENTYFIKATOR TABLICY:</div>
-        <div id="peer-id" style="font-size:90px; color:var(--gold); border:3px solid var(--gold); padding:20px 40px; margin:20px; border-radius:15px">...</div>
-        <button onclick="document.getElementById('init-screen').style.display='none'" style="font-family:'VT323'; background:var(--gold); font-size:30px; padding:15px 60px; cursor:pointer; border:none; border-radius:10px">URUCHOM PANEL TV</button>
+    <div id="id-screen">
+        <div style="font-size:30px">KOD SYSTEMU:</div>
+        <div id="peer-id" style="font-size:80px; color:var(--gold); margin:20px; border:2px solid; padding:10px 30px">...</div>
+        <button onclick="this.parentElement.style.display='none'" style="font-family:'VT323'; font-size:30px; cursor:pointer; padding:10px 40px">OTWÓRZ STUDIO</button>
     </div>
 
-    <div class="board-container">
-        <div class="top-score" id="round-total">0</div>
-        
-        <div class="main-frame">
-            <div class="rows-area" id="rows">
-                </div>
-            
-            <div class="footer">
-                <div class="strikes" id="strikes"></div>
-                <div class="total-box">
-                    <span class="total-label">SUMA</span>
-                    <span id="global-total" style="color:#fff; text-shadow: 0 0 10px #fff;">0</span>
-                </div>
+    <div class="main-layout">
+        <div class="strike-column" id="strikes-A">
+            <div class="big-x">X</div><div class="big-x">X</div><div class="big-x">X</div>
+        </div>
+
+        <div class="board-wrapper">
+            <div class="top-counter" id="round-pts">0</div>
+            <div class="main-frame">
+                <div id="rows-container" style="height:100%"></div>
             </div>
+            <div class="footer">
+                <span class="total-label">SUMA</span>
+                <span id="total-pts">0</span>
+            </div>
+        </div>
+
+        <div class="strike-column" id="strikes-B">
+            <div class="big-x">X</div><div class="big-x">X</div><div class="big-x">X</div>
         </div>
     </div>
 
     <script>
         const peer = new Peer();
-        const vPlayer = document.getElementById('video-player');
-
         peer.on('open', id => document.getElementById('peer-id').innerText = id);
 
         peer.on('connection', conn => {
             conn.on('data', m => {
                 if(m.type === 'VIDEO') {
-                    vPlayer.src = m.file;
-                    vPlayer.style.display = 'block';
-                    vPlayer.play().catch(e => console.log("Czekam na interakcję użytkownika"));
-                    vPlayer.onended = () => vPlayer.style.display = 'none';
+                    const v = document.getElementById('video-layer');
+                    v.src = m.file; v.style.display = 'block'; v.play();
+                    v.onended = () => v.style.display = 'none';
                 }
-
                 if(m.type === 'SETUP') {
-                    const container = document.getElementById('rows');
-                    // Tworzymy zawsze 6 rzędów dla zachowania proporcji tablicy
-                    container.innerHTML = "";
-                    for(let i=0; i<6; i++) {
-                        const rowData = m.ans[i] || {t: "", p: ""};
-                        const isHidden = !m.ans[i] ? "style='visibility:hidden'" : "";
-                        container.innerHTML += `
-                            <div class="row" id="r-${i}" ${isHidden}>
-                                <div class="row-idx">${i+1}</div>
-                                <div class="row-content">
-                                    <div class="row-dots">..........................</div>
-                                    <div class="row-text">${rowData.t}</div>
-                                    <div class="row-pts">${rowData.p}</div>
-                                </div>
+                    const c = document.getElementById('rows-container');
+                    c.innerHTML = m.ans.map((a, i) => `
+                        <div class="row" id="r-${i}">
+                            <div class="row-num">${i+1}</div>
+                            <div class="row-content">
+                                <div class="dots">................................</div>
+                                <div class="ans">${a.t}</div><div class="pts">${a.p}</div>
                             </div>
-                        `;
-                    }
-                    document.getElementById('strikes').innerHTML = '';
+                        </div>`).join('');
+                    document.querySelectorAll('.big-x').forEach(x => x.style.display = 'none');
                 }
-
-                if(m.type === 'REVEAL') {
-                    const el = document.getElementById(`r-${m.idx}`);
-                    if(el) el.classList.add('revealed');
-                }
-
-                if(m.type === 'SYNC') {
-                    document.getElementById('round-total').innerText = m.rt;
-                    document.getElementById('global-total').innerText = m.gt;
-                }
-
+                if(m.type === 'REVEAL') document.getElementById(`r-${m.idx}`).classList.add('revealed');
                 if(m.type === 'STRIKE') {
-                    document.getElementById('strikes').innerHTML += '<div>X</div>';
+                    const xs = document.querySelectorAll(`#strikes-${m.team} .big-x`);
+                    for(let i=0; i < m.count; i++) if(xs[i]) xs[i].style.display = 'block';
+                }
+                if(m.type === 'SYNC') {
+                    document.getElementById('round-pts').innerText = m.rt;
+                    document.getElementById('total-pts').innerText = m.gt;
                 }
             });
         });
