@@ -2,38 +2,46 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA TV - DOKŁADNIE TWOJE TŁO</title>
+    <title>FAMILIADA TV - PRO STUDIO</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root { 
-            --gold: #f5b041; --red: #ff1a1a; --blue: #0077ff;
-            --glass: rgba(0, 0, 0, 0.4); /* Jeszcze większa przezroczystość, by widzieć Twoje tło */
+            --gold: #f5b041; 
+            --red: #ff1a1a; 
+            --blue: #0077ff;
+            --glass: rgba(0, 0, 0, 0.6);
         }
         
         body { 
             margin: 0; overflow: hidden; font-family: 'VT323', monospace; text-transform: uppercase;
             height: 100vh; width: 100vw;
-            /* TUTAJ JEST TWOJE TŁO */
-            background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAABAAAAAQACAYAAAB/HSuDAAA7d2Nc...') no-repeat center center;
-            background-size: cover;
+            /* GENEROWANE TŁO INSPIROWANE TWOIM ZDJĘCIEM */
+            background: 
+                radial-gradient(circle at 15% 50%, rgba(0, 119, 255, 0.3) 0%, transparent 45%),
+                radial-gradient(circle at 85% 50%, rgba(0, 119, 255, 0.3) 0%, transparent 45%),
+                radial-gradient(circle at center, #001f4d 0%, #00040a 100%);
+            background-color: #000;
             color: var(--gold);
         }
 
-        /* Warstwa wyostrzająca tekst na jasnym tle */
-        .text-glow { text-shadow: 2px 2px 10px rgba(0,0,0,1), 0 0 15px var(--gold); }
+        /* Subtelna siatka LED na całym ekranie */
+        body::after {
+            content: ""; position: fixed; inset: 0; pointer-events: none;
+            background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
+            background-size: 20px 20px; z-index: 1;
+        }
 
         .main-layout {
             display: flex; align-items: center; justify-content: center;
-            height: 100vh; width: 100vw; gap: 40px; padding: 0 40px; box-sizing: border-box;
-            position: relative; z-index: 10;
+            height: 100vh; width: 100vw; gap: 40px; position: relative; z-index: 10;
         }
 
-        /* WIELKIE BŁĘDY X - DOPASOWANE DO TWOJEGO TŁA */
+        /* WIELKIE BŁĘDY X - ŚWIECĄCE */
         .strike-zone { width: 150px; display: flex; flex-direction: column; gap: 20px; }
         .big-x {
-            font-size: 200px; color: var(--red); text-align: center; line-height: 0.7;
-            text-shadow: 0 0 40px rgba(255,0,0,0.8), 0 0 80px rgba(0,0,0,1);
+            font-size: 180px; color: var(--red); text-align: center; line-height: 0.7;
+            text-shadow: 0 0 30px var(--red), 0 0 60px rgba(0,0,0,0.8);
             display: none; animation: x-pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
         @keyframes x-pop { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
@@ -42,37 +50,38 @@
         .board-center { display: flex; flex-direction: column; align-items: center; gap: 15px; }
 
         .round-counter {
-            background: rgba(0,0,0,0.9); border: 4px solid #333; border-radius: 12px;
-            padding: 5px 60px; font-size: 120px; line-height: 1;
-            box-shadow: 0 0 40px rgba(0,0,0,1); border-bottom: 6px solid var(--blue);
+            background: #000; border: 4px solid #333; border-radius: 12px;
+            padding: 5px 60px; font-size: 110px; line-height: 1;
+            box-shadow: 0 0 40px rgba(0,0,0,0.9); border-bottom: 6px solid var(--blue);
         }
 
+        /* RAMA TABLICY - GRADIENT IDENTYCZNY JAK NA TWOIM FOTO */
         .main-frame {
             width: 70vw; height: 65vh; background: var(--glass);
-            border: 12px solid; border-radius: 50px;
-            /* Rama identyczna jak na foto: Czerwony -> Ciemny -> Niebieski */
-            border-image: linear-gradient(to bottom, #d00 0%, #222 45%, #222 55%, #00d 100%) 1;
+            border: 10px solid; border-radius: 45px;
+            border-image: linear-gradient(to bottom, #ff0000 0%, #333 45%, #333 55%, #0055ff 100%) 1;
             padding: 25px 45px; position: relative;
-            backdrop-filter: blur(15px); /* Mocny efekt szklany na Twoim tle */
-            box-shadow: 0 50px 100px rgba(0,0,0,0.9);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 40px 100px rgba(0,0,0,0.8);
         }
 
         .row {
             display: flex; align-items: center; height: 16.6%;
-            font-size: 85px; border-bottom: 1px solid rgba(255,255,255,0.1);
+            font-size: 80px; border-bottom: 1px solid rgba(255,255,255,0.05);
         }
-        .row-num { width: 70px; color: rgba(255,255,255,0.1); font-weight: bold; }
+        .row-num { width: 60px; color: rgba(255,255,255,0.1); font-weight: bold; }
         .row-content { flex-grow: 1; display: flex; justify-content: space-between; position: relative; }
-        .dots { color: rgba(0,0,0,0.5); letter-spacing: 20px; position: absolute; width: 100%; text-align: center; }
+        .dots { color: #000; letter-spacing: 18px; position: absolute; width: 100%; text-align: center; opacity: 0.3; }
         
-        .ans-text, .pts-val { display: none; z-index: 2; background: #000; padding: 0 20px; border-radius: 5px; }
+        .ans-text, .pts-val { display: none; z-index: 2; background: #000; padding: 0 15px; box-shadow: 0 0 10px #000; }
         .revealed .ans-text, .revealed .pts-val { display: block; }
         .revealed .dots { display: none; }
 
         .footer { width: 100%; display: flex; justify-content: flex-end; align-items: baseline; margin-top: 15px; }
-        .suma-label { color: #fff; opacity: 0.5; font-size: 40px; margin-right: 20px; }
-        .suma-number { font-size: 90px; color: #fff; text-shadow: 0 0 25px #fff, 0 0 10px #000; }
+        .suma-label { color: var(--gold); opacity: 0.4; font-size: 40px; margin-right: 20px; }
+        .suma-number { font-size: 85px; color: #fff; text-shadow: 0 0 20px #fff; }
 
+        /* EKRAN STARTOWY */
         #setup-screen {
             position: fixed; inset: 0; background: #000; z-index: 10000;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -80,12 +89,10 @@
     </style>
 </head>
 <body>
-    <video id="video-layer" style="position:fixed; inset:0; width:100%; height:100%; z-index:9000; display:none; background:#000;"></video>
-
     <div id="setup-screen">
-        <div style="font-size:30px">PODŁĄCZ PANEL:</div>
+        <div style="font-size:30px; letter-spacing:3px">KOD DO PANELU:</div>
         <div id="peer-id" style="font-size:100px; color:var(--gold); border:3px solid; padding:20px 60px; margin:30px; border-radius:20px">ŁĄCZENIE...</div>
-        <button onclick="document.getElementById('setup-screen').style.display='none'" style="font-family:'VT323'; background:var(--gold); font-size:40px; padding:15px 80px; cursor:pointer; border:none; border-radius:15px">URUCHOM STUDIO</button>
+        <button onclick="document.getElementById('setup-screen').style.display='none'" style="font-family:'VT323'; background:var(--gold); font-size:40px; padding:15px 80px; cursor:pointer; border:none; border-radius:15px">START STUDIO</button>
     </div>
 
     <div class="main-layout">
@@ -94,7 +101,7 @@
         </div>
 
         <div class="board-center">
-            <div class="round-counter text-glow" id="round-pts">0</div>
+            <div class="round-counter" id="round-pts">0</div>
             <div class="main-frame">
                 <div id="rows-box" style="height:100%"></div>
             </div>
@@ -114,11 +121,6 @@
         peer.on('open', id => document.getElementById('peer-id').innerText = id);
         peer.on('connection', conn => {
             conn.on('data', m => {
-                if(m.type === 'VIDEO') {
-                    const v = document.getElementById('video-layer');
-                    v.src = m.file; v.style.display = 'block'; v.play();
-                    v.onended = () => v.style.display = 'none';
-                }
                 if(m.type === 'SETUP') {
                     const box = document.getElementById('rows-box');
                     box.innerHTML = m.ans.map((a, i) => `
@@ -126,8 +128,8 @@
                             <div class="row-num">${i+1}</div>
                             <div class="row-content">
                                 <div class="dots">...............................</div>
-                                <div class="ans-text text-glow">${a.t}</div>
-                                <div class="pts-val text-glow">${a.p}</div>
+                                <div class="ans-text">${a.t}</div>
+                                <div class="pts-val">${a.p}</div>
                             </div>
                         </div>`).join('');
                     document.querySelectorAll('.big-x').forEach(x => x.style.display = 'none');
