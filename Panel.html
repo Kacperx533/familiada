@@ -2,75 +2,68 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA - PANEL STEROWANIA ULTIMATE</title>
+    <title>FAMILIADA - PANEL MASTER</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #121212; color: #e0e0e0; padding: 20px; margin: 0; }
-        .container { max-width: 900px; margin: 0 auto; }
-        .card { background: #1e1e1e; border: 1px solid #333; padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        h3 { color: #f5b041; margin-top: 0; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #333; padding-bottom: 10px; }
-        
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        button { border: none; padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; background: #3d3d3d; color: #fff; }
+        body { font-family: 'Segoe UI', sans-serif; background: #121212; color: #e0e0e0; padding: 20px; }
+        .container { max-width: 1000px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .card { background: #1e1e1e; padding: 20px; border-radius: 12px; border: 1px solid #333; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        h3 { color: #f5b041; margin-top: 0; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        button { border: none; padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer; background: #3d3d3d; color: #fff; transition: 0.2s; }
         button:hover { background: #555; }
-        
         .btn-gold { background: #f5b041; color: #000; }
         .btn-red { background: #e74c3c; color: #fff; }
-        .btn-active { outline: 3px solid #f5b041; background: #555; }
-        
-        input, select { width: 100%; padding: 12px; background: #000; color: #fff; border: 1px solid #444; border-radius: 6px; box-sizing: border-box; margin-bottom: 10px; font-size: 16px; }
-        
-        .ans-item { display: flex; justify-content: space-between; align-items: center; background: #252525; padding: 10px; margin-bottom: 5px; border-radius: 4px; border-left: 4px solid #f5b041; }
-        .multiplier-info { background: #f5b041; color: #000; padding: 5px 10px; border-radius: 4px; font-weight: bold; margin-bottom: 10px; display: inline-block; }
+        .btn-active { outline: 3px solid #f5b041; }
+        input, select { width: 100%; padding: 12px; background: #000; color: #fff; border: 1px solid #444; border-radius: 6px; margin-bottom: 10px; }
+        .ans-item { display: flex; justify-content: space-between; align-items: center; background: #252525; padding: 8px; margin-bottom: 5px; border-radius: 4px; }
+        .full-width { grid-column: 1 / -1; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="card" id="conn-section">
-        <h3>1. Połączenie</h3>
-        <input type="text" id="target-id" placeholder="WPISZ KOD Z EKRANU TV">
-        <button class="btn-gold" onclick="connect()" style="width: 100%">POŁĄCZ Z TELEWIZOREM</button>
+    <div class="card full-width">
+        <h3>1. KONFIGURACJA STUDIO</h3>
+        <div style="display:flex; gap:10px">
+            <input type="text" id="target-id" placeholder="WPISZ KOD Z TABLICY TV">
+            <button class="btn-gold" onclick="connect()" style="width:200px">POŁĄCZ</button>
+        </div>
     </div>
 
-    <div id="controls" style="display:none">
-        <div class="card">
-            <h3>2. Multimedia i Rundy</h3>
-            <div class="grid">
-                <button onclick="s({type:'VIDEO', file:'czolowka.mp4'})">🎬 CZOŁÓWKA</button>
-                <button onclick="s({type:'VIDEO', file:'napisy.mp4'})">🎬 NAPISY</button>
-                <button id="m1" class="btn-active" onclick="setMult(1)">RUNDA x1</button>
-                <button id="m2" onclick="setMult(2)">RUNDA x2</button>
-                <button id="m3" onclick="setMult(3)">RUNDA x3</button>
-                <button class="btn-gold" onclick="alert('Tryb Finałowy: Użyj pytań poniżej')">TRYB FINAŁ</button>
-            </div>
+    <div class="card">
+        <h3>2. EFEKTY I RUNDY</h3>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px">
+            <button onclick="s({type:'VIDEO', file:'czolowka.mp4'})">🎬 CZOŁÓWKA</button>
+            <button onclick="s({type:'VIDEO', file:'napisy.mp4'})">🎬 NAPISY</button>
+            <button id="m1" class="btn-active" onclick="setMult(1)">RUNDA x1</button>
+            <button id="m2" onclick="setMult(2)">RUNDA x2</button>
+            <button id="m3" onclick="setMult(3)">RUNDA x3</button>
+            <button class="btn-red" onclick="resetAll()">RESET TABLICY</button>
         </div>
+    </div>
 
-        <div class="card">
-            <h3>3. Wybór Pytania</h3>
-            <div class="multiplier-info" id="mult-display">AKTYWNY MNOŻNIK: x1</div>
-            <select id="q-select" onchange="renderQuestion()"></select>
-            <button class="btn-gold" onclick="sendToTV()" style="width: 100%; margin-bottom: 15px;">WYŚLIJ PYTANIE NA TABLICĘ</button>
-            <div id="ans-preview"></div>
+    <div class="card">
+        <h3>3. BŁĘDY (X)</h3>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px">
+            <button class="btn-red" onclick="addStrike('A')">DRUŻYNA A (X)</button>
+            <button class="btn-red" onclick="addStrike('B')">DRUŻYNA B (X)</button>
+            <button onclick="clearStrikes()" style="grid-column: 1 / -1">WYCZYŚĆ X-y</button>
         </div>
+    </div>
 
-        <div class="card">
-            <h3>4. Zarządzanie Wynikiem</h3>
-            <div class="grid">
-                <button class="btn-red" onclick="s({type:'STRIKE'})">❌ BŁĄD (X)</button>
-                <button onclick="s({type:'VIDEO', file:'zle.mp3'})">🔊 DŹWIĘK BŁĘDU</button>
-            </div>
-            <div class="grid" style="margin-top: 15px;">
-                <div>
-                    <label>DRUŻYNA A</label>
-                    <input type="number" id="pts-a" value="0" onchange="syncPts()">
-                </div>
-                <div>
-                    <label>DRUŻYNA B</label>
-                    <input type="number" id="pts-b" value="0" onchange="syncPts()">
-                </div>
-            </div>
-            <button onclick="syncPts()" style="width: 100%; margin-top: 10px;">AKTUALIZUJ SUMĘ NA TV</button>
+    <div class="card full-width">
+        <h3>4. BAZA PYTAŃ (GŁÓWNE + FINAŁ)</h3>
+        <select id="q-select" onchange="previewQuestion()"></select>
+        <button class="btn-gold" onclick="sendQuestion()" style="width:100%; margin-bottom:15px">ZAŁADUJ NA TABLICĘ</button>
+        <div id="ans-preview" style="display:grid; grid-template-columns: 1fr 1fr; gap:10px"></div>
+    </div>
+
+    <div class="card full-width">
+        <h3>5. WYNIK CAŁKOWITY</h3>
+        <div style="display:flex; gap:20px; align-items:center">
+            DRUŻYNA A: <input type="number" id="pts-a" value="0" onchange="sync()">
+            DRUŻYNA B: <input type="number" id="pts-b" value="0" onchange="sync()">
+            <div style="font-size:20px; font-weight:bold; color:var(--gold)">SUMA: <span id="total-preview">0</span></div>
         </div>
     </div>
 </div>
@@ -78,101 +71,103 @@
 <script>
     const database = [
         {q:"Więcej niż jedno zwierzę?", a:[["OWCE",41],["LAMY",28],["BYDŁO",15],["WATAHA",8],["STADO",5],["MRÓWKI",3]]},
-        {q:"Co można robić w lesie?", a:[["SPACEROWAĆ",45],["ZBIERAĆ GRZYBY",32],["BIEGAĆ",12],["JEŹDZIĆ ROWEREM",6],["ODPOCZYWAĆ",5]]},
-        {q:"Przedmiot szkolny?", a:[["MATEMATYKA",48],["J. POLSKI",25],["HISTORIA",12],["WF",8],["GEOGRAFIA",7]]},
-        {q:"Zimowy sport?", a:[["NARCIARSTWO",52],["ŁYŻWIARSTWO",24],["SKOKI NARCIARSKIE",15],["HOKEJ",6],["SANKI",3]]},
+        {q:"Przedmiot szkolny?", a:[["MATEMATYKA",48],["POLSKI",25],["HISTORIA",12],["WF",8],["GEOGRAFIA",7]]},
+        {q:"Zimowy sport?", a:[["NARCIARSTWO",52],["ŁYŻWIARSTWO",24],["HOKEJ",15],["SANKI",6]]},
         {q:"Co pijemy na śniadanie?", a:[["HERBATA",38],["KAWA",31],["KAKAO",15],["SOK",9],["MLEKO",7]]},
-        {q:"Danie z jajek?", a:[["JAJECZNICA",65],["OMLET",18],["JAJKO SADZONE",12],["JAJKO NA MIĘKKO",5]]},
         {q:"Zwierzę domowe?", a:[["PIES",50],["KOT",35],["CHOMIK",8],["PAPUGA",4],["RYBKI",3]]},
-        {q:"Słodki owoc?", a:[["TRUSKAWKA",35],["BANAN",28],["JABŁKO",20],["MALINA",12],["GRUSZKA",5]]},
-        {q:"Co rośnie w ogrodzie?", a:[["KWIATY",42],["TRAWA",25],["WARZYWA",18],["DRZEWA OWOCOWE",10],["KRZEWY",5]]},
-        {q:"Marka samochodu?", a:[["VOLKSWAGEN",35],["TOYOTA",28],["BMW",15],["MERCEDES",12],["AUDI",10]]},
-        {q:"Co znajdziemy w kuchni?", a:[["LODÓWKA",40],["KUCHENKA",30],["TALERZE",15],["SZTUĆCE",10],["GARNKI",5]]},
-        {q:"Stolica kraju w Europie?", a:[["WARSZAWA",45],["PARYŻ",25],["BERLIN",15],["RZYM",10],["PRAGA",5]]},
-        {q:"Gdzie spędzamy wakacje?", a:[["NAD MORZEM",50],["W GÓRACH",30],["NA MAZURACH",12],["ZA GRANICĄ",8]]},
-        {q:"Zawód medyczny?", a:[["LEKARZ",55],["PIELĘGNIARKA",25],["RATOWNIK",12],["DENTYSTA",8]]},
-        {q:"Co kładziemy na kanapkę?", a:[["SER",40],["SZYNKA",35],["POMIDOR",15],["MASŁO",10]]},
+        {q:"Marka samochodu?", a:[["VOLKSWAGEN",35],["TOYOTA",28],["BMW",15],["MERCEDES",12]]},
         {q:"Instrument muzyczny?", a:[["GITARA",38],["PIANINO",32],["SKRZYPCE",15],["PERKUSJA",10],["FLET",5]]},
-        {q:"Dyscyplina lekkoatletyczna?", a:[["BIEG",45],["SKOK W DAL",25],["RZUT OSZCZEPEM",15],["PCHNIĘCIE KULĄ",10],["SKOK WZWYŻ",5]]},
-        {q:"W czym trzymamy pieniądze?", a:[["PORTFEL",55],["BANK",25],["SKARBONKA",15],["KIESZEŃ",5]]},
-        {q:"Z czym można jeść naleśniki?", a:[["DŻEM",42],["SER",30],["NUTELLA",20],["OWOCE",8]]},
-        {q:"Zjawisko pogodowe?", a:[["DESZCZ",40],["BURZA",28],["ŚNIEG",15],["WIATR",12],["MGŁA",5]]}
+        {q:"Co rośnie w lesie?", a:[["DRZEWA",45],["GRZYBY",32],["MCHY",12],["JAGODY",6]]},
+        {q:"Część garderoby na 'S'?", a:[["SKARPETY",40],["SPODNIE",30],["SUKIENKA",15],["SWETER",10],["SZALIK",5]]},
+        {q:"Państwo na literę 'N'?", a:[["NIEMCY",55],["NORWEGIA",25],["NIDERLANDY",12],["NIGERIA",8]]},
+        {q:"[FINAŁ] Coś czerwonego?", a:[["POMIDOR",40],["STRAŻ",20],["BURAK",15],["KREW",10],["RÓŻA",15]]},
+        {q:"[FINAŁ] Hobby?", a:[["SPORT",35],["MUZYKA",25],["CZYTANIE",20],["GRY",15],["WĘDKOWANIE",5]]},
+        {q:"[FINAŁ] Stolica Europy?", a:[["WARSZAWA",40],["PARYŻ",30],["BERLIN",20],["LONDYN",10]]},
+        {q:"[FINAŁ] Coś co lata?", a:[["SAMOLOT",45],["PTAK",35],["MUCHA",10],["DRON",10]]},
+        {q:"Coś do jedzenia w kinie?", a:[["POPCORN",60],["NACHOS",25],["CHIPSY",10],["ŻELKI",5]]},
+        {q:"Co ma koła?", a:[["SAMOCHÓD",50],["ROWER",30],["WÓZEK",15],["TRAKTOR",5]]},
+        {q:"Gdzie chowamy pieniądze?", a:[["PORTFEL",55],["BANK",25],["SKARPONKA",15],["SKARPETA",5]]},
+        {q:"Co robimy rano?", a:[["MYJEMY ZĘBY",40],["PIJEMY KAWĘ",30],["UBIERAMY SIĘ",20],["ŚCIELIMY ŁÓŻKO",10]]},
+        {q:"Znany polski sportowiec?", a:[["LEWANDOWSKI",50],["ŚWIĄTEK",30],["MAŁYSZ",15],["STOCH",5]]},
+        {q:"Rodzaj kawy?", a:[["LATTE",40],["ESPRESSO",30],["CAPPUCCINO",20],["CZARNA",10]]}
     ];
 
     let peer = new Peer(), conn;
-    let multiplier = 1;
-    let roundPoints = 0;
+    let mult = 1; let roundPts = 0;
+    let stA = 0; let stB = 0;
 
     window.onload = () => {
         const sel = document.getElementById('q-select');
-        database.forEach((item, i) => {
-            const opt = document.createElement('option');
-            opt.value = i;
-            opt.innerText = item.q;
-            sel.appendChild(opt);
-        });
-        renderQuestion();
+        database.forEach((v, i) => sel.add(new Option(v.q, i)));
+        previewQuestion();
     };
 
     function connect() {
-        const id = document.getElementById('target-id').value;
-        conn = peer.connect(id);
-        conn.on('open', () => {
-            document.getElementById('conn-section').style.display = 'none';
-            document.getElementById('controls').style.display = 'block';
-        });
+        conn = peer.connect(document.getElementById('target-id').value);
+        conn.on('open', () => { alert("POŁĄCZONO Z TV!"); sync(); });
     }
 
     function s(m) { if(conn) conn.send(m); }
 
     function setMult(m) {
-        multiplier = m;
+        mult = m;
         document.querySelectorAll('[id^="m"]').forEach(b => b.classList.remove('btn-active'));
         document.getElementById('m'+m).classList.add('btn-active');
-        document.getElementById('mult-display').innerText = "AKTYWNY MNOŻNIK: x" + m;
     }
 
-    function renderQuestion() {
-        const idx = document.getElementById('q-select').value;
-        const qData = database[idx];
-        const preview = document.getElementById('ans-preview');
-        preview.innerHTML = "";
-        
-        qData.a.forEach((ans, i) => {
-            preview.innerHTML += `
-                <div class="ans-item">
-                    <span>${ans[0]} (${ans[1]})</span>
-                    <button class="btn-gold" onclick="reveal(${i}, ${ans[1]})">ODSŁOŃ</button>
-                </div>
-            `;
-        });
+    function previewQuestion() {
+        const q = database[document.getElementById('q-select').value];
+        const p = document.getElementById('ans-preview');
+        p.innerHTML = q.a.map((ans, i) => `
+            <div class="ans-item">
+                <span>${ans[0]} (${ans[1]})</span>
+                <button class="btn-gold" onclick="reveal(${i}, ${ans[1]})">ODSŁOŃ</button>
+            </div>
+        `).join('');
     }
 
-    function sendToTV() {
-        const idx = document.getElementById('q-select').value;
-        const qData = database[idx];
-        roundPoints = 0;
-        s({
-            type: 'SETUP',
-            ans: qData.a.map(x => ({ t: x[0], p: x[1] }))
-        });
-        syncPts();
+    function sendQuestion() {
+        const q = database[document.getElementById('q-select').value];
+        roundPts = 0;
+        clearStrikes();
+        s({type: 'SETUP', ans: q.a.map(x => ({t: x[0], p: x[1]}))});
+        sync();
     }
 
-    function reveal(idx, pts) {
-        roundPoints += (pts * multiplier);
-        s({ type: 'REVEAL', idx: idx });
-        syncPts();
+    function reveal(i, p) {
+        roundPts += (p * mult);
+        s({type: 'REVEAL', idx: i});
+        sync();
     }
 
-    function syncPts() {
-        const ga = parseInt(document.getElementById('pts-a').value) || 0;
-        const gb = parseInt(document.getElementById('pts-b').value) || 0;
-        s({
-            type: 'SYNC',
-            rt: roundPoints,
-            gt: ga + gb
-        });
+    function addStrike(team) {
+        if(team === 'A') stA++; else stB++;
+        s({type: 'STRIKE', team: team, count: (team === 'A' ? stA : stB)});
+    }
+
+    function clearStrikes() {
+        stA = 0; stB = 0;
+        // Wysyłamy pusty strike aby wyczyścić
+        s({type: 'STRIKE', team: 'A', count: 0});
+        s({type: 'STRIKE', team: 'B', count: 0});
+    }
+
+    function sync() {
+        const a = parseInt(document.getElementById('pts-a').value) || 0;
+        const b = parseInt(document.getElementById('pts-b').value) || 0;
+        const total = a + b;
+        document.getElementById('total-preview').innerText = total;
+        s({type: 'SYNC', rt: roundPts, gt: total});
+    }
+
+    function resetAll() {
+        if(confirm("Czy na pewno zrestartować całą tablicę?")) {
+            roundPts = 0;
+            document.getElementById('pts-a').value = 0;
+            document.getElementById('pts-b').value = 0;
+            s({type: 'SETUP', ans: []});
+            sync();
+        }
     }
 </script>
 </body>
