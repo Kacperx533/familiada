@@ -2,94 +2,115 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA TV ULTIMATE - STUDIO MODE</title>
+    <title>FAMILIADA TV - PRESTIGE STUDIO</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root { 
-            --gold: #f5b041; --red: #ff3333; --blue: #0066ff;
-            --glass: rgba(0, 0, 0, 0.85);
+            --gold: #f5b041; 
+            --red: #ff1a1a; 
+            --blue: #0077ff;
+            --glass: rgba(0, 0, 0, 0.8);
         }
         
         body { 
             margin: 0; overflow: hidden; font-family: 'VT323', monospace; text-transform: uppercase;
-            /* TŁO STUDIO - GRADIENTY IMITUJĄCE ŚWIATŁA */
+            /* TŁO STUDIO - IDENTYCZNE JAK NA ZDJĘCIU */
             background: 
-                radial-gradient(circle at 20% 30%, rgba(0, 102, 255, 0.15) 0%, transparent 40%),
-                radial-gradient(circle at 80% 70%, rgba(0, 102, 255, 0.15) 0%, transparent 40%),
-                radial-gradient(circle at center, #001a4d 0%, #000511 100%);
+                radial-gradient(circle at 15% 50%, rgba(0, 119, 255, 0.2) 0%, transparent 40%),
+                radial-gradient(circle at 85% 50%, rgba(0, 119, 255, 0.2) 0%, transparent 40%),
+                radial-gradient(circle at center, #001f4d 0%, #00040a 100%);
             height: 100vh; color: var(--gold);
         }
 
-        /* Efekt snopów światła w tle */
-        body::before {
-            content: ""; position: fixed; inset: 0;
-            background: repeating-linear-gradient(45deg, transparent, transparent 100px, rgba(255,255,255,0.02) 100px, rgba(255,255,255,0.02) 200px);
-            pointer-events: none;
-        }
-
-        /* Warstwa nakładki (szum i kropki) */
-        .crt-fx {
-            position: fixed; inset: 0; z-index: 1000; pointer-events: none;
-            background-image: radial-gradient(rgba(0,0,0,0.3) 40%, transparent 45%);
-            background-size: 4px 4px; opacity: 0.5;
+        /* Efekt snopów światła i rastra LED */
+        .studio-overlay {
+            position: fixed; inset: 0; z-index: 5; pointer-events: none;
+            background-image: radial-gradient(rgba(0,0,0,0.4) 30%, transparent 35%);
+            background-size: 4px 4px;
         }
 
         .main-layout {
             display: flex; align-items: center; justify-content: center;
-            height: 100vh; gap: 40px; padding: 0 50px;
+            height: 100vh; width: 100vw; gap: 50px; padding: 0 40px; box-sizing: border-box;
+            position: relative; z-index: 10;
         }
 
-        /* WIELKIE BŁĘDY - STYLIzOWANE */
-        .strike-zone { width: 120px; display: flex; flex-direction: column; gap: 30px; }
+        /* WIELKIE BŁĘDY PO BOKACH */
+        .strike-zone { width: 140px; display: flex; flex-direction: column; gap: 20px; }
         .big-x {
-            font-size: 140px; color: var(--red); text-align: center;
-            text-shadow: 0 0 25px var(--red), 0 0 50px var(--red);
-            display: none; animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            font-size: 160px; color: var(--red); text-align: center; line-height: 0.8;
+            text-shadow: 0 0 20px var(--red), 0 0 40px var(--red);
+            display: none; 
+            animation: x-appear 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-        @keyframes pop { from { transform: scale(0); } to { transform: scale(1); } }
+        @keyframes x-appear { from { transform: scale(0) rotate(-20deg); opacity: 0; } to { transform: scale(1) rotate(0); opacity: 1; } }
 
-        /* TABLICA */
-        .board-center { display: flex; flex-direction: column; align-items: center; gap: 20px; }
+        /* KONTENER TABLICY */
+        .board-center { display: flex; flex-direction: column; align-items: center; gap: 15px; }
 
-        .top-display {
-            background: #000; border: 4px solid #333; border-radius: 15px;
-            padding: 10px 60px; font-size: 100px; line-height: 0.8;
-            box-shadow: 0 0 30px rgba(0,0,0,0.5), 0 5px 0 var(--blue);
-        }
-
-        .frame-glow {
-            background: var(--glass);
-            border: 8px solid;
-            border-radius: 40px;
-            border-image: linear-gradient(to bottom, var(--red) 0%, #444 45%, #444 55%, var(--blue) 100%) 1;
-            padding: 25px 45px; width: 65vw; height: 65vh;
-            position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.8);
-            backdrop-filter: blur(5px);
+        /* GÓRNY LICZNIK RUNDY */
+        .round-counter {
+            background: #000; border: 4px solid #222; border-radius: 12px;
+            padding: 5px 50px; font-size: 110px; line-height: 1;
+            box-shadow: 0 0 30px rgba(0,0,0,0.8), 0 4px 0 var(--blue);
+            text-shadow: 0 0 10px var(--gold);
         }
 
+        /* GŁÓWNA RAMA TABLICY */
+        .main-frame {
+            width: 68vw; height: 68vh; background: var(--glass);
+            border: 10px solid; border-radius: 45px;
+            /* Gradient ramy jak na foto: Czerwony -> Szary -> Niebieski */
+            border-image: linear-gradient(to bottom, var(--red) 0%, #333 45%, #333 55%, var(--blue) 100%) 1;
+            padding: 30px 50px; position: relative;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.9), inset 0 0 30px #000;
+            backdrop-filter: blur(8px);
+        }
+
+        /* RZĘDY Z ODPOWIEDZIAMI */
         .row {
             display: flex; align-items: center; height: 16.6%;
-            font-size: 70px; border-bottom: 2px solid rgba(255,255,255,0.05);
+            font-size: 80px; border-bottom: 2px solid rgba(255,255,255,0.03);
+            position: relative;
         }
-        .row-n { width: 50px; color: #333; }
-        .row-c { flex-grow: 1; display: flex; justify-content: space-between; position: relative; }
-        .dots { color: #111; letter-spacing: 15px; position: absolute; width: 100%; text-align: center; }
+        .row-num { width: 60px; color: #151515; font-weight: bold; }
+        .row-content { flex-grow: 1; display: flex; justify-content: space-between; position: relative; }
         
-        .ans-t, .pts-v { display: none; z-index: 2; background: black; padding: 0 15px; }
-        .revealed .ans-t, .revealed .pts-v { display: block; }
+        /* Kropki - niemal niewidoczne dopóki nie ma odpowiedzi */
+        .dots { 
+            color: #0a0a0a; letter-spacing: 18px; position: absolute; 
+            width: 100%; text-align: center; pointer-events: none;
+        }
+        
+        .ans-text, .pts-val { display: none; z-index: 2; background: #000; padding: 0 15px; }
+        .revealed .ans-text, .revealed .pts-val { display: block; }
         .revealed .dots { display: none; }
 
-        .footer { width: 100%; display: flex; justify-content: flex-end; align-items: baseline; margin-top: 15px; }
-        .suma-txt { font-size: 35px; color: rgba(245, 176, 65, 0.4); margin-right: 15px; }
-        .suma-val { font-size: 70px; color: #fff; text-shadow: 0 0 15px #fff; }
+        /* STOPKA Z SUMĄ */
+        .footer { width: 100%; display: flex; justify-content: flex-end; align-items: baseline; margin-top: 20px; }
+        .suma-label { color: var(--gold); opacity: 0.3; font-size: 40px; margin-right: 20px; }
+        .suma-number { font-size: 80px; color: #fff; text-shadow: 0 0 20px rgba(255,255,255,0.6); }
 
-        #video-layer { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 5000; display: none; background: #000; }
+        /* EKRAN POWITALNY (ID) */
+        #setup-screen {
+            position: fixed; inset: 0; background: #000; z-index: 9000;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+
+        /* WARSTWA WIDEO */
+        #video-layer { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 8000; display: none; background: #000; object-fit: cover; }
     </style>
 </head>
 <body>
-    <div class="crt-fx"></div>
+    <div class="studio-overlay"></div>
     <video id="video-layer"></video>
+
+    <div id="setup-screen">
+        <div style="font-size:30px; letter-spacing:4px">KOD DO PANELU:</div>
+        <div id="peer-id" style="font-size:100px; color:var(--gold); border:3px solid var(--gold); padding:20px 50px; margin:30px; border-radius:20px; box-shadow: 0 0 30px rgba(245,176,65,0.3)">...</div>
+        <button onclick="document.getElementById('setup-screen').style.display='none'" style="font-family:'VT323'; background:var(--gold); font-size:35px; padding:15px 70px; cursor:pointer; border:none; border-radius:10px; font-weight:bold">WEJDŹ DO STUDIA</button>
+    </div>
 
     <div class="main-layout">
         <div class="strike-zone" id="strikes-A">
@@ -97,52 +118,77 @@
         </div>
 
         <div class="board-center">
-            <div class="top-display" id="round-val">0</div>
-            <div class="frame-glow">
-                <div id="board-rows" style="height:100%"></div>
+            <div class="round-counter" id="round-pts">0</div>
+            
+            <div class="main-frame">
+                <div id="rows-box" style="height:100%">
+                    </div>
             </div>
+
             <div class="footer">
-                <span class="suma-txt">SUMA</span>
-                <span class="suma-val" id="total-val">0</span>
+                <span class="suma-label">SUMA</span>
+                <span class="suma-number" id="total-pts">0</span>
             </div>
         </div>
 
         <div class="strike-zone" id="strikes-B">
-            <div class="big-x">X</div><div class="big-x">X</div><div class="big-x">X</div>
+            <div class="big-x">X</div><div class="big-x) ">X</div><div class="big-x">X</div>
         </div>
     </div>
 
     <script>
         const peer = new Peer();
-        peer.on('open', id => console.log("Peer ID: " + id)); // Kod wpisujesz w konsoli lub dodaj proste UI
+        const vLayer = document.getElementById('video-layer');
+
+        peer.on('open', id => document.getElementById('peer-id').innerText = id);
 
         peer.on('connection', conn => {
             conn.on('data', m => {
+                // OBSŁUGA WIDEO (CZOŁÓWKA/NAPISY)
                 if(m.type === 'VIDEO') {
-                    const v = document.getElementById('video-layer');
-                    v.src = m.file; v.style.display = 'block'; v.play();
-                    v.onended = () => v.style.display = 'none';
+                    vLayer.src = m.file;
+                    vLayer.style.display = 'block';
+                    vLayer.play().catch(e => console.log("Potrzebna interakcja"));
+                    vLayer.onended = () => vLayer.style.display = 'none';
                 }
+
+                // ŁADOWANIE NOWEGO PYTANIA
                 if(m.type === 'SETUP') {
-                    const r = document.getElementById('board-rows');
-                    r.innerHTML = m.ans.map((a, i) => `
+                    const rows = document.getElementById('rows-box');
+                    rows.innerHTML = m.ans.map((a, i) => `
                         <div class="row" id="r-${i}">
-                            <div class="row-n">${i+1}</div>
-                            <div class="row-c">
-                                <div class="dots">............................</div>
-                                <div class="ans-t">${a.t}</div><div class="pts-v">${a.p}</div>
+                            <div class="row-num">${i+1}</div>
+                            <div class="row-content">
+                                <div class="dots">...............................</div>
+                                <div class="ans-text">${a.t}</div>
+                                <div class="pts-val">${a.p}</div>
                             </div>
                         </div>`).join('');
+                    // Czyść błędy przy nowym pytaniu
                     document.querySelectorAll('.big-x').forEach(x => x.style.display = 'none');
                 }
-                if(m.type === 'REVEAL') document.getElementById(`r-${m.idx}`).classList.add('revealed');
+
+                // ODSŁANIANIE ODPOWIEDZI
+                if(m.type === 'REVEAL') {
+                    const el = document.getElementById(`r-${m.idx}`);
+                    if(el) el.classList.add('revealed');
+                }
+
+                // WYŚWIETLANIE BŁĘDÓW (X)
                 if(m.type === 'STRIKE') {
                     const xs = document.querySelectorAll(`#strikes-${m.team} .big-x`);
-                    for(let i=0; i < m.count; i++) if(xs[i]) xs[i].style.display = 'block';
+                    // Ukryj wszystkie najpierw
+                    xs.forEach(x => x.style.display = 'none');
+                    // Pokaż odpowiednią ilość
+                    for(let i=0; i < m.count; i++) {
+                        if(xs[i]) xs[i].style.display = 'block';
+                    }
                 }
+
+                // SYNCHRONIZACJA PUNKTÓW
                 if(m.type === 'SYNC') {
-                    document.getElementById('round-val').innerText = m.rt;
-                    document.getElementById('total-val').innerText = m.gt;
+                    document.getElementById('round-pts').innerText = m.rt;
+                    document.getElementById('total-pts').innerText = m.gt;
                 }
             });
         });
