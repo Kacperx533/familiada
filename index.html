@@ -2,86 +2,140 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA TV ULTIMATE</title>
+    <title>FAMILIADA TV ULTIMATE - RETRO LOOK</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        :root { --gold: #f5b041; --dim-gold: #443311; --red: #ff0000; --blue: #0066ff; }
+        :root { 
+            --gold: #f5b041; 
+            --red: #ff0000; 
+            --blue: #0044ff;
+            --bg-blue: #001133; /* Ciemny błękit tła ze zdjęcia */
+        }
         
         body { 
-            background: #000; color: var(--gold); font-family: 'VT323', monospace; 
-            margin: 0; overflow: hidden; text-transform: uppercase;
+            /* Tło imitujące studio ze zdjęcia */
+            background: radial-gradient(circle at center, #002266 0%, #00081a 100%);
+            color: var(--gold); 
+            font-family: 'VT323', monospace; 
+            margin: 0; 
+            overflow: hidden; 
+            text-transform: uppercase;
+            height: 100vh;
         }
 
-        /* Warstwa Matrycy LED (Kropki) */
-        .led-matrix {
+        /* Warstwa "Scanlines" i kropki LED */
+        .overlay-fx {
             position: fixed; inset: 0; z-index: 1000; pointer-events: none;
-            background-image: radial-gradient(rgba(0,0,0,0.5) 35%, transparent 40%);
-            background-size: 5px 5px;
+            background: 
+                linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+                linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+            background-size: 100% 4px, 3px 100%;
         }
 
-        /* Wideo na pełny ekran */
         #video-player {
             position: fixed; inset: 0; width: 100%; height: 100%;
             background: #000; z-index: 2000; display: none; object-fit: cover;
         }
 
-        /* Kontener Tablicy */
         .board-container {
             display: flex; flex-direction: column; align-items: center;
-            justify-content: center; height: 100vh; gap: 10px;
+            justify-content: center; height: 100vh; gap: 15px;
+            position: relative; z-index: 5;
         }
 
-        /* Górna ramka (Numer rundy/Wynik bieżący) */
+        /* Górny licznik punktów - identyczny jak na foto */
         .top-score {
-            border: 4px solid #333; border-radius: 15px; background: #080808;
-            padding: 5px 40px; font-size: 100px; line-height: 1;
-            box-shadow: 0 0 20px rgba(255, 204, 0, 0.2);
-            border-top: 4px solid var(--gold);
+            border: 5px solid #222; 
+            border-radius: 10px; 
+            background: #000;
+            padding: 5px 30px; 
+            font-size: 110px; 
+            line-height: 1;
+            color: var(--gold);
+            text-shadow: 0 0 15px var(--gold);
+            box-shadow: 0 0 30px rgba(0,0,0,0.8), inset 0 0 15px rgba(245, 176, 65, 0.2);
         }
 
-        /* Główna Tablica */
+        /* Główna Tablica z gradientową ramką */
         .main-frame {
-            width: 85vw; height: 70vh; background: #050505;
-            border: 8px solid; border-radius: 40px;
-            border-image: linear-gradient(to bottom, var(--red) 0%, #222 50%, var(--blue) 100%) 1;
-            padding: 30px; display: flex; flex-direction: column; position: relative;
+            width: 85vw; height: 72vh; 
+            background: rgba(0, 0, 0, 0.95);
+            border: 10px solid;
+            border-radius: 30px;
+            /* Gradient ramki: Czerwony góra, Niebieski dół */
+            border-image: linear-gradient(to bottom, #cc0000 0%, #333 40%, #333 60%, #0033cc 100%) 1;
+            padding: 20px 40px; 
+            display: flex; 
+            flex-direction: column; 
+            box-shadow: 0 0 50px rgba(0,0,0,1);
         }
 
-        .rows-area { flex-grow: 1; display: flex; flex-direction: column; justify-content: space-around; }
+        .rows-area { 
+            flex-grow: 1; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: space-evenly; 
+        }
 
-        .row { display: flex; font-size: 80px; align-items: center; height: 90px; border-bottom: 2px solid #111; }
-        .row-idx { width: 70px; color: #333; }
+        .row { 
+            display: flex; 
+            font-size: 75px; 
+            align-items: center; 
+            height: 85px; 
+            border-bottom: 2px solid #111; 
+        }
+        
+        .row-idx { width: 60px; color: #222; font-weight: bold; }
         .row-content { flex-grow: 1; display: flex; justify-content: space-between; position: relative; }
-        .row-dots { color: #151515; letter-spacing: 15px; position: absolute; left: 0; width: 100%; text-align: center; z-index: 1; }
-        .row-text { z-index: 2; background: #050505; padding-right: 15px; display: none; }
-        .row-pts { z-index: 2; background: #050505; padding-left: 15px; display: none; }
+        
+        /* Kropki - teraz bardziej "wygaszone" */
+        .row-dots { 
+            color: #1a1a1a; 
+            letter-spacing: 12px; 
+            position: absolute; 
+            left: 50%; transform: translateX(-50%);
+            width: 100%; text-align: center; z-index: 1; 
+        }
+        
+        .row-text { z-index: 2; background: #000; padding: 0 15px; display: none; text-shadow: 0 0 10px var(--gold); }
+        .row-pts { z-index: 2; background: #000; padding: 0 15px; display: none; text-shadow: 0 0 10px var(--gold); }
 
         .revealed .row-text, .revealed .row-pts { display: block; }
         .revealed .row-dots { display: none; }
 
         /* Stopka */
-        .footer { display: flex; justify-content: space-between; align-items: baseline; width: 100%; margin-top: 20px; }
-        .strikes { display: flex; gap: 15px; font-size: 90px; color: var(--red); text-shadow: 0 0 15px var(--red); }
-        .total-box { font-size: 80px; display: flex; gap: 30px; }
-        .total-label { color: var(--gold); opacity: 0.7; }
+        .footer { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            width: 100%; 
+            margin-top: 10px;
+            border-top: 4px double #222;
+            padding-top: 10px;
+        }
+        
+        /* Czerwone X-y */
+        .strikes { display: flex; gap: 20px; font-size: 100px; color: var(--red); text-shadow: 0 0 20px var(--red); }
+        
+        .total-box { font-size: 70px; display: flex; gap: 20px; align-items: center; }
+        .total-label { color: var(--gold); opacity: 0.5; font-size: 40px; }
 
-        /* Overlay do kodu PeerJS */
         #init-screen {
-            position: fixed; inset: 0; background: #000; z-index: 3000;
+            position: fixed; inset: 0; background: #000; z-index: 5000;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
     </style>
 </head>
 <body>
 
-    <div class="led-matrix"></div>
+    <div class="overlay-fx"></div>
     <video id="video-player"></video>
 
     <div id="init-screen">
-        <div style="font-size:40px">KOD TELEWIZORA:</div>
-        <div id="peer-id" style="font-size:100px; color:var(--gold); border:2px solid; padding:20px; margin:20px">...</div>
-        <button onclick="document.getElementById('init-screen').style.display='none'" style="font-size:30px; padding:10px 50px; cursor:pointer">START</button>
+        <div style="font-size:30px; letter-spacing:2px">IDENTYFIKATOR TABLICY:</div>
+        <div id="peer-id" style="font-size:90px; color:var(--gold); border:3px solid var(--gold); padding:20px 40px; margin:20px; border-radius:15px">...</div>
+        <button onclick="document.getElementById('init-screen').style.display='none'" style="font-family:'VT323'; background:var(--gold); font-size:30px; padding:15px 60px; cursor:pointer; border:none; border-radius:10px">URUCHOM PANEL TV</button>
     </div>
 
     <div class="board-container">
@@ -95,7 +149,7 @@
                 <div class="strikes" id="strikes"></div>
                 <div class="total-box">
                     <span class="total-label">SUMA</span>
-                    <span id="global-total">0</span>
+                    <span id="global-total" style="color:#fff; text-shadow: 0 0 10px #fff;">0</span>
                 </div>
             </div>
         </div>
@@ -112,27 +166,34 @@
                 if(m.type === 'VIDEO') {
                     vPlayer.src = m.file;
                     vPlayer.style.display = 'block';
-                    vPlayer.play();
+                    vPlayer.play().catch(e => console.log("Czekam na interakcję użytkownika"));
                     vPlayer.onended = () => vPlayer.style.display = 'none';
                 }
 
                 if(m.type === 'SETUP') {
                     const container = document.getElementById('rows');
-                    container.innerHTML = m.ans.map((a, i) => `
-                        <div class="row" id="r-${i}">
-                            <div class="row-idx">${i+1}</div>
-                            <div class="row-content">
-                                <div class="row-dots">....................................</div>
-                                <div class="row-text">${a.t}</div>
-                                <div class="row-pts">${a.p}</div>
+                    // Tworzymy zawsze 6 rzędów dla zachowania proporcji tablicy
+                    container.innerHTML = "";
+                    for(let i=0; i<6; i++) {
+                        const rowData = m.ans[i] || {t: "", p: ""};
+                        const isHidden = !m.ans[i] ? "style='visibility:hidden'" : "";
+                        container.innerHTML += `
+                            <div class="row" id="r-${i}" ${isHidden}>
+                                <div class="row-idx">${i+1}</div>
+                                <div class="row-content">
+                                    <div class="row-dots">..........................</div>
+                                    <div class="row-text">${rowData.t}</div>
+                                    <div class="row-pts">${rowData.p}</div>
+                                </div>
                             </div>
-                        </div>
-                    `).join('');
+                        `;
+                    }
                     document.getElementById('strikes').innerHTML = '';
                 }
 
                 if(m.type === 'REVEAL') {
-                    document.getElementById(`r-${m.idx}`).classList.add('revealed');
+                    const el = document.getElementById(`r-${m.idx}`);
+                    if(el) el.classList.add('revealed');
                 }
 
                 if(m.type === 'SYNC') {
