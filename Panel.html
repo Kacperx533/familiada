@@ -1,115 +1,88 @@
 <!DOCTYPE html>
-<html lang="pl">
+<html>
 <head>
     <meta charset="UTF-8">
-    <title>PANEL STEROWANIA - FAMILIADA</title>
+    <title>PANEL STEROWANIA</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #121212; color: white; padding: 20px; }
-        .card { background: #1e1e1e; padding: 20px; margin: 10px; border-radius: 12px; border: 1px solid #333; }
-        button { padding: 12px; margin: 5px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
-        .btn-gold { background: #f5b041; color: black; }
-        .btn-red { background: #ff4444; color: white; }
-        .btn-blue { background: #4444ff; color: white; }
-        input { padding: 10px; background: #000; color: white; border: 1px solid #444; }
-        .score-box { font-size: 30px; margin: 15px 0; color: #f5b041; border: 2px solid #333; padding: 10px; text-align: center; }
+        body { background: #111; color: white; font-family: sans-serif; padding: 20px; }
+        .card { background: #222; padding: 15px; margin: 10px; border-radius: 10px; border: 1px solid #444; }
+        button { padding: 10px; margin: 5px; cursor: pointer; font-weight: bold; border: none; border-radius: 5px; background: #444; color: white; }
+        .gold { background: gold !important; color: black !important; } 
+        .red { background: #ff4444 !important; } 
+        .blue { background: #4444ff !important; }
+        .score { font-size: 32px; color: gold; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 5px; }
     </style>
 </head>
 <body>
-
     <div class="card">
-        <h3>1. POŁĄCZENIE</h3>
-        <input type="text" id="target-id" placeholder="WPISZ KOD Z TV">
-        <button class="btn-gold" onclick="connect()">POŁĄCZ Z TV</button>
+        <input type="text" id="id" placeholder="KOD Z TV">
+        <button class="gold" onclick="connect()">POŁĄCZ Z TV</button>
     </div>
 
     <div class="card">
-        <h3>2. EFEKTY I RUNDY</h3>
-        <button class="btn-gold" onclick="s({type:'INTRO'})">🎬 CZOŁÓWKA + NAPIS</button>
-        <button onclick="s({type:'SOUND', name:'runda'})">🔔 DŹWIĘK RUNDY</button>
-        <button onclick="s({type:'SOUND', name:'final'})">🏆 DŹWIĘK FINAŁU</button>
-        <button class="btn-red" onclick="s({type:'SOUND', name:'powtorzenie'})">⚠️ POWTÓRZENIE (FINAŁ)</button>
+        <button class="gold" onclick="s({type:'INTRO'})">🎬 START (CZOŁÓWKA)</button>
+        <button onclick="s({type:'SOUND', name:'pow'})" class="red">⚠️ POWTÓRZENIE (FINAŁ)</button>
     </div>
 
     <div class="card">
-        <h3>3. PUNKTACJA DRUŻYN</h3>
-        <div class="score-box">
-            A: <span id="sA">0</span> pkt | B: <span id="sB">0</span> pkt
-        </div>
-        <div style="font-size: 18px;">Punkty z bieżącej rundy: <span id="currentRound">0</span></div><br>
-        <button class="btn-red" onclick="addScore('A')">PRZEKAŻ PUNKTY DLA A</button>
-        <button class="btn-blue" onclick="addScore('B')">PRZEKAŻ PUNKTY DLA B</button>
-        <button onclick="resetScores()">ZERUJ WYNIK GRY</button>
+        <div class="score">A: <span id="ptsA">0</span> | B: <span id="ptsB">0</span></div>
+        <p>Punkty do dodania: <input type="number" id="manualPts" style="width:60px"></p>
+        <button class="red" onclick="add('A')">DODAJ DLA A</button>
+        <button class="blue" onclick="add('B')">DODAJ DLA B</button>
+        <button onclick="resetS()">ZERUJ MECZ</button>
     </div>
 
     <div class="card">
-        <h3>4. BŁĘDY (X)</h3>
-        <button class="btn-red" onclick="strike('A')">DRUŻYNA A (X)</button>
-        <button class="btn-blue" onclick="strike('B')">DRUŻYNA B (X)</button>
-        <button onclick="clearStrikes()">USUŃ WSZYSTKIE X</button>
+        <button class="red" onclick="str('A')">BŁĄD A (X)</button>
+        <button class="blue" onclick="str('B')">BŁĄD B (X)</button>
+        <button onclick="resetX()">USUŃ X</button>
     </div>
 
     <div class="card">
-        <h3>5. ODPOWIEDZI (TESTOWE)</h3>
-        <button onclick="loadDemo()">ZAŁADUJ PYTANIE TESTOWE</button>
-        <div id="ans-list"></div>
+        <h3>WYBIERZ PYTANIE:</h3>
+        <div class="grid" id="question-list"></div>
+        <hr>
+        <div id="btns"></div>
     </div>
 
-<script>
-    let peer = new Peer(), conn;
-    let scoreA = 0, scoreB = 0, roundSum = 0;
-    let stA = 0, stB = 0;
+    <script>
+        let peer = new Peer(), conn, sA=0, sB=0, stA=0, stB=0, rSum=0;
 
-    function connect() {
-        conn = peer.connect(document.getElementById('target-id').value);
-        conn.on('open', () => alert("POŁĄCZONO!"));
-    }
+        const baza = [
+            {q:"Przedmiot szkolny", a:[{t:'MATEMATYKA',p:45},{t:'POLSKI',p:30},{t:'WF',p:15},{t:'HISTORIA',p:10}]},
+            {q:"Na przerwie", a:[{t:'TELEFON',p:50},{t:'JEDZENIE',p:25},{t:'ROZMOWA',p:15},{t:'ŚCIĄGANIE',p:10}]},
+            {q:"W piórniku", a:[{t:'DŁUGOPIS',p:55},{t:'OŁÓWEK',p:20},{t:'GUMKA',p:15},{t:'LINIJKKA',p:10}]},
+            {q:"Spóźnienie", a:[{t:'ZASPANIE',p:60},{t:'KOREK',p:20},{t:'AUTOBUS',p:15},{t:'POGODA',p:5}]},
+            {q:"W plecaku", a:[{t:'KSIĄŻKI',p:40},{t:'KANAPKI',p:30},{t:'WODA',p:20},{t:'SŁUCHAWKI',p:10}]},
+            {q:"Ulubiony dzień", a:[{t:'PIĄTEK',p:65},{t:'SOBOTA',p:25},{t:'NIEDZIELA',p:10}]},
+            {q:"Gdzie na wycieczkę?", a:[{t:'GÓRY',p:45},{t:'MORZE',p:35},{t:'KINO',p:15},{t:'BASEN',p:5}]},
+            {q:"Co jest w bufecie?", a:[{t:'DROŻDŻÓWKA',p:50},{t:'PICIE',p:25},{t:'OWOC',p:15},{t:'BATON',p:10}]},
+            {q:"Sport szkolny", a:[{t:'NOGA',p:55},{t:'SIATKA',p:25},{t:'KOSZ',p:20}]},
+            {q:"Ocena (slang)", a:[{t:'KOSA',p:50},{t:'BANIA',p:30},{t:'SZMATA',p:20}]}
+        ];
 
-    function s(m) { if(conn) conn.send(m); }
-
-    function loadDemo() {
-        const q = {ans: [{t:"MATEMATYKA",p:45},{t:"POLSKI",p:30},{t:"HISTORIA",p:15},{t:"GEOGRAFIA",p:10}]};
-        roundSum = 0; stA = 0; stB = 0;
-        s({type:'SETUP', ans: q.ans});
-        s({type:'SYNC', rt: 0});
+        function connect() { conn = peer.connect(document.getElementById('id').value); conn.on('open', () => alert("POŁĄCZONO!")); }
+        function s(m) { if(conn) conn.send(m); }
+        function str(t) { if(t==='A') stA++; else stB++; s({type:'STRIKE', team:t, count:(t==='A'?stA:stB)}); }
+        function resetX() { stA=0; stB=0; s({type:'STRIKE', team:'A', count:0}); s({type:'STRIKE', team:'B', count:0}); }
+        function add(t) { 
+            let v = parseInt(document.getElementById('manualPts').value) || 0;
+            if(t==='A') sA+=v; else sB+=v;
+            document.getElementById('ptsA').innerText = sA; document.getElementById('ptsB').innerText = sB;
+            document.getElementById('manualPts').value = "";
+        }
+        function loadQ(nr) {
+            const d = baza[nr]; rSum = 0; resetX();
+            s({type:'SETUP', ans:d.a}); s({type:'SYNC', rt:0});
+            document.getElementById('btns').innerHTML = `<h4>${d.q}</h4>` + d.a.map((a,i)=>`<button onclick="rev(${i},${a.p})">${a.t} (${a.p})</button>`).join('');
+        }
+        function rev(i, p) { rSum+=p; document.getElementById('manualPts').value = rSum; s({type:'REVEAL', idx:i}); s({type:'SYNC', rt:rSum}); }
+        function resetS() { sA=0; sB=0; document.getElementById('ptsA').innerText=0; document.getElementById('ptsB').innerText=0; }
         
-        document.getElementById('ans-list').innerHTML = q.ans.map((a,i)=>`
-            <button onclick="reveal(${i}, ${a.p})">${a.t} (${a.p})</button>
-        `).join('');
-    }
-
-    function reveal(idx, pts) {
-        roundSum += pts;
-        document.getElementById('currentRound').innerText = roundSum;
-        s({type:'REVEAL', idx: idx});
-        s({type:'SYNC', rt: roundSum});
-    }
-
-    function addScore(team) {
-        if(team === 'A') scoreA += roundSum; else scoreB += roundSum;
-        roundSum = 0;
-        document.getElementById('sA').innerText = scoreA;
-        document.getElementById('sB').innerText = scoreB;
-        document.getElementById('currentRound').innerText = 0;
-        s({type:'SYNC', rt: 0});
-    }
-
-    function strike(team) {
-        if(team === 'A') stA++; else stB++;
-        s({type:'STRIKE', team: team, count: (team === 'A' ? stA : stB)});
-    }
-
-    function clearStrikes() {
-        stA = 0; stB = 0;
-        s({type:'STRIKE', team: 'A', count: 0});
-        s({type:'STRIKE', team: 'B', count: 0});
-    }
-
-    function resetScores() {
-        scoreA = 0; scoreB = 0;
-        document.getElementById('sA').innerText = 0;
-        document.getElementById('sB').innerText = 0;
-    }
-</script>
+        // Generuj listę pytań
+        document.getElementById('question-list').innerHTML = baza.map((b,i)=>`<button onclick="loadQ(${i})">${i+1}. ${b.q}</button>`).join('');
+    </script>
 </body>
 </html>
