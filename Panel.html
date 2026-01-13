@@ -2,172 +2,113 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA - PANEL MASTER</title>
+    <title>PANEL STEROWANIA - FAMILIADA</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #121212; color: #e0e0e0; padding: 20px; }
-        .container { max-width: 1000px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .card { background: #1e1e1e; padding: 20px; border-radius: 12px; border: 1px solid #333; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        h3 { color: #f5b041; margin-top: 0; border-bottom: 1px solid #333; padding-bottom: 10px; }
-        button { border: none; padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer; background: #3d3d3d; color: #fff; transition: 0.2s; }
-        button:hover { background: #555; }
-        .btn-gold { background: #f5b041; color: #000; }
-        .btn-red { background: #e74c3c; color: #fff; }
-        .btn-active { outline: 3px solid #f5b041; }
-        input, select { width: 100%; padding: 12px; background: #000; color: #fff; border: 1px solid #444; border-radius: 6px; margin-bottom: 10px; }
-        .ans-item { display: flex; justify-content: space-between; align-items: center; background: #252525; padding: 8px; margin-bottom: 5px; border-radius: 4px; }
-        .full-width { grid-column: 1 / -1; }
+        body { font-family: 'Segoe UI', sans-serif; background: #121212; color: white; padding: 20px; }
+        .card { background: #1e1e1e; padding: 20px; margin: 10px; border-radius: 12px; border: 1px solid #333; }
+        button { padding: 12px; margin: 5px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .btn-gold { background: #f5b041; color: black; }
+        .btn-red { background: #ff4444; color: white; }
+        .btn-blue { background: #4444ff; color: white; }
+        input { padding: 10px; background: #000; color: white; border: 1px solid #444; }
+        .score-box { font-size: 30px; margin: 15px 0; color: #f5b041; border: 2px solid #333; padding: 10px; text-align: center; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="card full-width">
-        <h3>1. KONFIGURACJA STUDIO</h3>
-        <div style="display:flex; gap:10px">
-            <input type="text" id="target-id" placeholder="WPISZ KOD Z TABLICY TV">
-            <button class="btn-gold" onclick="connect()" style="width:200px">POŁĄCZ</button>
-        </div>
+    <div class="card">
+        <h3>1. POŁĄCZENIE</h3>
+        <input type="text" id="target-id" placeholder="WPISZ KOD Z TV">
+        <button class="btn-gold" onclick="connect()">POŁĄCZ Z TV</button>
     </div>
 
     <div class="card">
         <h3>2. EFEKTY I RUNDY</h3>
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px">
-            <button onclick="s({type:'VIDEO', file:'czolowka.mp4'})">🎬 CZOŁÓWKA</button>
-            <button onclick="s({type:'VIDEO', file:'napisy.mp4'})">🎬 NAPISY</button>
-            <button id="m1" class="btn-active" onclick="setMult(1)">RUNDA x1</button>
-            <button id="m2" onclick="setMult(2)">RUNDA x2</button>
-            <button id="m3" onclick="setMult(3)">RUNDA x3</button>
-            <button class="btn-red" onclick="resetAll()">RESET TABLICY</button>
-        </div>
+        <button class="btn-gold" onclick="s({type:'INTRO'})">🎬 CZOŁÓWKA + NAPIS</button>
+        <button onclick="s({type:'SOUND', name:'runda'})">🔔 DŹWIĘK RUNDY</button>
+        <button onclick="s({type:'SOUND', name:'final'})">🏆 DŹWIĘK FINAŁU</button>
+        <button class="btn-red" onclick="s({type:'SOUND', name:'powtorzenie'})">⚠️ POWTÓRZENIE (FINAŁ)</button>
     </div>
 
     <div class="card">
-        <h3>3. BŁĘDY (X)</h3>
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px">
-            <button class="btn-red" onclick="addStrike('A')">DRUŻYNA A (X)</button>
-            <button class="btn-red" onclick="addStrike('B')">DRUŻYNA B (X)</button>
-            <button onclick="clearStrikes()" style="grid-column: 1 / -1">WYCZYŚĆ X-y</button>
+        <h3>3. PUNKTACJA DRUŻYN</h3>
+        <div class="score-box">
+            A: <span id="sA">0</span> pkt | B: <span id="sB">0</span> pkt
         </div>
+        <div style="font-size: 18px;">Punkty z bieżącej rundy: <span id="currentRound">0</span></div><br>
+        <button class="btn-red" onclick="addScore('A')">PRZEKAŻ PUNKTY DLA A</button>
+        <button class="btn-blue" onclick="addScore('B')">PRZEKAŻ PUNKTY DLA B</button>
+        <button onclick="resetScores()">ZERUJ WYNIK GRY</button>
     </div>
 
-    <div class="card full-width">
-        <h3>4. BAZA PYTAŃ (GŁÓWNE + FINAŁ)</h3>
-        <select id="q-select" onchange="previewQuestion()"></select>
-        <button class="btn-gold" onclick="sendQuestion()" style="width:100%; margin-bottom:15px">ZAŁADUJ NA TABLICĘ</button>
-        <div id="ans-preview" style="display:grid; grid-template-columns: 1fr 1fr; gap:10px"></div>
+    <div class="card">
+        <h3>4. BŁĘDY (X)</h3>
+        <button class="btn-red" onclick="strike('A')">DRUŻYNA A (X)</button>
+        <button class="btn-blue" onclick="strike('B')">DRUŻYNA B (X)</button>
+        <button onclick="clearStrikes()">USUŃ WSZYSTKIE X</button>
     </div>
 
-    <div class="card full-width">
-        <h3>5. WYNIK CAŁKOWITY</h3>
-        <div style="display:flex; gap:20px; align-items:center">
-            DRUŻYNA A: <input type="number" id="pts-a" value="0" onchange="sync()">
-            DRUŻYNA B: <input type="number" id="pts-b" value="0" onchange="sync()">
-            <div style="font-size:20px; font-weight:bold; color:var(--gold)">SUMA: <span id="total-preview">0</span></div>
-        </div>
+    <div class="card">
+        <h3>5. ODPOWIEDZI (TESTOWE)</h3>
+        <button onclick="loadDemo()">ZAŁADUJ PYTANIE TESTOWE</button>
+        <div id="ans-list"></div>
     </div>
-</div>
 
 <script>
-    const database = [
-        {q:"Więcej niż jedno zwierzę?", a:[["OWCE",41],["LAMY",28],["BYDŁO",15],["WATAHA",8],["STADO",5],["MRÓWKI",3]]},
-        {q:"Przedmiot szkolny?", a:[["MATEMATYKA",48],["POLSKI",25],["HISTORIA",12],["WF",8],["GEOGRAFIA",7]]},
-        {q:"Zimowy sport?", a:[["NARCIARSTWO",52],["ŁYŻWIARSTWO",24],["HOKEJ",15],["SANKI",6]]},
-        {q:"Co pijemy na śniadanie?", a:[["HERBATA",38],["KAWA",31],["KAKAO",15],["SOK",9],["MLEKO",7]]},
-        {q:"Zwierzę domowe?", a:[["PIES",50],["KOT",35],["CHOMIK",8],["PAPUGA",4],["RYBKI",3]]},
-        {q:"Marka samochodu?", a:[["VOLKSWAGEN",35],["TOYOTA",28],["BMW",15],["MERCEDES",12]]},
-        {q:"Instrument muzyczny?", a:[["GITARA",38],["PIANINO",32],["SKRZYPCE",15],["PERKUSJA",10],["FLET",5]]},
-        {q:"Co rośnie w lesie?", a:[["DRZEWA",45],["GRZYBY",32],["MCHY",12],["JAGODY",6]]},
-        {q:"Część garderoby na 'S'?", a:[["SKARPETY",40],["SPODNIE",30],["SUKIENKA",15],["SWETER",10],["SZALIK",5]]},
-        {q:"Państwo na literę 'N'?", a:[["NIEMCY",55],["NORWEGIA",25],["NIDERLANDY",12],["NIGERIA",8]]},
-        {q:"[FINAŁ] Coś czerwonego?", a:[["POMIDOR",40],["STRAŻ",20],["BURAK",15],["KREW",10],["RÓŻA",15]]},
-        {q:"[FINAŁ] Hobby?", a:[["SPORT",35],["MUZYKA",25],["CZYTANIE",20],["GRY",15],["WĘDKOWANIE",5]]},
-        {q:"[FINAŁ] Stolica Europy?", a:[["WARSZAWA",40],["PARYŻ",30],["BERLIN",20],["LONDYN",10]]},
-        {q:"[FINAŁ] Coś co lata?", a:[["SAMOLOT",45],["PTAK",35],["MUCHA",10],["DRON",10]]},
-        {q:"Coś do jedzenia w kinie?", a:[["POPCORN",60],["NACHOS",25],["CHIPSY",10],["ŻELKI",5]]},
-        {q:"Co ma koła?", a:[["SAMOCHÓD",50],["ROWER",30],["WÓZEK",15],["TRAKTOR",5]]},
-        {q:"Gdzie chowamy pieniądze?", a:[["PORTFEL",55],["BANK",25],["SKARPONKA",15],["SKARPETA",5]]},
-        {q:"Co robimy rano?", a:[["MYJEMY ZĘBY",40],["PIJEMY KAWĘ",30],["UBIERAMY SIĘ",20],["ŚCIELIMY ŁÓŻKO",10]]},
-        {q:"Znany polski sportowiec?", a:[["LEWANDOWSKI",50],["ŚWIĄTEK",30],["MAŁYSZ",15],["STOCH",5]]},
-        {q:"Rodzaj kawy?", a:[["LATTE",40],["ESPRESSO",30],["CAPPUCCINO",20],["CZARNA",10]]}
-    ];
-
     let peer = new Peer(), conn;
-    let mult = 1; let roundPts = 0;
-    let stA = 0; let stB = 0;
-
-    window.onload = () => {
-        const sel = document.getElementById('q-select');
-        database.forEach((v, i) => sel.add(new Option(v.q, i)));
-        previewQuestion();
-    };
+    let scoreA = 0, scoreB = 0, roundSum = 0;
+    let stA = 0, stB = 0;
 
     function connect() {
         conn = peer.connect(document.getElementById('target-id').value);
-        conn.on('open', () => { alert("POŁĄCZONO Z TV!"); sync(); });
+        conn.on('open', () => alert("POŁĄCZONO!"));
     }
 
     function s(m) { if(conn) conn.send(m); }
 
-    function setMult(m) {
-        mult = m;
-        document.querySelectorAll('[id^="m"]').forEach(b => b.classList.remove('btn-active'));
-        document.getElementById('m'+m).classList.add('btn-active');
-    }
-
-    function previewQuestion() {
-        const q = database[document.getElementById('q-select').value];
-        const p = document.getElementById('ans-preview');
-        p.innerHTML = q.a.map((ans, i) => `
-            <div class="ans-item">
-                <span>${ans[0]} (${ans[1]})</span>
-                <button class="btn-gold" onclick="reveal(${i}, ${ans[1]})">ODSŁOŃ</button>
-            </div>
+    function loadDemo() {
+        const q = {ans: [{t:"MATEMATYKA",p:45},{t:"POLSKI",p:30},{t:"HISTORIA",p:15},{t:"GEOGRAFIA",p:10}]};
+        roundSum = 0; stA = 0; stB = 0;
+        s({type:'SETUP', ans: q.ans});
+        s({type:'SYNC', rt: 0});
+        
+        document.getElementById('ans-list').innerHTML = q.ans.map((a,i)=>`
+            <button onclick="reveal(${i}, ${a.p})">${a.t} (${a.p})</button>
         `).join('');
     }
 
-    function sendQuestion() {
-        const q = database[document.getElementById('q-select').value];
-        roundPts = 0;
-        clearStrikes();
-        s({type: 'SETUP', ans: q.a.map(x => ({t: x[0], p: x[1]}))});
-        sync();
+    function reveal(idx, pts) {
+        roundSum += pts;
+        document.getElementById('currentRound').innerText = roundSum;
+        s({type:'REVEAL', idx: idx});
+        s({type:'SYNC', rt: roundSum});
     }
 
-    function reveal(i, p) {
-        roundPts += (p * mult);
-        s({type: 'REVEAL', idx: i});
-        sync();
+    function addScore(team) {
+        if(team === 'A') scoreA += roundSum; else scoreB += roundSum;
+        roundSum = 0;
+        document.getElementById('sA').innerText = scoreA;
+        document.getElementById('sB').innerText = scoreB;
+        document.getElementById('currentRound').innerText = 0;
+        s({type:'SYNC', rt: 0});
     }
 
-    function addStrike(team) {
+    function strike(team) {
         if(team === 'A') stA++; else stB++;
-        s({type: 'STRIKE', team: team, count: (team === 'A' ? stA : stB)});
+        s({type:'STRIKE', team: team, count: (team === 'A' ? stA : stB)});
     }
 
     function clearStrikes() {
         stA = 0; stB = 0;
-        // Wysyłamy pusty strike aby wyczyścić
-        s({type: 'STRIKE', team: 'A', count: 0});
-        s({type: 'STRIKE', team: 'B', count: 0});
+        s({type:'STRIKE', team: 'A', count: 0});
+        s({type:'STRIKE', team: 'B', count: 0});
     }
 
-    function sync() {
-        const a = parseInt(document.getElementById('pts-a').value) || 0;
-        const b = parseInt(document.getElementById('pts-b').value) || 0;
-        const total = a + b;
-        document.getElementById('total-preview').innerText = total;
-        s({type: 'SYNC', rt: roundPts, gt: total});
-    }
-
-    function resetAll() {
-        if(confirm("Czy na pewno zrestartować całą tablicę?")) {
-            roundPts = 0;
-            document.getElementById('pts-a').value = 0;
-            document.getElementById('pts-b').value = 0;
-            s({type: 'SETUP', ans: []});
-            sync();
-        }
+    function resetScores() {
+        scoreA = 0; scoreB = 0;
+        document.getElementById('sA').innerText = 0;
+        document.getElementById('sB').innerText = 0;
     }
 </script>
 </body>
