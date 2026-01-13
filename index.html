@@ -2,145 +2,99 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA TV - DARK BATTLE MODE</title>
+    <title>FAMILIADA TV - EDYCJA SZKOLNA</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        :root { 
-            --gold: #f5b041; 
-            --red: #ff0000; 
-            --blue: #0055ff;
-        }
-        
+        :root { --gold: #f5b041; --red: #ff0000; --blue: #0055ff; }
         body { 
             margin: 0; overflow: hidden; font-family: 'VT323', monospace; text-transform: uppercase;
-            height: 100vh; width: 100vw;
-            /* TŁO: CZERWONE PO LEWEJ, NIEBIESKIE PO PRAWEJ, CZARNY ŚRODEK */
-            background: 
-                radial-gradient(circle at 0% 50%, rgba(255, 0, 0, 0.25) 0%, transparent 50%),
-                radial-gradient(circle at 100% 50%, rgba(0, 85, 255, 0.25) 0%, transparent 50%),
-                #000;
+            height: 100vh; width: 100vw; background: radial-gradient(circle at 0% 50%, rgba(255, 0, 0, 0.2) 0%, transparent 50%), radial-gradient(circle at 100% 50%, rgba(0, 85, 255, 0.2) 0%, transparent 50%), #000;
             color: var(--gold);
         }
 
-        /* Delikatny efekt dymu/mgły w tle */
-        body::before {
-            content: ""; position: fixed; inset: 0;
-            background: url('https://www.transparenttextures.com/patterns/carbon-fibre.png');
-            opacity: 0.1; pointer-events: none;
+        /* Animacja napisu powitalnego */
+        #intro-text {
+            position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+            font-size: 120px; text-align: center; z-index: 1000; background: #000;
+            opacity: 0; pointer-events: none; transition: opacity 1s;
+        }
+        .animate-intro { animation: zoomInOut 4s forwards; }
+        @keyframes zoomInOut {
+            0% { opacity: 0; transform: scale(0.5); }
+            20% { opacity: 1; transform: scale(1.1); }
+            80% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(1.5); }
         }
 
-        .main-layout {
-            display: flex; align-items: center; justify-content: center;
-            height: 100vh; width: 100vw; gap: 60px; position: relative; z-index: 10;
-        }
-
-        /* WIELKIE BŁĘDY X */
-        .strike-zone { width: 150px; display: flex; flex-direction: column; gap: 20px; }
-        .big-x {
-            font-size: 200px; color: var(--red); text-align: center; line-height: 0.7;
-            text-shadow: 0 0 30px var(--red), 0 0 60px #000;
-            display: none; animation: x-pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        @keyframes x-pop { from { transform: scale(0); } to { transform: scale(1); } }
-
-        /* TABLICA - CAŁA CZARNA */
-        .board-center { display: flex; flex-direction: column; align-items: center; gap: 20px; }
-
-        .round-counter {
-            background: #000; border: 3px solid #222; border-radius: 10px;
-            padding: 5px 60px; font-size: 120px; line-height: 1;
-            box-shadow: 0 0 50px rgba(0,0,0,1);
-            color: var(--gold);
-        }
-
-        .main-frame {
-            width: 70vw; height: 65vh; 
-            background: #000; /* Całkowicie czarna tablica */
-            border: 8px solid #111; 
-            border-radius: 40px;
-            padding: 30px 50px; position: relative;
-            box-shadow: 0 0 100px rgba(0,0,0,1), inset 0 0 50px #111;
-        }
-
-        .row {
-            display: flex; align-items: center; height: 16.6%;
-            font-size: 85px; border-bottom: 2px solid #0a0a0a;
-        }
-        .row-num { width: 60px; color: #111; font-weight: bold; }
-        .row-content { flex-grow: 1; display: flex; justify-content: space-between; position: relative; }
-        .dots { color: #080808; letter-spacing: 20px; position: absolute; width: 100%; text-align: center; }
+        .main-layout { display: flex; align-items: center; justify-content: center; height: 100vh; gap: 50px; }
+        .big-x { font-size: 200px; color: var(--red); text-shadow: 0 0 30px var(--red); display: none; }
         
-        .ans-text, .pts-val { display: none; z-index: 2; background: #000; padding: 0 15px; }
+        /* Tablica */
+        .main-frame {
+            width: 70vw; height: 60vh; background: #000; border: 8px solid #222; border-radius: 40px;
+            padding: 30px; box-shadow: 0 0 50px #000;
+        }
+        .row { display: flex; align-items: center; height: 16.6%; font-size: 80px; border-bottom: 2px solid #0a0a0a; }
+        .ans-text, .pts-val { display: none; background: #000; padding: 0 15px; }
         .revealed .ans-text, .revealed .pts-val { display: block; }
         .revealed .dots { display: none; }
+        .dots { color: #080808; letter-spacing: 15px; flex-grow: 1; text-align: center; }
 
-        .footer { width: 100%; display: flex; justify-content: flex-end; align-items: baseline; margin-top: 20px; }
-        .suma-label { color: #333; font-size: 40px; margin-right: 20px; }
-        .suma-number { font-size: 90px; color: #fff; text-shadow: 0 0 20px #fff; }
-
-        #setup-screen {
-            position: fixed; inset: 0; background: #000; z-index: 10000;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-        }
+        .round-counter { font-size: 100px; background: #000; padding: 10px 50px; border-radius: 10px; border: 2px solid #222; margin-bottom: 20px; }
+        #video-layer { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 5000; display: none; }
     </style>
 </head>
 <body>
-    <div id="setup-screen">
-        <div style="font-size:30px; letter-spacing:5px">KOD DO PANELU:</div>
-        <div id="peer-id" style="font-size:100px; color:var(--gold); border:2px solid; padding:20px 60px; margin:20px; border-radius:15px">ŁĄCZENIE...</div>
-        <button onclick="document.getElementById('setup-screen').style.display='none'" style="font-family:'VT323'; background:var(--gold); font-size:40px; padding:15px 80px; cursor:pointer; border:none; border-radius:10px">WCHODZĘ DO GRY</button>
-    </div>
+    <div id="intro-text">FAMILIADA<br><span style="color:white; font-size:60px">EDYCJA SZKOLNA</span></div>
+    <video id="video-layer"></video>
 
     <div class="main-layout">
-        <div class="strike-zone" id="strikes-A">
-            <div class="big-x">X</div><div class="big-x">X</div><div class="big-x">X</div>
-        </div>
-
-        <div class="board-center">
+        <div id="strikes-A"><div class="big-x">X</div><div class="big-x">X</div><div class="big-x">X</div></div>
+        <div style="display:flex; flex-direction:column; align-items:center">
             <div class="round-counter" id="round-pts">0</div>
-            <div class="main-frame">
-                <div id="rows-box" style="height:100%"></div>
-            </div>
-            <div class="footer">
-                <span class="suma-label">SUMA</span>
-                <span class="suma-number" id="total-pts">0</span>
-            </div>
+            <div class="main-frame"><div id="rows-box" style="height:100%"></div></div>
         </div>
-
-        <div class="strike-zone" id="strikes-B">
-            <div class="big-x">X</div><div class="big-x">X</div><div class="big-x">X</div>
-        </div>
+        <div id="strikes-B"><div class="big-x">X</div><div class="big-x">X</div><div class="big-x">X</div></div>
     </div>
 
     <script>
         const peer = new Peer();
-        peer.on('open', id => document.getElementById('peer-id').innerText = id);
+        const sounds = {
+            ok: new Audio('dobra.mp3'),
+            error: new Audio('blad.mp3'),
+            intro: new Audio('czolowka.mp3'),
+            round: new Audio('runda.mp3'),
+            final: new Audio('final.mp3')
+        };
+
+        peer.on('open', id => console.log("ID: " + id));
         peer.on('connection', conn => {
             conn.on('data', m => {
+                if(m.type === 'INTRO') {
+                    sounds.intro.play();
+                    const intro = document.getElementById('intro-text');
+                    intro.style.opacity = "1";
+                    intro.classList.add('animate-intro');
+                    setTimeout(() => { intro.classList.remove('animate-intro'); intro.style.opacity="0"; }, 4000);
+                }
+                if(m.type === 'SOUND') { if(sounds[m.name]) sounds[m.name].play(); }
                 if(m.type === 'SETUP') {
-                    const box = document.getElementById('rows-box');
-                    box.innerHTML = m.ans.map((a, i) => `
+                    document.getElementById('rows-box').innerHTML = m.ans.map((a,i)=>`
                         <div class="row" id="r-${i}">
-                            <div class="row-num">${i+1}</div>
-                            <div class="row-content">
-                                <div class="dots">...............................</div>
-                                <div class="ans-text">${a.t}</div>
-                                <div class="pts-val">${a.p}</div>
-                            </div>
+                            <div style="color:#111; width:50px">${i+1}</div>
+                            <div class="ans-text">${a.t}</div>
+                            <div class="dots">................</div>
+                            <div class="pts-val">${a.p}</div>
                         </div>`).join('');
-                    document.querySelectorAll('.big-x').forEach(x => x.style.display = 'none');
                 }
-                if(m.type === 'REVEAL') document.getElementById(`r-${m.idx}`).classList.add('revealed');
+                if(m.type === 'REVEAL') { document.getElementById(`r-${m.idx}`).classList.add('revealed'); sounds.ok.play(); }
                 if(m.type === 'STRIKE') {
+                    sounds.error.play();
                     const xs = document.querySelectorAll(`#strikes-${m.team} .big-x`);
-                    xs.forEach(x => x.style.display = 'none');
-                    for(let i=0; i < m.count; i++) if(xs[i]) xs[i].style.display = 'block';
+                    xs.forEach((x, i) => x.style.display = i < m.count ? 'block' : 'none');
                 }
-                if(m.type === 'SYNC') {
-                    document.getElementById('round-pts').innerText = m.rt;
-                    document.getElementById('total-pts').innerText = m.gt;
-                }
+                if(m.type === 'SYNC') { document.getElementById('round-pts').innerText = m.rt; }
             });
         });
     </script>
