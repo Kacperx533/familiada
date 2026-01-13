@@ -4,33 +4,45 @@
 <meta charset="UTF-8">
 <title>FAMILIADA – TABLICA TV</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 
 <style>
 :root{
     --gold:#f5b041;
-    --red:#ff2a2a;
-    --bg:#050505;
+    --bg:#060606;
+    --red:#e53935;
 }
 
 body{
     margin:0;
-    background:black;
+    background:#000;
+    font-family:'VT323', monospace;
     color:var(--gold);
-    font-family:'Press Start 2P', monospace;
     text-transform:uppercase;
     overflow:hidden;
 }
 
-/* LED TŁO */
+/* LED subtelny */
 .led-bg{
     position:fixed;
     inset:0;
-    background:radial-gradient(circle, rgba(255,200,80,.18) 1px, transparent 1px);
-    background-size:6px 6px;
+    background:
+        radial-gradient(circle, rgba(255,200,120,.12) 1px, transparent 1px);
+    background-size:5px 5px;
     pointer-events:none;
     z-index:1;
+}
+
+/* VIDEO */
+#video-layer{
+    position:fixed;
+    inset:0;
+    width:100%;
+    height:100%;
+    background:black;
+    z-index:9000;
+    display:none;
 }
 
 /* OVERLAY */
@@ -44,13 +56,12 @@ body{
     justify-content:center;
     align-items:center;
 }
-
 #peer-id-display{
-    font-size:48px;
+    font-size:64px;
     border:5px solid var(--gold);
-    padding:25px 40px;
-    border-radius:15px;
-    margin-bottom:20px;
+    padding:25px 50px;
+    border-radius:18px;
+    margin-bottom:25px;
 }
 
 /* UKŁAD */
@@ -67,38 +78,38 @@ body{
     width:120px;
     display:flex;
     flex-direction:column;
-    gap:20px;
+    gap:25px;
 }
-
 .strike-x{
     width:90px;
     height:90px;
     position:relative;
     display:none;
-    filter:drop-shadow(0 0 25px var(--red));
+    filter:drop-shadow(0 0 20px var(--red));
 }
-
 .strike-x::before,
 .strike-x::after{
     content:'';
     position:absolute;
-    top:42%;
+    top:45%;
     width:100%;
     height:14px;
     background:var(--red);
 }
-.strike-x::before{transform:rotate(45deg);}
-.strike-x::after{transform:rotate(-45deg);}
+.strike-x::before{transform:rotate(45deg)}
+.strike-x::after{transform:rotate(-45deg)}
 
 /* RAMKA */
 .board{
-    width:82vw;
-    height:86vh;
+    width:80vw;
+    height:85vh;
     background:var(--bg);
-    border:12px solid var(--gold);
-    border-radius:30px;
-    padding:30px;
-    box-shadow:0 0 40px rgba(245,176,65,.6), inset 0 0 80px #000;
+    border:12px solid #222;
+    border-radius:28px;
+    padding:35px;
+    box-shadow:
+        inset 0 0 80px #000,
+        0 0 40px rgba(245,176,65,.35);
     display:flex;
     flex-direction:column;
     z-index:2;
@@ -116,13 +127,14 @@ body{
     display:flex;
     align-items:center;
     height:90px;
-    font-size:52px;
+    font-size:72px;
     border-bottom:3px solid #222;
 }
 
 .row-num{
     width:70px;
     text-align:center;
+    color:#555;
 }
 
 .row-content{
@@ -136,28 +148,26 @@ body{
     position:absolute;
     left:50%;
     transform:translateX(-50%);
-    color:#222;
-    letter-spacing:8px;
+    color:#1c1c1c;
+    letter-spacing:14px;
 }
 
-.ans-text,
-.pts{
+.ans-text,.pts{
     display:none;
     background:var(--bg);
-    padding:0 10px;
+    padding:0 15px;
 }
 
 .revealed .ans-text,
 .revealed .pts{
     display:block;
-    animation:reveal .25s steps(4);
+    animation:reveal .25s ease-out;
 }
-
-.revealed .dots{display:none;}
+.revealed .dots{display:none}
 
 @keyframes reveal{
-    from{opacity:0}
-    to{opacity:1}
+    from{opacity:0;transform:scale(.95)}
+    to{opacity:1;transform:scale(1)}
 }
 
 /* FINAŁ */
@@ -168,7 +178,7 @@ body{
 }
 
 .timer{
-    font-size:110px;
+    font-size:150px;
     text-align:center;
     color:var(--red);
     text-shadow:0 0 25px var(--red);
@@ -183,16 +193,16 @@ body{
 
 .final-slot{
     display:flex;
-    height:70px;
-    font-size:36px;
-    border:3px solid #222;
-    margin-bottom:8px;
-    padding:0 10px;
     align-items:center;
+    height:75px;
+    font-size:46px;
+    border:3px solid #222;
+    margin-bottom:10px;
+    padding:0 12px;
 }
 
 .f-ans{flex:1;display:none}
-.f-pts{width:80px;text-align:right;display:none}
+.f-pts{width:90px;text-align:right;display:none}
 
 .revealed .f-ans,
 .revealed .f-pts{display:block}
@@ -201,8 +211,8 @@ body{
 .footer{
     display:flex;
     justify-content:space-between;
-    font-size:90px;
-    border-top:5px solid #333;
+    font-size:110px;
+    border-top:5px solid #222;
     padding-top:10px;
 }
 </style>
@@ -211,14 +221,21 @@ body{
 <body>
 
 <div id="overlay">
-    <div id="peer-id-display">ŁADOWANIE...</div>
+    <div id="peer-id-display">ŁADOWANIE…</div>
     <button onclick="this.parentElement.style.display='none'"
-        style="font-size:32px;padding:15px 40px;font-family:'Press Start 2P';cursor:pointer">
+        style="font-size:40px;padding:15px 50px;font-family:'VT323';cursor:pointer">
         START
     </button>
 </div>
 
 <div class="led-bg"></div>
+<video id="video-layer" playsinline></video>
+
+<audio id="sndOk" src="ok.mp3"></audio>
+<audio id="sndNo" src="zle.mp3"></audio>
+<audio id="sndRunda" src="runda.mp3"></audio>
+<audio id="sndFinal" src="final.mp3"></audio>
+<audio id="sndBuzz" src="powtorzenie.mp3"></audio>
 
 <div class="main">
     <div class="strike-zone">
@@ -255,6 +272,11 @@ body{
 const peer=new Peer();
 let timerInt;
 
+const play=id=>{
+    const s=document.getElementById(id);
+    if(s){s.currentTime=0;s.play().catch(()=>{});}
+};
+
 peer.on('open',id=>{
     document.getElementById('peer-id-display').innerText="KOD: "+id;
 });
@@ -262,14 +284,30 @@ peer.on('open',id=>{
 peer.on('connection',conn=>{
 conn.on('data',m=>{
 
+if(m.type==='PLAY_VIDEO'){
+    const v=document.getElementById('video-layer');
+    v.src=m.file;
+    v.style.display='block';
+    v.play();
+    v.onended=()=>v.style.display='none';
+}
+
+if(m.type==='NEXT_ROUND'){
+    play('sndRunda');
+    document.getElementById('normal-ui').innerHTML='';
+    document.getElementById('total').innerText=0;
+    document.querySelectorAll('.strike-x').forEach(x=>x.style.display='none');
+}
+
 if(m.type==='SETUP'){
-    normalUI();
-    document.getElementById('normal-ui').innerHTML =
+    document.getElementById('normal-ui').style.display='flex';
+    document.getElementById('final-ui').style.display='none';
+    document.getElementById('normal-ui').innerHTML=
         m.a.map((x,i)=>`
         <div class="row" id="row-${i}">
             <div class="row-num">${i+1}</div>
             <div class="row-content">
-                <div class="dots">███████████</div>
+                <div class="dots">████████████</div>
                 <div class="ans-text">${x.t}</div>
                 <div class="pts">${x.p}</div>
             </div>
@@ -277,11 +315,13 @@ if(m.type==='SETUP'){
 }
 
 if(m.type==='REVEAL'){
+    play('sndOk');
     document.getElementById(`row-${m.index}`).classList.add('revealed');
     document.getElementById('total').innerText=m.total;
 }
 
 if(m.type==='STRIKE'){
+    play('sndNo');
     document.getElementById(`x${m.team}${m.num}`).style.display='block';
 }
 
@@ -294,7 +334,9 @@ if(m.type==='UPDATE'){
 }
 
 if(m.type==='FINAL_MODE'){
-    finalUI();
+    play('sndFinal');
+    document.getElementById('normal-ui').style.display='none';
+    document.getElementById('final-ui').style.display='flex';
     document.getElementById('timer').innerText=m.time;
     if(m.time==15){
         drawFinal('col-G1');
@@ -306,13 +348,13 @@ if(m.type==='START_TIMER'){
     let t=parseInt(timer.innerText);
     clearInterval(timerInt);
     timerInt=setInterval(()=>{
-        t--;
-        timer.innerText=t;
-        if(t<=0) clearInterval(timerInt);
+        t--;timer.innerText=t;
+        if(t<=0){clearInterval(timerInt);play('sndNo');}
     },1000);
 }
 
 if(m.type==='FINAL_REVEAL'){
+    play('sndOk');
     const s=document.getElementById(`f-col-G${m.gracz}-${m.index}`);
     s.querySelector('.f-ans').innerText=m.ans;
     s.querySelector('.f-pts').innerText=m.pts;
@@ -320,18 +362,10 @@ if(m.type==='FINAL_REVEAL'){
     document.getElementById('total').innerText=m.total;
 }
 
+if(m.type==='BUZZER') play('sndBuzz');
+
 });
 });
-
-function normalUI(){
-    document.getElementById('final-ui').style.display='none';
-    document.getElementById('normal-ui').style.display='flex';
-}
-
-function finalUI(){
-    document.getElementById('normal-ui').style.display='none';
-    document.getElementById('final-ui').style.display='flex';
-}
 
 function drawFinal(id){
     document.getElementById(id).innerHTML=
