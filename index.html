@@ -9,112 +9,59 @@
         :root { --gold: #f5b041; --red: #ff0000; --blue: #0055ff; }
         body { 
             margin: 0; overflow: hidden; font-family: 'VT323', monospace; text-transform: uppercase;
-            height: 100vh; width: 100vw; 
-            background: url('data:image/png;base64,TUTAJ_WKLEJ_SWOJ_KOD_BASE64') no-repeat center center;
-            background-size: cover; background-color: #000; color: var(--gold);
+            height: 100vh; width: 100vw; background-color: #000; color: var(--gold);
+            background: radial-gradient(circle at 0% 50%, rgba(255, 0, 0, 0.25) 0%, transparent 50%),
+                        radial-gradient(circle at 100% 50%, rgba(0, 85, 255, 0.25) 0%, transparent 50%), #000;
         }
-
-        /* Animacja wjazdu napisu */
         #intro-overlay {
-            position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
-            z-index: 9999; background: rgba(0,0,0,0.9); opacity: 0; pointer-events: none;
+            position: fixed; inset: 0; background: rgba(0,0,0,0.95);
+            display: none; align-items: center; justify-content: center; z-index: 9999;
         }
-        .show-intro { animation: introAnim 5s forwards; }
-        @keyframes introAnim {
-            0% { opacity: 0; transform: scale(0.5); }
-            20% { opacity: 1; transform: scale(1); }
-            80% { opacity: 1; transform: scale(1); }
-            100% { opacity: 0; transform: scale(1.5); }
-        }
+        .animate-intro { display: flex !important; animation: zoom 4s forwards; }
+        @keyframes zoom { 0% {opacity:0; transform:scale(0.5)} 20% {opacity:1} 80% {opacity:1} 100% {opacity:0; transform:scale(1.3)} }
 
-        .main-layout { display: flex; align-items: center; justify-content: center; height: 100vh; gap: 40px; }
-        
-        .strike-zone { width: 120px; text-align: center; }
-        .big-x { font-size: 180px; color: var(--red); text-shadow: 0 0 40px var(--red); display: none; margin: -20px 0; }
-
+        .main-layout { display: flex; align-items: center; justify-content: center; height: 100vh; gap: 50px; }
+        .big-x { font-size: 200px; color: var(--red); text-shadow: 0 0 40px var(--red); display: none; line-height: 0.7; }
         .board-center { display: flex; flex-direction: column; align-items: center; }
-        .round-counter { font-size: 110px; background: #000; padding: 5px 50px; border: 3px solid #333; border-radius: 15px; margin-bottom: 20px; }
-        
-        .main-frame {
-            width: 65vw; height: 60vh; background: #000; border: 10px solid #111; border-radius: 40px;
-            padding: 30px; box-shadow: 0 0 60px rgba(0,0,0,1);
-        }
-
-        .row { display: flex; align-items: center; height: 16.6%; font-size: 75px; border-bottom: 2px solid #080808; }
-        .ans-text, .pts-val { display: none; background: #000; padding: 0 15px; }
+        .round-counter { font-size: 100px; background: #000; padding: 10px 50px; border: 3px solid #222; border-radius: 15px; margin-bottom: 20px; }
+        .main-frame { width: 65vw; height: 60vh; background: #000; border: 8px solid #111; border-radius: 40px; padding: 25px; box-shadow: 0 0 80px #000; }
+        .row { display: flex; align-items: center; height: 16.6%; font-size: 75px; border-bottom: 2px solid #080808; position: relative; }
+        .ans-text, .pts-val { display: none; background: #000; padding: 0 15px; z-index: 5; }
         .revealed .ans-text, .revealed .pts-val { display: block; }
-        .revealed .dots { display: none; }
-        .dots { color: #0a0a0a; letter-spacing: 15px; flex-grow: 1; text-align: center; }
-
-        #video-layer { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 5000; display: none; }
+        .dots { color: #0a0a0a; letter-spacing: 15px; flex-grow: 1; text-align: center; position: absolute; width: 100%; z-index: 1; }
+        
+        #setup { position: fixed; inset: 0; background: #000; z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
     </style>
 </head>
 <body>
-    <div id="intro-overlay">
-        <h1 style="font-size: 100px; text-align: center;">FAMILIADA<br><span style="color:white; font-size:60px">EDYCJA SZKOLNA</span></h1>
+    <div id="intro-overlay"><h1 style="font-size:80px; text-align:center">FAMILIADA<br><span style="color:white">EDYCJA SZKOLNA</span></h1></div>
+    <div id="setup">
+        <div style="font-size:30px">KOD DO PANELU:</div>
+        <div id="peer-id" style="font-size:100px; color:var(--gold); border:2px solid; padding:20px 50px; margin:20px">ŁĄCZENIE...</div>
+        <button onclick="document.getElementById('setup').style.display='none'" style="font-family:'VT323'; font-size:30px; padding:10px 40px; cursor:pointer">OTWÓRZ STUDIO</button>
     </div>
-
     <div class="main-layout">
-        <div class="strike-zone" id="strikes-A">
-            <div class="big-x">X</div><div class="big-x">X</div><div class="big-x">X</div>
-        </div>
-
+        <div id="strikes-A"><div class="big-x">X</div><div class="big-x">X</div><div class="big-x">X</div></div>
         <div class="board-center">
             <div class="round-counter" id="round-pts">0</div>
             <div class="main-frame"><div id="rows-box" style="height:100%"></div></div>
         </div>
-
-        <div class="strike-zone" id="strikes-B">
-            <div class="big-x">X</div><div class="big-x">X</div><div class="big-x">X</div>
-        </div>
+        <div id="strikes-B"><div class="big-x">X</div><div class="big-x">X</div><div class="big-x">X</div></div>
     </div>
-
     <script>
         const peer = new Peer();
-        const snd = {
-            ok: new Audio('ok.mp3'),
-            zla: new Audio('zla.mp3'),
-            intro: new Audio('czolowka.mp3'),
-            runda: new Audio('runda.mp3'),
-            final: new Audio('final.mp3'),
-            powtorzenie: new Audio('powtorzenie.mp3')
-        };
-
-        peer.on('open', id => console.log("KOD: " + id));
+        const snd = { ok: new Audio('ok.mp3'), zla: new Audio('zla.mp3'), intro: new Audio('czolowka.mp3'), pow: new Audio('powtorzenie.mp3') };
+        peer.on('open', id => document.getElementById('peer-id').innerText = id);
         peer.on('connection', conn => {
             conn.on('data', m => {
-                if(m.type === 'INTRO') {
-                    snd.intro.play();
-                    const overlay = document.getElementById('intro-overlay');
-                    overlay.classList.add('show-intro');
-                    setTimeout(() => overlay.classList.remove('show-intro'), 5000);
-                }
-                if(m.type === 'SOUND') { if(snd[m.name]) snd[m.name].play(); }
-                if(m.type === 'SETUP') {
-                    document.getElementById('rows-box').innerHTML = m.ans.map((a,i)=>`
-                        <div class="row" id="r-${i}">
-                            <div style="color:#111; width:50px">${i+1}</div>
-                            <div class="ans-text">${a.t}</div>
-                            <div class="dots">................</div>
-                            <div class="pts-val">${a.p}</div>
-                        </div>`).join('');
-                }
-                if(m.type === 'REVEAL') { 
-                    document.getElementById(`r-${m.idx}`).classList.add('revealed'); 
-                    snd.ok.play(); 
-                }
-                if(m.type === 'STRIKE') {
-                    snd.zla.play();
-                    const xs = document.querySelectorAll(`#strikes-${m.team} .big-x`);
-                    xs.forEach((x, i) => x.style.display = i < m.count ? 'block' : 'none');
-                }
-                if(m.type === 'SYNC') {
-                    document.getElementById('round-pts').innerText = m.rt;
-                }
+                if(m.type==='INTRO'){ snd.intro.play(); document.getElementById('intro-overlay').classList.add('animate-intro'); setTimeout(()=>document.getElementById('intro-overlay').classList.remove('animate-intro'), 4500); }
+                if(m.type==='REVEAL'){ document.getElementById(`r-${m.idx}`).classList.add('revealed'); snd.ok.play(); }
+                if(m.type==='STRIKE'){ snd.zla.play(); const xs=document.querySelectorAll(`#strikes-${m.team} .big-x`); xs.forEach((x,i)=>x.style.display=i<m.count?'block':'none'); }
+                if(m.type==='SOUND' && snd[m.name]) snd[m.name].play();
+                if(m.type==='SYNC') document.getElementById('round-pts').innerText = m.rt;
+                if(m.type==='SETUP'){ document.getElementById('rows-box').innerHTML = m.ans.map((a,i)=>`<div class="row" id="r-${i}"><div style="color:#111;width:50px">${i+1}</div><div class="ans-text">${a.t}</div><div class="dots">................</div><div class="pts-val">${a.p}</div></div>`).join(''); }
             });
         });
-        // Kliknij ekran aby odblokować dźwięk
-        document.body.onclick = () => console.log("Audio odblokowane");
     </script>
 </body>
 </html>
