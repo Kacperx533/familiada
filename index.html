@@ -2,389 +2,146 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA TV - RETRO EDITION</title>
+    <title>FAMILIADA TV ULTIMATE</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        :root {
-            --led-gold: #ffcc00;
-            --led-dim: #4a3b00;
-            --border-blue: #0055ff;
-            --border-red: #ff0044;
-            --bg-dark: #050505;
-        }
+        :root { --gold: #f5b041; --dim-gold: #443311; --red: #ff0000; --blue: #0066ff; }
         
-        body {
-            background-color: #000;
-            margin: 0;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            font-family: 'VT323', monospace;
-            overflow: hidden;
-            color: var(--led-gold);
-            text-transform: uppercase;
+        body { 
+            background: #000; color: var(--gold); font-family: 'VT323', monospace; 
+            margin: 0; overflow: hidden; text-transform: uppercase;
         }
 
-        /* Tło - siatka LED */
-        .led-grid {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-image: 
-                linear-gradient(rgba(10,10,10,0.8) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(10,10,10,0.8) 1px, transparent 1px);
-            background-size: 4px 4px;
-            background-color: #080808;
-            z-index: -1;
+        /* Warstwa Matrycy LED (Kropki) */
+        .led-matrix {
+            position: fixed; inset: 0; z-index: 1000; pointer-events: none;
+            background-image: radial-gradient(rgba(0,0,0,0.5) 35%, transparent 40%);
+            background-size: 5px 5px;
         }
 
-        /* Ekran łączenia */
-        #connect-screen {
-            position: fixed;
-            z-index: 9999;
-            background: #000;
-            inset: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+        /* Wideo na pełny ekran */
+        #video-player {
+            position: fixed; inset: 0; width: 100%; height: 100%;
+            background: #000; z-index: 2000; display: none; object-fit: cover;
         }
-        .code-display {
-            font-size: 80px;
-            border: 4px solid var(--led-gold);
-            padding: 20px 40px;
-            border-radius: 20px;
-            box-shadow: 0 0 20px var(--led-gold);
-            margin-bottom: 20px;
+
+        /* Kontener Tablicy */
+        .board-container {
+            display: flex; flex-direction: column; align-items: center;
+            justify-content: center; height: 100vh; gap: 10px;
+        }
+
+        /* Górna ramka (Numer rundy/Wynik bieżący) */
+        .top-score {
+            border: 4px solid #333; border-radius: 15px; background: #080808;
+            padding: 5px 40px; font-size: 100px; line-height: 1;
+            box-shadow: 0 0 20px rgba(255, 204, 0, 0.2);
+            border-top: 4px solid var(--gold);
         }
 
         /* Główna Tablica */
-        .game-board {
-            display: none; /* Ukryte do startu */
-            width: 90vw;
-            max-width: 1200px;
-            position: relative;
+        .main-frame {
+            width: 85vw; height: 70vh; background: #050505;
+            border: 8px solid; border-radius: 40px;
+            border-image: linear-gradient(to bottom, var(--red) 0%, #222 50%, var(--blue) 100%) 1;
+            padding: 30px; display: flex; flex-direction: column; position: relative;
         }
 
-        /* Górny wynik rundy (w tej małej ramce) */
-        .round-score-box {
-            width: 200px;
-            margin: 0 auto 10px auto;
-            border: 4px solid #444;
-            border-top-color: var(--border-red);
-            border-bottom-color: var(--border-blue);
-            background: #000;
-            text-align: center;
-            font-size: 80px;
-            line-height: 1;
-            padding: 5px;
-            border-radius: 15px;
-            box-shadow: 0 0 15px rgba(255,255,255,0.1);
-        }
+        .rows-area { flex-grow: 1; display: flex; flex-direction: column; justify-content: space-around; }
 
-        /* Główna ramka z pytaniami */
-        .main-display {
-            border: 6px solid;
-            border-image: linear-gradient(to bottom, var(--border-red), var(--border-blue)) 1;
-            border-radius: 20px; /* Hack dla border-image */
-            padding: 5px;
-            background: #000;
-            position: relative;
-            box-shadow: 
-                0 -5px 20px var(--border-red), 
-                0 5px 20px var(--border-blue);
-        }
-        
-        /* Fix dla zaokrąglonych rogów z gradientem */
-        .display-inner {
-            border: 2px solid #333;
-            border-radius: 10px;
-            padding: 20px 40px;
-            min-height: 50vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
+        .row { display: flex; font-size: 80px; align-items: center; height: 90px; border-bottom: 2px solid #111; }
+        .row-idx { width: 70px; color: #333; }
+        .row-content { flex-grow: 1; display: flex; justify-content: space-between; position: relative; }
+        .row-dots { color: #151515; letter-spacing: 15px; position: absolute; left: 0; width: 100%; text-align: center; z-index: 1; }
+        .row-text { z-index: 2; background: #050505; padding-right: 15px; display: none; }
+        .row-pts { z-index: 2; background: #050505; padding-left: 15px; display: none; }
 
-        .row {
-            display: flex;
-            align-items: center;
-            font-size: 60px;
-            margin-bottom: 5px;
-            height: 70px;
-        }
+        .revealed .row-text, .revealed .row-pts { display: block; }
+        .revealed .row-dots { display: none; }
 
-        .row-num {
-            width: 40px;
-            color: #d4d4d4;
-            margin-right: 15px;
-        }
+        /* Stopka */
+        .footer { display: flex; justify-content: space-between; align-items: baseline; width: 100%; margin-top: 20px; }
+        .strikes { display: flex; gap: 15px; font-size: 90px; color: var(--red); text-shadow: 0 0 15px var(--red); }
+        .total-box { font-size: 80px; display: flex; gap: 30px; }
+        .total-label { color: var(--gold); opacity: 0.7; }
 
-        .row-content {
-            flex-grow: 1;
-            position: relative;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: rgba(255, 200, 0, 0.05); /* Lekkie podświetlenie linii */
+        /* Overlay do kodu PeerJS */
+        #init-screen {
+            position: fixed; inset: 0; background: #000; z-index: 3000;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
-
-        .dots {
-            position: absolute;
-            left: 0; top: 0; width: 100%;
-            letter-spacing: 8px;
-            color: var(--led-dim);
-            z-index: 0;
-            overflow: hidden;
-            white-space: nowrap;
-        }
-
-        .answer-text {
-            z-index: 1;
-            background: #000;
-            padding-right: 15px;
-            display: none; /* Ukryte */
-            text-shadow: 0 0 5px var(--led-gold);
-        }
-
-        .points {
-            z-index: 1;
-            background: #000;
-            padding-left: 15px;
-            display: none; /* Ukryte */
-            text-shadow: 0 0 5px var(--led-gold);
-        }
-
-        .revealed .answer-text, .revealed .points { display: block; }
-        .revealed .dots { display: none; }
-
-        /* Stopka (Suma) */
-        .footer {
-            margin-top: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            font-size: 50px;
-        }
-        
-        .strikes-container {
-            display: flex;
-            gap: 15px;
-        }
-        .strike {
-            color: var(--border-red);
-            font-size: 80px;
-            line-height: 50px;
-            display: none;
-            text-shadow: 0 0 15px red;
-        }
-
-        .total-score {
-            text-align: right;
-        }
-        .total-label { font-size: 40px; color: #aaa; margin-right: 20px; }
-        .total-val { font-size: 60px; }
-
-        /* Wielkie X na środku */
-        #fullscreen-strike {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.7);
-            z-index: 5000;
-            display: none;
-            align-items: center;
-            justify-content: center;
-        }
-        .big-x {
-            width: 300px; height: 300px;
-            position: relative;
-        }
-        .big-x::before, .big-x::after {
-            content: ''; position: absolute;
-            width: 100%; height: 40px;
-            background: red;
-            box-shadow: 0 0 30px red;
-            top: 50%; left: 0;
-        }
-        .big-x::before { transform: translateY(-50%) rotate(45deg); }
-        .big-x::after { transform: translateY(-50%) rotate(-45deg); }
-
-        /* FINAŁ */
-        #final-board {
-            display: none;
-            width: 100%;
-            height: 100%;
-            flex-direction: column;
-        }
-        .final-cols { display: flex; gap: 50px; justify-content: center; margin-top: 20px; }
-        .final-row { 
-            display: flex; width: 450px; justify-content: space-between; 
-            font-size: 50px; background: #111; margin-bottom: 10px; padding: 0 10px; border: 1px solid #333;
-        }
-        .f-txt { width: 350px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0; }
-        .f-pts { width: 60px; text-align: right; border-left: 2px solid #333; opacity: 0; }
-        
-        .f-rev .f-txt, .f-rev .f-pts { opacity: 1; }
     </style>
 </head>
 <body>
 
-    <div class="led-grid"></div>
+    <div class="led-matrix"></div>
+    <video id="video-player"></video>
 
-    <audio id="snd-intro" src="intro.mp3"></audio>
-    <audio id="snd-ok" src="ok.mp3"></audio>
-    <audio id="snd-bad" src="zle.mp3"></audio>
-
-    <div id="connect-screen">
-        <div style="font-size: 30px; margin-bottom:10px; color:#fff">ID DO PANELU:</div>
-        <div class="code-display" id="my-id">...</div>
-        <button onclick="document.getElementById('connect-screen').style.display='none'; document.querySelector('.game-board').style.display='block';" 
-            style="font-family:'VT323'; font-size:30px; padding:10px 40px; cursor:pointer; background:var(--led-gold); border:none;">
-            URUCHOM EKRAN
-        </button>
+    <div id="init-screen">
+        <div style="font-size:40px">KOD TELEWIZORA:</div>
+        <div id="peer-id" style="font-size:100px; color:var(--gold); border:2px solid; padding:20px; margin:20px">...</div>
+        <button onclick="document.getElementById('init-screen').style.display='none'" style="font-size:30px; padding:10px 50px; cursor:pointer">START</button>
     </div>
 
-    <div id="fullscreen-strike"><div class="big-x"></div></div>
-
-    <div class="game-board">
-        <div class="round-score-box" id="round-score">0</div>
-
-        <div class="main-display">
-            <div class="display-inner">
-                
-                <div id="normal-rows">
-                    </div>
-
-                <div id="final-board">
-                    <div style="text-align:center; font-size:120px; color:var(--border-red); text-shadow:0 0 20px red;" id="timer">00</div>
-                    <div class="final-cols">
-                        <div id="col-1"></div>
-                        <div id="col-2"></div>
-                    </div>
+    <div class="board-container">
+        <div class="top-score" id="round-total">0</div>
+        
+        <div class="main-frame">
+            <div class="rows-area" id="rows">
                 </div>
-
-            </div>
-        </div>
-
-        <div class="footer">
-            <div class="strikes-container" id="strikes-box">
+            
+            <div class="footer">
+                <div class="strikes" id="strikes"></div>
+                <div class="total-box">
+                    <span class="total-label">SUMA</span>
+                    <span id="global-total">0</span>
                 </div>
-            <div class="total-score">
-                <span class="total-label">SUMA</span>
-                <span class="total-val" id="global-score">0</span>
             </div>
         </div>
     </div>
 
     <script>
         const peer = new Peer();
-        
-        // Funkcje dźwiękowe
-        const play = (id) => { 
-            const a = document.getElementById(id); 
-            if(a) { a.currentTime=0; a.play().catch(e=>console.log(e)); }
-        };
+        const vPlayer = document.getElementById('video-player');
 
-        peer.on('open', id => {
-            document.getElementById('my-id').innerText = id;
-        });
+        peer.on('open', id => document.getElementById('peer-id').innerText = id);
 
         peer.on('connection', conn => {
-            conn.on('data', data => {
-                console.log("Otrzymano:", data);
+            conn.on('data', m => {
+                if(m.type === 'VIDEO') {
+                    vPlayer.src = m.file;
+                    vPlayer.style.display = 'block';
+                    vPlayer.play();
+                    vPlayer.onended = () => vPlayer.style.display = 'none';
+                }
 
-                // --- LOGIKA GRY ---
-
-                if (data.type === 'SETUP_ROUND') {
-                    document.getElementById('final-board').style.display = 'none';
-                    document.getElementById('normal-rows').style.display = 'block';
-                    document.getElementById('round-score').innerText = '0';
-                    document.getElementById('strikes-box').innerHTML = '';
-                    
-                    const container = document.getElementById('normal-rows');
-                    container.innerHTML = '';
-                    
-                    data.answers.forEach((ans, index) => {
-                        const row = document.createElement('div');
-                        row.className = 'row';
-                        row.id = `row-${index}`;
-                        row.innerHTML = `
-                            <div class="row-num">${index + 1}</div>
+                if(m.type === 'SETUP') {
+                    const container = document.getElementById('rows');
+                    container.innerHTML = m.ans.map((a, i) => `
+                        <div class="row" id="r-${i}">
+                            <div class="row-idx">${i+1}</div>
                             <div class="row-content">
-                                <div class="dots">..............................</div>
-                                <div class="answer-text">${ans.text}</div>
-                                <div class="points">${ans.points}</div>
+                                <div class="row-dots">....................................</div>
+                                <div class="row-text">${a.t}</div>
+                                <div class="row-pts">${a.p}</div>
                             </div>
-                        `;
-                        container.appendChild(row);
-                    });
-                    play('snd-intro');
+                        </div>
+                    `).join('');
+                    document.getElementById('strikes').innerHTML = '';
                 }
 
-                if (data.type === 'REVEAL_ANSWER') {
-                    const r = document.getElementById(`row-${data.index}`);
-                    if (r) {
-                        r.classList.add('revealed');
-                        play('snd-ok');
-                    }
+                if(m.type === 'REVEAL') {
+                    document.getElementById(`r-${m.idx}`).classList.add('revealed');
                 }
 
-                if (data.type === 'UPDATE_SCORES') {
-                    document.getElementById('round-score').innerText = data.roundScore;
-                    document.getElementById('global-score').innerText = data.globalScore;
+                if(m.type === 'SYNC') {
+                    document.getElementById('round-total').innerText = m.rt;
+                    document.getElementById('global-total').innerText = m.gt;
                 }
 
-                if (data.type === 'STRIKE') {
-                    play('snd-bad');
-                    // Pokaż wielkie X na chwilę
-                    const fs = document.getElementById('fullscreen-strike');
-                    fs.style.display = 'flex';
-                    setTimeout(() => fs.style.display = 'none', 1000);
-
-                    // Dodaj małego X na dole
-                    const box = document.getElementById('strikes-box');
-                    if (data.count <= 3) {
-                        box.innerHTML += `<div class="strike" style="display:block">X</div>`;
-                    }
-                }
-
-                if (data.type === 'CLEAR_STRIKES') {
-                    document.getElementById('strikes-box').innerHTML = '';
-                }
-
-                // --- OBSŁUGA FINAŁU ---
-
-                if (data.type === 'SETUP_FINAL') {
-                    document.getElementById('normal-rows').style.display = 'none';
-                    document.getElementById('final-board').style.display = 'flex';
-                    document.getElementById('timer').innerText = data.time || '15';
-                    
-                    // Generuj puste sloty
-                    const genSlots = (id) => {
-                        const c = document.getElementById(id);
-                        c.innerHTML = '';
-                        for(let i=0; i<5; i++) {
-                            c.innerHTML += `<div class="final-row" id="f-${id}-${i}"><div class="f-txt"></div><div class="f-pts">0</div></div>`;
-                        }
-                    };
-                    genSlots('col-1');
-                    genSlots('col-2');
-                }
-
-                if (data.type === 'TIMER_TICK') {
-                    document.getElementById('timer').innerText = data.val;
-                }
-
-                if (data.type === 'FINAL_REVEAL') {
-                    const el = document.getElementById(`f-col-${data.player}-${data.index}`);
-                    if(el) {
-                        el.querySelector('.f-txt').innerText = data.ans;
-                        el.querySelector('.f-pts').innerText = data.pts;
-                        el.classList.add('f-rev');
-                        play('snd-ok');
-                    }
+                if(m.type === 'STRIKE') {
+                    document.getElementById('strikes').innerHTML += '<div>X</div>';
                 }
             });
         });
