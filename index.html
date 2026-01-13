@@ -2,86 +2,83 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA TV - PRO STUDIO</title>
+    <title>FAMILIADA TV - DARK BATTLE MODE</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root { 
             --gold: #f5b041; 
-            --red: #ff1a1a; 
-            --blue: #0077ff;
-            --glass: rgba(0, 0, 0, 0.6);
+            --red: #ff0000; 
+            --blue: #0055ff;
         }
         
         body { 
             margin: 0; overflow: hidden; font-family: 'VT323', monospace; text-transform: uppercase;
             height: 100vh; width: 100vw;
-            /* GENEROWANE TŁO INSPIROWANE TWOIM ZDJĘCIEM */
+            /* TŁO: CZERWONE PO LEWEJ, NIEBIESKIE PO PRAWEJ, CZARNY ŚRODEK */
             background: 
-                radial-gradient(circle at 15% 50%, rgba(0, 119, 255, 0.3) 0%, transparent 45%),
-                radial-gradient(circle at 85% 50%, rgba(0, 119, 255, 0.3) 0%, transparent 45%),
-                radial-gradient(circle at center, #001f4d 0%, #00040a 100%);
-            background-color: #000;
+                radial-gradient(circle at 0% 50%, rgba(255, 0, 0, 0.25) 0%, transparent 50%),
+                radial-gradient(circle at 100% 50%, rgba(0, 85, 255, 0.25) 0%, transparent 50%),
+                #000;
             color: var(--gold);
         }
 
-        /* Subtelna siatka LED na całym ekranie */
-        body::after {
-            content: ""; position: fixed; inset: 0; pointer-events: none;
-            background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
-            background-size: 20px 20px; z-index: 1;
+        /* Delikatny efekt dymu/mgły w tle */
+        body::before {
+            content: ""; position: fixed; inset: 0;
+            background: url('https://www.transparenttextures.com/patterns/carbon-fibre.png');
+            opacity: 0.1; pointer-events: none;
         }
 
         .main-layout {
             display: flex; align-items: center; justify-content: center;
-            height: 100vh; width: 100vw; gap: 40px; position: relative; z-index: 10;
+            height: 100vh; width: 100vw; gap: 60px; position: relative; z-index: 10;
         }
 
-        /* WIELKIE BŁĘDY X - ŚWIECĄCE */
+        /* WIELKIE BŁĘDY X */
         .strike-zone { width: 150px; display: flex; flex-direction: column; gap: 20px; }
         .big-x {
-            font-size: 180px; color: var(--red); text-align: center; line-height: 0.7;
-            text-shadow: 0 0 30px var(--red), 0 0 60px rgba(0,0,0,0.8);
+            font-size: 200px; color: var(--red); text-align: center; line-height: 0.7;
+            text-shadow: 0 0 30px var(--red), 0 0 60px #000;
             display: none; animation: x-pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-        @keyframes x-pop { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        @keyframes x-pop { from { transform: scale(0); } to { transform: scale(1); } }
 
-        /* TABLICA */
-        .board-center { display: flex; flex-direction: column; align-items: center; gap: 15px; }
+        /* TABLICA - CAŁA CZARNA */
+        .board-center { display: flex; flex-direction: column; align-items: center; gap: 20px; }
 
         .round-counter {
-            background: #000; border: 4px solid #333; border-radius: 12px;
-            padding: 5px 60px; font-size: 110px; line-height: 1;
-            box-shadow: 0 0 40px rgba(0,0,0,0.9); border-bottom: 6px solid var(--blue);
+            background: #000; border: 3px solid #222; border-radius: 10px;
+            padding: 5px 60px; font-size: 120px; line-height: 1;
+            box-shadow: 0 0 50px rgba(0,0,0,1);
+            color: var(--gold);
         }
 
-        /* RAMA TABLICY - GRADIENT IDENTYCZNY JAK NA TWOIM FOTO */
         .main-frame {
-            width: 70vw; height: 65vh; background: var(--glass);
-            border: 10px solid; border-radius: 45px;
-            border-image: linear-gradient(to bottom, #ff0000 0%, #333 45%, #333 55%, #0055ff 100%) 1;
-            padding: 25px 45px; position: relative;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 40px 100px rgba(0,0,0,0.8);
+            width: 70vw; height: 65vh; 
+            background: #000; /* Całkowicie czarna tablica */
+            border: 8px solid #111; 
+            border-radius: 40px;
+            padding: 30px 50px; position: relative;
+            box-shadow: 0 0 100px rgba(0,0,0,1), inset 0 0 50px #111;
         }
 
         .row {
             display: flex; align-items: center; height: 16.6%;
-            font-size: 80px; border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 85px; border-bottom: 2px solid #0a0a0a;
         }
-        .row-num { width: 60px; color: rgba(255,255,255,0.1); font-weight: bold; }
+        .row-num { width: 60px; color: #111; font-weight: bold; }
         .row-content { flex-grow: 1; display: flex; justify-content: space-between; position: relative; }
-        .dots { color: #000; letter-spacing: 18px; position: absolute; width: 100%; text-align: center; opacity: 0.3; }
+        .dots { color: #080808; letter-spacing: 20px; position: absolute; width: 100%; text-align: center; }
         
-        .ans-text, .pts-val { display: none; z-index: 2; background: #000; padding: 0 15px; box-shadow: 0 0 10px #000; }
+        .ans-text, .pts-val { display: none; z-index: 2; background: #000; padding: 0 15px; }
         .revealed .ans-text, .revealed .pts-val { display: block; }
         .revealed .dots { display: none; }
 
-        .footer { width: 100%; display: flex; justify-content: flex-end; align-items: baseline; margin-top: 15px; }
-        .suma-label { color: var(--gold); opacity: 0.4; font-size: 40px; margin-right: 20px; }
-        .suma-number { font-size: 85px; color: #fff; text-shadow: 0 0 20px #fff; }
+        .footer { width: 100%; display: flex; justify-content: flex-end; align-items: baseline; margin-top: 20px; }
+        .suma-label { color: #333; font-size: 40px; margin-right: 20px; }
+        .suma-number { font-size: 90px; color: #fff; text-shadow: 0 0 20px #fff; }
 
-        /* EKRAN STARTOWY */
         #setup-screen {
             position: fixed; inset: 0; background: #000; z-index: 10000;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -90,9 +87,9 @@
 </head>
 <body>
     <div id="setup-screen">
-        <div style="font-size:30px; letter-spacing:3px">KOD DO PANELU:</div>
-        <div id="peer-id" style="font-size:100px; color:var(--gold); border:3px solid; padding:20px 60px; margin:30px; border-radius:20px">ŁĄCZENIE...</div>
-        <button onclick="document.getElementById('setup-screen').style.display='none'" style="font-family:'VT323'; background:var(--gold); font-size:40px; padding:15px 80px; cursor:pointer; border:none; border-radius:15px">START STUDIO</button>
+        <div style="font-size:30px; letter-spacing:5px">KOD DO PANELU:</div>
+        <div id="peer-id" style="font-size:100px; color:var(--gold); border:2px solid; padding:20px 60px; margin:20px; border-radius:15px">ŁĄCZENIE...</div>
+        <button onclick="document.getElementById('setup-screen').style.display='none'" style="font-family:'VT323'; background:var(--gold); font-size:40px; padding:15px 80px; cursor:pointer; border:none; border-radius:10px">WCHODZĘ DO GRY</button>
     </div>
 
     <div class="main-layout">
