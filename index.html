@@ -9,37 +9,37 @@
         :root { --led-gold: #ffcc00; --blue: #0055ff; --red: #ff0044; }
         body { background: #000; margin: 0; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: 'VT323', monospace; color: var(--led-gold); text-transform: uppercase; overflow: hidden; }
         
-        /* TŁO AMBIENT */
-        body::before { content: ''; position: absolute; top: 0; left: 0; bottom: 0; width: 40%; background: radial-gradient(circle at 0% 50%, rgba(0, 85, 255, 0.2), transparent 80%); }
-        body::after { content: ''; position: absolute; top: 0; right: 0; bottom: 0; width: 40%; background: radial-gradient(circle at 100% 50%, rgba(255, 0, 68, 0.2), transparent 80%); }
-
         /* MULTIMEDIA */
         #media-overlay { position: fixed; inset: 0; background: #000; z-index: 10000; display: none; }
         video { width: 100%; height: 100%; object-fit: contain; }
 
-        /* NAPIS POWITALNY */
-        #welcome-text { position: absolute; top: 50%; transform: translateY(-50%); font-size: 120px; text-align: center; width: 100%; z-index: 5; display: none; filter: drop-shadow(0 0 20px gold); }
-        .sub-text { font-size: 60px; color: white; display: block; }
+        /* NAPIS POWITALNY - CZARNE TŁO */
+        #welcome-screen { position: fixed; inset: 0; background: #000; display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 5000; }
+        #welcome-text { font-size: 140px; text-align: center; filter: drop-shadow(0 0 30px gold); animation: glow 2s infinite alternate; }
+        .sub-text { font-size: 70px; color: white; display: block; margin-top: 10px; }
+
+        @keyframes glow { from { opacity: 0.8; transform: scale(0.98); } to { opacity: 1; transform: scale(1.02); } }
 
         /* TABLICA */
         .game-board { display: none; width: 90vw; max-width: 1400px; z-index: 10; position: relative; }
         .round-score { font-size: 130px; text-align: center; color: #fff; margin-bottom: 20px; text-shadow: 0 0 20px rgba(255,255,255,0.5); }
-        .main-display { background: #050505; border: 4px solid #111; padding: 30px; border-radius: 10px; box-shadow: inset 0 0 50px #000; }
+        .main-display { background: #050505; border: 4px solid #111; padding: 30px; border-radius: 10px; box-shadow: inset 0 0 80px #000; }
         
-        .row { display: flex; align-items: center; font-size: 65px; height: 80px; margin: 10px 0; opacity: 0; transform: translateY(30px); transition: 0.5s all ease-out; border-bottom: 1px solid #111; }
+        .row { display: flex; align-items: center; font-size: 70px; height: 85px; margin: 10px 0; opacity: 0; transform: translateY(40px); transition: 0.6s all cubic-bezier(0.175, 0.885, 0.32, 1.275); border-bottom: 2px solid #0a0a0a; }
         .row.visible { opacity: 1; transform: translateY(0); }
-        .row-num { width: 60px; color: #222; }
+        .row-num { width: 70px; color: #1a1a1a; font-weight: bold; }
         .row-content { flex-grow: 1; display: flex; justify-content: space-between; position: relative; }
-        .ans-txt, .ans-pts { display: none; background: #000; z-index: 2; padding: 0 15px; }
+        .ans-txt, .ans-pts { display: none; background: #000; z-index: 2; padding: 0 20px; }
         .revealed .ans-txt, .revealed .ans-pts { display: block; }
+        .dots { position: absolute; width: 100%; color: #0a0a0a; letter-spacing: 12px; z-index: 1; overflow: hidden; white-space: nowrap; }
 
-        /* BŁĘDY (X) PO BOKACH */
-        .strike-zone { position: absolute; top: 50%; transform: translateY(-50%); width: 150px; display: flex; flex-direction: column; gap: 10px; font-size: 100px; color: red; text-align: center; text-shadow: 0 0 20px red; }
-        #strikes-L { left: -160px; }
-        #strikes-R { right: -160px; }
+        /* BŁĘDY (X) */
+        .strike-zone { position: absolute; top: 50%; transform: translateY(-50%); width: 160px; display: flex; flex-direction: column; gap: 15px; font-size: 110px; color: red; text-align: center; text-shadow: 0 0 25px red; }
+        #strikes-L { left: -180px; }
+        #strikes-R { right: -180px; }
 
         #connect-screen { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .code-box { font-size: 50px; border: 2px solid var(--led-gold); padding: 20px; }
+        .code-box { font-size: 50px; border: 2px solid var(--led-gold); padding: 20px; margin-bottom: 20px; }
     </style>
 </head>
 <body>
@@ -47,11 +47,13 @@
     <div id="media-overlay"><video id="v-player"></video></div>
     <audio id="snd-repeat" src="powtorzenie.mp3"></audio>
 
-    <div id="welcome-text">FAMILIADA <span class="sub-text">EDYCJA SZKOLNA</span></div>
+    <div id="welcome-screen">
+        <div id="welcome-text">FAMILIADA <span class="sub-text">EDYCJA SZKOLNA</span></div>
+    </div>
 
     <div id="connect-screen">
         <div class="code-box" id="my-id">ID: ...</div>
-        <button onclick="document.getElementById('connect-screen').style.display='none'; document.getElementById('board').style.display='block';">OTWÓRZ SYSTEM</button>
+        <button onclick="document.getElementById('connect-screen').style.display='none'; showWelcome();" style="padding:15px 40px; font-size:24px; cursor:pointer;">OTWÓRZ SYSTEM</button>
     </div>
 
     <div class="game-board" id="board">
@@ -59,7 +61,7 @@
         <div class="round-score" id="round-score">0</div>
         <div class="main-display" id="rows-container"></div>
         <div id="strikes-R" class="strike-zone"></div>
-        <div style="display:flex; justify-content: space-between; margin-top: 30px; font-size: 60px; color: white;">
+        <div style="display:flex; justify-content: space-between; margin-top: 40px; font-size: 65px; color: white;">
             <span>SUMA:</span> <span id="total-score">0</span>
         </div>
     </div>
@@ -68,7 +70,9 @@
         const peer = new Peer();
         const vPlayer = document.getElementById('v-player');
         const vOverlay = document.getElementById('media-overlay');
-        const welcome = document.getElementById('welcome-text');
+        const welcome = document.getElementById('welcome-screen');
+
+        function showWelcome() { welcome.style.display = 'flex'; }
 
         peer.on('open', id => document.getElementById('my-id').innerText = "ID: " + id);
         
@@ -76,17 +80,19 @@
             conn.on('data', data => {
                 if(data.type === 'INTRO') {
                     vPlayer.src = 'czolowka.mp4';
-                    vOverlay.style.display='block'; vPlayer.play();
+                    vOverlay.style.display='block'; 
+                    vPlayer.play();
                     vPlayer.onended = () => {
                         vOverlay.style.display='none';
-                        welcome.style.display='block';
-                        setTimeout(() => welcome.style.display='none', 4000);
+                        showWelcome();
                     };
                 }
                 if(data.type === 'OUTRO') { vPlayer.src = 'napisy.mp4'; vOverlay.style.display='block'; vPlayer.play(); }
                 if(data.type === 'REPEAT') document.getElementById('snd-repeat').play();
 
                 if(data.type === 'SETUP_ROUND') {
+                    welcome.style.display = 'none';
+                    document.getElementById('board').style.display = 'block';
                     const cont = document.getElementById('rows-container');
                     cont.innerHTML = '';
                     document.getElementById('strikes-L').innerHTML = '';
@@ -95,9 +101,9 @@
                     data.answers.forEach((a, i) => {
                         const r = document.createElement('div');
                         r.className = 'row'; r.id = 'r-' + i;
-                        r.innerHTML = `<div class="row-num">${i+1}</div><div class="row-content"><div class="ans-txt">${a.text}</div><div class="ans-pts">${a.points}</div></div>`;
+                        r.innerHTML = `<div class="row-num">${i+1}</div><div class="row-content"><div class="dots">...................................................</div><div class="ans-txt">${a.text}</div><div class="ans-pts">${a.points}</div></div>`;
                         cont.appendChild(r);
-                        setTimeout(() => r.classList.add('visible'), i * 200);
+                        setTimeout(() => r.classList.add('visible'), i * 150);
                     });
                 }
 
