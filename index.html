@@ -2,85 +2,95 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA TV - MODERN NEON</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=VT323&display=swap" rel="stylesheet">
+    <title>FAMILIADA TV - RETRO PRO</title>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        :root { --gold: #ffd700; --blue: #00d4ff; --red: #ff2e2e; --bg: #050505; }
-        body { background: var(--bg); color: white; font-family: 'Orbitron', sans-serif; margin: 0; overflow: hidden; height: 100vh; text-transform: uppercase; }
-        .neon-overlay { position: fixed; inset: 0; background: radial-gradient(circle at 50% 50%, #0a0a1a 0%, #000 100%); z-index: -1; }
+        :root { --gold: #ffd700; --blue: #00d4ff; --red: #ff2e2e; --bg: #000; }
+        body { background: var(--bg); color: white; font-family: 'VT323', monospace; margin: 0; overflow: hidden; height: 100vh; text-transform: uppercase; }
         
-        /* POŚWIATA AKTYWNEJ DRUŻYNY */
-        .glow { position: fixed; top: 0; width: 50%; height: 8px; transition: 0.8s; opacity: 0; box-shadow: 0 0 25px 5px; }
-        #glow-L { left: 0; background: var(--blue); box-shadow: 0 0 30px var(--blue); }
-        #glow-R { right: 0; background: var(--red); box-shadow: 0 0 30px var(--red); }
-
-        .header { display: flex; justify-content: space-between; align-items: center; padding: 20px 100px; height: 15vh; }
-        .score-val { font-size: 90px; font-weight: 700; }
+        /* NAGŁÓWEK */
+        .header { display: flex; justify-content: space-around; align-items: center; height: 20vh; padding: 0 50px; }
+        .score-box { background: #111; border: 4px solid #333; padding: 10px 40px; border-radius: 10px; font-size: 100px; color: white; min-width: 150px; text-align: center; }
         .blue-txt { color: var(--blue); text-shadow: 0 0 20px rgba(0,212,255,0.5); }
         .red-txt { color: var(--red); text-shadow: 0 0 20px rgba(255,46,46,0.5); }
-        .round-sum-box { border: 3px solid var(--gold); padding: 10px 50px; border-radius: 20px; box-shadow: 0 0 20px rgba(255,215,0,0.3); background: rgba(0,0,0,0.5); }
-        .round-sum-val { font-size: 70px; color: var(--gold); font-family: 'VT323'; }
+        .main-sum { font-size: 140px; color: var(--gold); text-shadow: 0 0 30px rgba(255, 215, 0, 0.5); }
 
-        .board-container { width: 85vw; margin: 20px auto; display: flex; flex-direction: column; gap: 15px; }
-        .row { display: flex; height: 8.5vh; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; align-items: center; transition: 0.4s; }
-        .row-num { width: 80px; font-size: 35px; text-align: center; color: var(--gold); border-right: 2px solid #222; font-family: 'VT323'; }
-        .row-txt { flex-grow: 1; padding-left: 40px; font-size: 4.5vh; color: #fff; opacity: 0; transform: translateY(10px); transition: 0.6s cubic-bezier(0.17, 0.67, 0.83, 0.67); }
-        .row-pts { width: 140px; font-size: 4.5vh; color: var(--gold); text-align: right; padding-right: 40px; opacity: 0; font-family: 'VT323'; }
-        
-        .revealed { background: rgba(255,255,255,0.12); border-color: var(--gold); }
-        .revealed .row-txt { opacity: 1; transform: translateY(0); }
-        .revealed .row-pts { opacity: 1; }
+        /* TABLICA */
+        .board-container { width: 85vw; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; }
+        .row { display: flex; height: 9vh; background: #0a0a0a; border-bottom: 3px solid #222; align-items: center; position: relative; font-size: 7vh; }
+        .row-num { width: 80px; text-align: center; color: #000; border-right: 4px solid #000; background: var(--gold); font-weight: bold; }
+        .row-txt { flex-grow: 1; padding-left: 30px; color: #fff; visibility: hidden; }
+        .row-pts { width: 140px; color: var(--gold); text-align: right; padding-right: 20px; visibility: hidden; }
+        .revealed .row-txt, .revealed .row-pts { visibility: visible; }
 
-        #board-final { display: none; width: 95vw; margin: 0 auto; grid-template-columns: 1fr 1fr; gap: 50px; }
-        #timer { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); font-size: 110px; color: var(--red); background: black; padding: 10px 40px; border: 5px solid var(--red); border-radius: 20px; display: none; font-family: 'VT323'; z-index: 100; }
-        .strike { position: fixed; top: 30%; font-size: 45vh; font-weight: 900; display: none; z-index: 5000; -webkit-text-stroke: 4px black; }
-        #start-screen { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        /* FINAŁ */
+        #board-final { display: none; width: 95vw; margin: 0 auto; grid-template-columns: 1fr 1fr; gap: 40px; }
+        .final-col { display: flex; flex-direction: column; gap: 10px; }
+        #timer { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); font-size: 120px; color: var(--red); background: black; padding: 10px 40px; border: 6px solid var(--red); display: none; z-index: 100; }
+
+        /* MULTIMEDIA I EFEKTY */
+        .strike { position: fixed; top: 30%; font-size: 45vh; font-weight: bold; display: none; z-index: 5000; text-shadow: 5px 5px 0px #000; }
         #vid-layer { position: fixed; inset: 0; display: none; z-index: 4000; background: #000; }
         video { width: 100%; height: 100%; }
+        #start-overlay { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        #start-btn { padding: 30px 60px; font-size: 50px; background: var(--gold); border: none; cursor: pointer; font-family: 'VT323'; border-radius: 10px; }
+        
+        /* POŚWIATA AKTYWNEJ DRUŻYNY */
+        .active-glow { position: fixed; top: 0; width: 50%; height: 10px; opacity: 0; transition: 0.5s; }
+        #glow-L { left: 0; background: var(--blue); box-shadow: 0 0 30px var(--blue); }
+        #glow-R { right: 0; background: var(--red); box-shadow: 0 0 30px var(--red); }
     </style>
 </head>
 <body>
-    <div id="start-screen">
-        <div id="display-id" style="font-size: 40px; margin-bottom: 30px; color: var(--gold);">ŁĄCZENIE PEERJS...</div>
-        <button style="padding: 25px 60px; font-size: 35px; background: var(--gold); border: none; cursor: pointer; border-radius: 10px; font-family: 'Orbitron';" onclick="init()">ODBLOKUJ MULTIMEDIA</button>
+    <div id="start-overlay">
+        <div id="display-id" style="font-size: 30px; margin-bottom: 20px; color: var(--gold);">ŁĄCZENIE...</div>
+        <button id="start-btn" onclick="startSystem()">URUCHOM TABLICĘ</button>
     </div>
 
-    <div class="neon-overlay"></div>
-    <div id="glow-L" class="glow"></div>
-    <div id="glow-R" class="glow"></div>
+    <div id="glow-L" class="active-glow"></div>
+    <div id="glow-R" class="active-glow"></div>
     <div id="vid-layer"><video id="player"></video></div>
     <div id="timer">15</div>
-    <div id="strike-L" class="strike" style="color:var(--blue)">X</div>
-    <div id="strike-R" class="strike" style="color:var(--red)">X</div>
+    <div id="strike-L" class="strike" style="color:var(--blue); left: 10%;">X</div>
+    <div id="strike-R" class="strike" style="color:var(--red); right: 10%;">X</div>
 
     <div class="header">
-        <div class="team-display"><div id="s1" class="score-val blue-txt">0</div></div>
-        <div class="round-sum-box"><div id="sum" class="round-sum-val">0</div></div>
-        <div class="team-display"><div id="s2" class="score-val red-txt">0</div></div>
+        <div class="score-box blue-txt" id="s1">0</div>
+        <div class="main-sum" id="sum">0</div>
+        <div class="score-box red-txt" id="s2">0</div>
     </div>
 
-    <div class="board-container" id="board"></div>
-    <div id="board-final"><div id="f1"></div><div id="f2"></div></div>
+    <div class="board-container" id="board-round"></div>
+    <div id="board-final">
+        <div class="final-col" id="f1"></div>
+        <div class="final-col" id="f2"></div>
+    </div>
 
     <audio id="snd-ok" src="ok.mp3"></audio>
     <audio id="snd-bad" src="zla.mp3"></audio>
     <audio id="snd-intro" src="intro.mp3"></audio>
-    <audio id="snd-rep" src="powtorzenie.mp3"></audio>
+    <audio id="snd-rep" src="powturzenie.mp3"></audio>
 
     <script>
         const peer = new Peer();
-        peer.on('open', id => document.getElementById('display-id').innerText = "ID: " + id);
-        function init() { document.getElementById('start-screen').style.display = 'none'; }
+        peer.on('open', id => { document.getElementById('display-id').innerText = "KOD DO PANELU: " + id; });
+
+        function startSystem() {
+            document.getElementById('start-overlay').style.display = 'none';
+            ['snd-ok','snd-bad','snd-intro','snd-rep'].forEach(id => {
+                const a = document.getElementById(id); a.play(); a.pause();
+            });
+        }
 
         let timerInt;
         peer.on('connection', conn => {
             conn.on('data', data => {
                 if(data.type === 'SETUP') {
-                    document.getElementById('board').style.display = 'flex';
+                    document.getElementById('board-round').style.display = 'flex';
                     document.getElementById('board-final').style.display = 'none';
                     document.getElementById('timer').style.display = 'none';
-                    const b = document.getElementById('board'); b.innerHTML = '';
+                    const b = document.getElementById('board-round'); b.innerHTML = '';
                     data.ans.forEach((a, i) => b.innerHTML += `<div class="row" id="r-${i}"><div class="row-num">${i+1}</div><div class="row-txt">${a.t}</div><div class="row-pts">${a.p}</div></div>`);
                 }
                 if(data.type === 'REV') { document.getElementById('snd-ok').play(); document.getElementById('r-'+data.idx).classList.add('revealed'); }
@@ -90,7 +100,9 @@
                     el.innerText = "X".repeat(data.n); el.style.display = 'block'; setTimeout(() => el.style.display = 'none', 1500);
                 }
                 if(data.type === 'SCORE') {
-                    document.getElementById('s1').innerText = data.s1; document.getElementById('s2').innerText = data.s2; document.getElementById('sum').innerText = data.sum;
+                    document.getElementById('s1').innerText = data.s1; 
+                    document.getElementById('s2').innerText = data.s2; 
+                    document.getElementById('sum').innerText = data.sum;
                     document.getElementById('glow-L').style.opacity = data.active === 'blue' ? '1' : '0';
                     document.getElementById('glow-R').style.opacity = data.active === 'red' ? '1' : '0';
                 }
@@ -98,9 +110,10 @@
                     const vl = document.getElementById('vid-layer'); const vp = document.getElementById('player');
                     vl.style.display = 'block'; vp.src = 'czolowka.mp4'; vp.play(); vp.onended = () => vl.style.display = 'none';
                 }
-                if(data.type === 'SOUND') { const s = document.getElementById('snd-'+data.f); if(s) s.play(); }
+                if(data.type === 'SOUND') document.getElementById('snd-'+data.f).play();
                 if(data.type === 'FINAL_UI') {
-                    document.getElementById('board').style.display = 'none'; document.getElementById('board-final').style.display = 'grid';
+                    document.getElementById('board-round').style.display = 'none';
+                    document.getElementById('board-final').style.display = 'grid';
                     const f1 = document.getElementById('f1'); const f2 = document.getElementById('f2');
                     f1.innerHTML = ''; f2.innerHTML = '';
                     for(let i=0; i<5; i++) {
@@ -111,7 +124,7 @@
                 if(data.type === 'TIMER') {
                     clearInterval(timerInt); let t = data.val; const el = document.getElementById('timer');
                     el.style.display = 'block'; el.innerText = t;
-                    timerInt = setInterval(() => { t--; el.innerText = t; if(t<=0) { clearInterval(timerInt); document.getElementById('snd-bad').play(); } }, 1000);
+                    timerInt = setInterval(() => { t--; el.innerText = t; if(t<=0){ clearInterval(timerInt); document.getElementById('snd-bad').play(); }}, 1000);
                 }
                 if(data.type === 'FINAL_REV') {
                     document.getElementById('snd-ok').play();
