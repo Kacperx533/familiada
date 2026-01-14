@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA TV - FRAMELESS EDITION</title>
+    <title>FAMILIADA TV - WIDE EDITION</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
@@ -11,7 +11,6 @@
             --led-dim: #4a3b00;
             --border-blue: #0055ff;
             --border-red: #ff0044;
-            --bg-dark: #000000;
         }
         
         body {
@@ -29,24 +28,23 @@
             position: relative;
         }
 
-        /* POŚWIATA TŁA - LEWA STRONA (NIEBIESKA) */
+        /* AMBIENT GLOW - MAKSYMALNIE W LEWO I PRAWO */
         body::before {
             content: '';
             position: absolute;
             top: 0; left: 0; bottom: 0;
-            width: 40%;
-            background: radial-gradient(circle at 0% 50%, rgba(0, 85, 255, 0.35), transparent 75%);
+            width: 45%;
+            background: radial-gradient(circle at 0% 50%, rgba(0, 85, 255, 0.3), transparent 80%);
             pointer-events: none;
             z-index: 0;
         }
 
-        /* POŚWIATA TŁA - PRAWA STRONA (CZERWONA) */
         body::after {
             content: '';
             position: absolute;
             top: 0; right: 0; bottom: 0;
-            width: 40%;
-            background: radial-gradient(circle at 100% 50%, rgba(255, 0, 68, 0.35), transparent 75%);
+            width: 45%;
+            background: radial-gradient(circle at 100% 50%, rgba(255, 0, 68, 0.3), transparent 80%);
             pointer-events: none;
             z-index: 0;
         }
@@ -57,7 +55,7 @@
             background-image: 
                 linear-gradient(rgba(15,15,15,0.4) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(15,15,15,0.4) 1px, transparent 1px);
-            background-size: 4px 4px;
+            background-size: 5px 5px;
             z-index: -1;
         }
 
@@ -81,38 +79,35 @@
             margin-bottom: 20px;
         }
 
-        /* GŁÓWNA TABLICA - BEZ RAMKI */
+        /* GŁÓWNA TABLICA - SZEROKI PROSTOKĄT */
         .game-board {
             display: none; 
-            width: 85vw;
-            max-width: 1100px;
+            width: 95vw; /* Prawie cała szerokość ekranu */
+            max-width: 1600px;
             position: relative;
             z-index: 10;
         }
 
         .round-score-box {
-            width: 160px;
-            margin: 0 auto 30px auto;
-            background: transparent;
+            width: 200px;
+            margin: 0 auto 40px auto;
             text-align: center;
-            font-size: 100px;
+            font-size: 110px;
             color: #fff;
-            text-shadow: 0 0 15px rgba(255,255,255,0.5);
+            text-shadow: 0 0 20px rgba(255,255,255,0.6);
             line-height: 1;
         }
 
         .main-display {
-            background: #000; /* Całkowicie czarna przestrzeń */
+            background: #000;
             position: relative;
-            /* Subtelna poświata wychodząca spod samej czerni */
-            box-shadow: 
-                -60px 0 120px -30px rgba(0, 85, 255, 0.3), 
-                 60px 0 120px -30px rgba(255, 0, 68, 0.3);
+            /* Cień pod tablicą tworzy głębię */
+            box-shadow: 0 0 100px rgba(0,0,0,1);
         }
         
         .display-inner {
-            padding: 40px 20px;
-            min-height: 50vh;
+            padding: 20px 80px;
+            min-height: 40vh; /* Niższa wysokość dla efektu prostokąta */
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -121,16 +116,16 @@
         .row {
             display: flex;
             align-items: center;
-            font-size: 65px;
-            margin-bottom: 15px;
-            height: 75px;
+            font-size: 70px;
+            margin-bottom: 20px;
+            height: 80px;
         }
 
         .row-num {
-            width: 60px;
-            color: #151515; /* Prawie niewidoczne numery */
-            margin-right: 20px;
-            text-align: center;
+            width: 80px;
+            color: #111; /* Numer ukryty w czerni */
+            margin-right: 30px;
+            text-align: left;
         }
 
         .row-content {
@@ -139,14 +134,14 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid #080808;
+            border-bottom: 1px solid #0a0a0a;
         }
 
         .dots {
             position: absolute;
             left: 0; top: 0; width: 100%;
-            letter-spacing: 12px;
-            color: #111; /* Bardzo ciemne kropki */
+            letter-spacing: 15px;
+            color: #0d0d0d;
             z-index: 0;
             overflow: hidden;
             white-space: nowrap;
@@ -156,65 +151,67 @@
             z-index: 1;
             background: #000;
             display: none;
-            text-shadow: 0 0 12px var(--led-gold);
+            text-shadow: 0 0 15px var(--led-gold);
         }
 
-        .revealed .answer-text { display: block; padding-right: 25px; }
-        .revealed .points { display: block; padding-left: 25px; color: #fff; }
+        .revealed .answer-text { display: block; padding-right: 30px; }
+        .revealed .points { display: block; padding-left: 30px; color: #fff; }
         .revealed .dots { display: none; }
 
         .footer {
-            margin-top: 50px;
+            margin-top: 60px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             width: 100%;
+            padding: 0 40px;
+            box-sizing: border-box;
         }
         
         .strikes-container {
             display: flex;
-            gap: 25px;
+            gap: 30px;
         }
         .strike {
             color: var(--border-red);
-            font-size: 110px;
-            text-shadow: 0 0 25px red;
-            line-height: 0.8;
+            font-size: 120px;
+            text-shadow: 0 0 30px red;
+            line-height: 0.7;
         }
 
         .total-val { 
-            font-size: 90px; 
+            font-size: 100px; 
             color: #fff; 
-            text-shadow: 0 0 20px rgba(255,255,255,0.4); 
+            text-shadow: 0 0 25px rgba(255,255,255,0.4); 
         }
 
         /* Wielkie X */
         #fullscreen-strike {
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,0.95);
+            background: rgba(0,0,0,0.96);
             z-index: 10000;
             display: none;
             align-items: center;
             justify-content: center;
         }
-        .big-x { width: 320px; height: 320px; position: relative; }
+        .big-x { width: 350px; height: 350px; position: relative; }
         .big-x::before, .big-x::after {
-            content: ''; position: absolute; width: 100%; height: 55px;
-            background: red; box-shadow: 0 0 60px red; top: 50%;
+            content: ''; position: absolute; width: 100%; height: 60px;
+            background: red; box-shadow: 0 0 70px red; top: 50%;
         }
         .big-x::before { transform: translateY(-50%) rotate(45deg); }
         .big-x::after { transform: translateY(-50%) rotate(-45deg); }
 
-        /* FINAŁ */
+        /* FINAŁ - SZEROKI UKŁAD */
         #final-board { display: none; width: 100%; flex-direction: column; }
-        .final-cols { display: flex; gap: 60px; justify-content: center; }
+        .final-cols { display: flex; gap: 100px; justify-content: center; }
         .final-row { 
-            display: flex; width: 460px; justify-content: space-between; 
-            font-size: 55px; background: #000; margin-bottom: 15px; padding: 5px 10px; border-bottom: 1px solid #0a0a0a;
+            display: flex; width: 550px; justify-content: space-between; 
+            font-size: 60px; background: #000; margin-bottom: 20px; padding: 5px 15px; border-bottom: 1px solid #111;
         }
-        .f-txt { width: 360px; opacity: 0; }
-        .f-pts { width: 70px; text-align: right; opacity: 0; color: #fff; }
+        .f-txt { width: 450px; opacity: 0; }
+        .f-pts { width: 80px; text-align: right; opacity: 0; color: #fff; }
         .f-rev .f-txt, .f-rev .f-pts { opacity: 1; }
     </style>
 </head>
@@ -227,11 +224,11 @@
     <audio id="snd-bad" src="zle.mp3"></audio>
 
     <div id="connect-screen">
-        <div style="font-size: 20px; margin-bottom:10px; color:#444; letter-spacing: 2px;">POŁĄCZ PANEL STEROWANIA</div>
+        <div style="font-size: 20px; margin-bottom:10px; color:#444; letter-spacing: 5px;">SYSTEM READY</div>
         <div class="code-display" id="my-id">...</div>
         <button onclick="document.getElementById('connect-screen').style.display='none'; document.querySelector('.game-board').style.display='block';" 
-            style="font-family:'VT323'; font-size:28px; padding:15px 50px; cursor:pointer; background:var(--led-gold); border:none; border-radius:4px; font-weight:bold;">
-            URUCHOM SYSTEM
+            style="font-family:'VT323'; font-size:30px; padding:15px 60px; cursor:pointer; background:var(--led-gold); border:none; border-radius:5px; font-weight:bold;">
+            URUCHOM TRANSMISJĘ
         </button>
     </div>
 
@@ -244,7 +241,7 @@
             <div class="display-inner">
                 <div id="normal-rows"></div>
                 <div id="final-board">
-                    <div style="text-align:center; font-size:140px; color:var(--border-red); text-shadow:0 0 40px red; margin-bottom:20px;" id="timer">00</div>
+                    <div style="text-align:center; font-size:150px; color:var(--border-red); text-shadow:0 0 50px red; margin-bottom:30px;" id="timer">00</div>
                     <div class="final-cols">
                         <div id="col-1"></div>
                         <div id="col-2"></div>
@@ -256,7 +253,7 @@
         <div class="footer">
             <div class="strikes-container" id="strikes-box"></div>
             <div class="total-score">
-                <span style="font-size:35px; color:#222; margin-right: 15px;">SUMA</span>
+                <span style="font-size:35px; color:#1a1a1a; margin-right: 20px;">TOTAL</span>
                 <span class="total-val" id="global-score">0</span>
             </div>
         </div>
@@ -287,7 +284,7 @@
                         row.innerHTML = `
                             <div class="row-num">${index + 1}</div>
                             <div class="row-content">
-                                <div class="dots">..................................................</div>
+                                <div class="dots">....................................................................................</div>
                                 <div class="answer-text">${ans.text}</div>
                                 <div class="points">${ans.points}</div>
                             </div>`;
