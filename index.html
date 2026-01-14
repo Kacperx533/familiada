@@ -2,198 +2,104 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA TV - ULTIMATE GLOW</title>
+    <title>FAMILIADA TV</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        :root { --gold: #ffcc00; --blue: #0066ff; --red: #ff0000; --bg: #020202; }
-        body { 
-            background: var(--bg); 
-            color: var(--gold); 
-            font-family: 'VT323', monospace; 
-            margin: 0; overflow: hidden; height: 100vh; 
-            text-transform: uppercase;
-        }
-
-        /* Tło z poświatą boczną */
-        body::before { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 15% 50%, rgba(0,102,255,0.15), transparent 40%); pointer-events: none; }
-        body::after { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 85% 50%, rgba(255,0,0,0.15), transparent 40%); pointer-events: none; }
-
-        #unlocker { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; align-items: center; justify-content: center; }
-        #unlocker button { padding: 30px 60px; font-size: 40px; background: var(--gold); border: none; cursor: pointer; font-family: 'VT323'; border-radius: 15px; box-shadow: 0 0 30px var(--gold); }
-
-        /* NAGŁÓWEK - TYLKO NAZWY I SUMA */
-        .header { display: flex; justify-content: space-around; align-items: center; height: 25vh; padding: 0 50px; }
-        .team-name { font-size: 5vw; color: #fff; text-shadow: 0 0 20px rgba(255,255,255,0.5); }
-        .main-score-box { text-align: center; background: rgba(255,204,0,0.05); padding: 20px 40px; border-radius: 20px; border: 2px solid rgba(255,204,0,0.2); }
-        .main-score-label { font-size: 2vw; color: #888; }
-        .main-score-val { font-size: 8vw; color: #fff; text-shadow: 0 0 40px var(--gold); line-height: 0.8; }
-
-        /* TABLICA */
-        .board-frame { 
-            width: 85vw; margin: 0 auto; 
-            background: #000; 
-            border: 6px solid #222; 
-            border-radius: 40px; 
-            padding: 40px; 
-            box-shadow: 0 0 60px rgba(0,0,0,1), inset 0 0 40px #111;
-            position: relative;
-        }
-
-        .row { 
-            display: flex; align-items: center; height: 10vh; margin-bottom: 12px; 
-            background: #050505; border-bottom: 3px solid #111; font-size: 7vh; 
-            position: relative; overflow: hidden;
-        }
-        .row-num { width: 90px; color: #222; text-align: center; border-right: 4px solid #000; font-weight: bold; }
-        .row-content { flex-grow: 1; display: flex; justify-content: space-between; padding: 0 40px; position: relative; }
+        body { background: #000; color: #ffcc00; font-family: 'VT323', monospace; margin: 0; overflow: hidden; text-align: center; }
         
-        .row-text { color: #fff; display: none; z-index: 2; text-shadow: 0 0 10px rgba(255,255,255,0.3); }
-        .row-pts { color: var(--gold); display: none; z-index: 2; text-shadow: 0 0 15px var(--gold); }
-        .dots { color: #0f0f0f; position: absolute; left: 40px; letter-spacing: 12px; z-index: 1; }
+        /* EKRAN STARTOWY Z ID */
+        #setup-screen { position: fixed; inset: 0; background: #111; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
+        .id-box { background: #222; border: 5px solid gold; padding: 40px; border-radius: 20px; margin: 20px; }
+        .id-label { font-size: 30px; color: #888; }
+        #display-id { font-size: 80px; color: white; letter-spacing: 5px; margin: 10px 0; }
+        .start-btn { padding: 20px 50px; font-size: 30px; background: gold; border: none; cursor: pointer; border-radius: 10px; font-weight: bold; }
 
-        .revealed { background: #0a0a0a !important; }
-        .revealed .row-text, .revealed .row-pts { display: block; }
+        /* GŁÓWNA TABLICA */
+        .container { display: none; flex-direction: column; height: 100vh; padding: 20px; box-sizing: border-box; }
+        .header { display: flex; justify-content: space-around; align-items: center; height: 20vh; }
+        .main-sum { font-size: 150px; color: white; text-shadow: 0 0 30px gold; }
+        
+        .board-frame { flex-grow: 1; border: 10px solid #222; border-radius: 40px; padding: 30px; background: #000; }
+        .row { display: flex; height: 10vh; margin-bottom: 10px; background: #080808; font-size: 8vh; border-bottom: 2px solid #1a1a1a; position: relative; }
+        .row-num { width: 100px; color: #222; border-right: 4px solid #000; }
+        .row-txt { flex-grow: 1; text-align: left; padding-left: 40px; color: white; display: none; }
+        .row-pts { width: 150px; color: gold; display: none; }
+        .dots { position: absolute; left: 140px; color: #111; letter-spacing: 15px; }
+        
+        .revealed .row-txt, .revealed .row-pts { display: block; }
         .revealed .dots { display: none; }
 
-        /* OGROMNE X (BŁĄD) */
-        #strike-overlay { 
-            position: fixed; inset: 0; display: none; 
-            align-items: center; justify-content: center; 
-            z-index: 5000; pointer-events: none;
-            background: rgba(0,0,0,0.4);
-        }
-        .big-x { 
-            font-size: 60vh; color: var(--red); 
-            text-shadow: 0 0 100px var(--red), 0 0 20px white; 
-            font-weight: bold; transform: scale(1.2);
-            animation: popX 0.5s ease-out;
-        }
-        @keyframes popX { 0% { transform: scale(0); } 80% { transform: scale(1.3); } 100% { transform: scale(1.2); } }
-
-        /* FINAŁ */
-        #final-grid { display: none; grid-template-columns: 1fr 1fr; gap: 60px; }
-        .final-col { display: flex; flex-direction: column; gap: 15px; }
-
-        #media-layer { position: fixed; inset: 0; z-index: 4000; display: none; background: #000; }
+        /* MULTIMEDIA */
+        #strike-ov { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; z-index: 5000; background: rgba(0,0,0,0.5); }
+        .big-x { font-size: 60vh; color: red; text-shadow: 0 0 50px red; font-weight: bold; }
+        #vid-layer { position: fixed; inset: 0; display: none; z-index: 4000; background: #000; }
         video { width: 100%; height: 100%; }
     </style>
 </head>
 <body>
 
-    <div id="unlocker"><button onclick="startTV()">URUCHOM SYSTEM TV</button></div>
-    
-    <div id="media-layer"><video id="v-player"></video></div>
-
-    <div id="strike-overlay"><div class="big-x" id="x-txt">X</div></div>
-
-    <div class="container" id="main-ui">
-        <div class="header">
-            <div class="team-name" id="t1-n">DRUŻYNA A</div>
-            <div class="main-score-box">
-                <div class="main-score-label">SUMA</div>
-                <div class="main-score-val" id="total-s">0</div>
-            </div>
-            <div class="team-name" id="t2-n">DRUŻYNA B</div>
+    <div id="setup-screen">
+        <div class="id-box">
+            <div class="id-label">TWOJE ID DO PANELU:</div>
+            <div id="display-id">ŁĄCZENIE...</div>
         </div>
-
-        <div class="board-frame">
-            <div id="normal-grid"></div>
-            <div id="final-grid">
-                <div class="final-col" id="fc1"></div>
-                <div class="final-col" id="fc2"></div>
-            </div>
-        </div>
+        <button class="start-btn" onclick="startApp()">URUCHOM TABLICĘ</button>
+        <p style="color: gray;">(Kliknij przycisk, aby odblokować dźwięki)</p>
     </div>
 
-    <audio id="snd-ok" src="ok.mp3"></audio>
-    <audio id="snd-zla" src="zla.mp3"></audio>
-    <audio id="snd-intro" src="intro.mp3"></audio>
-    <audio id="snd-runda" src="runda.mp3"></audio>
-    <audio id="snd-final" src="final.mp3"></audio>
+    <div id="vid-layer"><video id="player"></video></div>
+    <div id="strike-ov"><div class="big-x" id="x-txt">X</div></div>
+
+    <div class="container" id="game-ui">
+        <div class="header">
+            <div style="font-size: 40px;" id="t1-name">DRUŻYNA 1</div>
+            <div class="main-sum" id="sum-val">0</div>
+            <div style="font-size: 40px;" id="t2-name">DRUŻYNA 2</div>
+        </div>
+        <div class="board-frame" id="rows-cont"></div>
+    </div>
+
+    <audio id="s-ok" src="ok.mp3"></audio>
+    <audio id="s-bad" src="zla.mp3"></audio>
+    <audio id="s-intro" src="intro.mp3"></audio>
+    <audio id="s-round" src="runda.mp3"></audio>
 
     <script>
         const peer = new Peer();
-        function startTV() {
-            document.getElementById('unlocker').style.display = 'none';
-        }
+        peer.on('open', id => document.getElementById('display-id').innerText = id);
 
-        peer.on('open', id => {
-            const el = document.createElement('div');
-            el.style: "position:fixed; bottom:10px; right:10px; color:#333; font-family:sans-serif; font-size:12px;";
-            el.innerText = "ID: " + id;
-            document.body.appendChild(el);
-            console.log("ID TV:", id);
-        });
+        function startApp() {
+            document.getElementById('setup-screen').style.display = 'none';
+            document.getElementById('game-ui').style.display = 'flex';
+        }
 
         peer.on('connection', conn => {
             conn.on('data', data => {
-                if(data.type === 'INTRO') {
-                    const v = document.getElementById('v-player');
-                    const l = document.getElementById('media-layer');
-                    document.getElementById('snd-intro').play();
-                    v.src = 'czolowka.mp4'; l.style.display = 'block'; v.play();
-                    v.onended = () => l.style.display = 'none';
-                }
-
                 if(data.type === 'SETUP') {
-                    document.getElementById('snd-runda').play();
-                    document.getElementById('normal-grid').style.display = 'block';
-                    document.getElementById('final-grid').style.display = 'none';
-                    const g = document.getElementById('normal-grid'); g.innerHTML = '';
+                    document.getElementById('s-round').play();
+                    const c = document.getElementById('rows-cont'); c.innerHTML = '';
                     data.ans.forEach((a, i) => {
-                        g.innerHTML += `
-                        <div class="row" id="r-${i}">
-                            <div class="row-num">${i+1}</div>
-                            <div class="row-content">
-                                <div class="dots">..........................................</div>
-                                <div class="row-text">${a.t}</div>
-                                <div class="row-pts">${a.p}</div>
-                            </div>
-                        </div>`;
+                        c.innerHTML += `<div class="row" id="r-${i}"><div class="row-num">${i+1}</div><div class="dots">.....................</div><div class="row-txt">${a.t}</div><div class="row-pts">${a.p}</div></div>`;
                     });
                 }
-
                 if(data.type === 'REV') {
-                    document.getElementById('snd-ok').play();
+                    document.getElementById('s-ok').play();
                     document.getElementById('r-'+data.idx).classList.add('revealed');
                 }
-
                 if(data.type === 'STRIKE') {
-                    document.getElementById('snd-zla').play();
-                    const ov = document.getElementById('strike-overlay');
-                    document.getElementById('x-txt').innerText = "X".repeat(data.num);
-                    ov.style.display = 'flex';
-                    setTimeout(() => ov.style.display = 'none', 1600);
+                    document.getElementById('s-bad').play();
+                    const o = document.getElementById('strike-ov');
+                    document.getElementById('x-txt').innerText = "X".repeat(data.n);
+                    o.style.display = 'flex'; setTimeout(() => o.style.display='none', 1500);
                 }
-
-                if(data.type === 'SCORE') {
-                    document.getElementById('total-s').innerText = data.sum;
-                }
-
-                if(data.type === 'NAMES') {
-                    document.getElementById('t1-n').innerText = data.n1;
-                    document.getElementById('t2-n').innerText = data.n2;
-                }
-
-                if(data.type === 'FINAL_MODE') {
-                    document.getElementById('snd-final').play();
-                    document.getElementById('normal-grid').style.display = 'none';
-                    document.getElementById('final-grid').style.display = 'grid';
-                    const c1 = document.getElementById('fc1'); const c2 = document.getElementById('fc2');
-                    c1.innerHTML = ''; c2.innerHTML = '';
-                    for(let i=0; i<5; i++) {
-                        c1.innerHTML += `<div class="row" style="height:8vh"><div class="row-content"><div class="row-text" id="f1t-${i}" style="display:none">--</div><div class="row-pts" id="f1p-${i}" style="display:none">0</div></div></div>`;
-                        c2.innerHTML += `<div class="row" style="height:8vh"><div class="row-content"><div class="row-text" id="f2t-${i}" style="display:none">--</div><div class="row-pts" id="f2p-${i}" style="display:none">0</div></div></div>`;
-                    }
-                }
-
-                if(data.type === 'FINAL_REV') {
-                    document.getElementById('snd-ok').play();
-                    const t = document.getElementById(`f${data.p}t-${data.i}`);
-                    const p = document.getElementById(`f${data.p}p-${data.i}`);
-                    t.innerText = data.txt; p.innerText = data.pts;
-                    t.style.display = 'block'; p.style.display = 'block';
+                if(data.type === 'SCORE') document.getElementById('sum-val').innerText = data.s;
+                if(data.type === 'INTRO') {
+                    const v = document.getElementById('player');
+                    document.getElementById('vid-layer').style.display = 'block';
+                    document.getElementById('s-intro').play();
+                    v.src = 'czolowka.mp4'; v.play();
+                    v.onended = () => document.getElementById('vid-layer').style.display = 'none';
                 }
             });
         });
