@@ -2,51 +2,59 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>PANEL KONTROLNY - EDYCJA SZKOLNA</title>
+    <title>PANEL STEROWANIA</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        body { font-family: sans-serif; background: #1a1a1a; color: white; padding: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .card { background: #2d2d2d; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 5px solid #ffcc00; }
-        button { padding: 12px; margin: 5px 0; width: 100%; cursor: pointer; font-weight: bold; border-radius: 4px; border: none; }
-        .gold { background: #ffcc00; } .blue { background: #0055ff; color: white; } .red { background: #ff0044; color: white; }
-        .active { outline: 4px solid white; box-shadow: 0 0 15px white; }
-        input, select { width: 100%; padding: 10px; margin: 5px 0; box-sizing: border-box; background: #000; color: #fff; border: 1px solid #444; }
-        h3 { margin-top: 0; color: #ffcc00; text-transform: uppercase; font-size: 14px; }
+        body { font-family: 'Segoe UI', sans-serif; background: #121212; color: white; padding: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .card { background: #1e1e1e; padding: 20px; border-radius: 12px; border-top: 4px solid #ffcc00; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        button { padding: 12px; margin: 5px 0; width: 100%; cursor: pointer; font-weight: bold; border-radius: 6px; border: none; transition: 0.2s; }
+        button:hover { opacity: 0.8; transform: translateY(-2px); }
+        .gold { background: #ffcc00; color: #000; } 
+        .blue { background: #0055ff; color: white; } 
+        .red { background: #ff0044; color: white; }
+        .active { outline: 3px solid white; box-shadow: 0 0 15px rgba(255,255,255,0.4); }
+        input, select { width: 100%; padding: 12px; margin: 8px 0; box-sizing: border-box; background: #000; color: #fff; border: 1px solid #333; border-radius: 6px; }
+        h3 { margin-top: 0; color: #ffcc00; letter-spacing: 1px; font-size: 16px; }
+        .ans-btn { background: #333; color: #ddd; text-align: left; padding-left: 15px; }
     </style>
 </head>
 <body>
 
-    <div class="left">
+    <div>
         <div class="card">
-            <h3>1. POŁĄCZENIE</h3>
-            <input type="text" id="tv-id" placeholder="Wklej ID z TV">
-            <button class="gold" onclick="connect()">POŁĄCZ Z TABLICĄ</button>
+            <h3>1. SYNCHRONIZACJA</h3>
+            <input type="text" id="tv-id" placeholder="Wklej ID z ekranu TV">
+            <button class="gold" onclick="connect()">POŁĄCZ SYSTEM</button>
         </div>
 
         <div class="card">
             <h3>2. MULTIMEDIA</h3>
-            <button onclick="send({type:'INTRO'})">🎬 START (CZOŁÓWKA + NAPIS)</button>
-            <button onclick="send({type:'OUTRO'})">📝 NAPISY KOŃCOWE</button>
-            <button style="background: orange;" onclick="send({type:'REPEAT'})">🔔 POWTÓRZENIE</button>
+            <button onclick="send({type:'INTRO'})">🎬 START (CZOŁÓWKA)</button>
+            <button style="background: orange;" onclick="send({type:'REPEAT'})">🔔 POWTÓRZENIE (DŹWIĘK)</button>
+            <button onclick="send({type:'OUTRO'})">📝 KONIEC (NAPISY)</button>
         </div>
 
         <div class="card">
-            <h3>3. PUNKTY I BŁĘDY</h3>
+            <h3>3. PUNKTY I DRUŻYNY</h3>
             <div style="display:flex; gap:10px;">
-                <button id="btn-a" class="blue" onclick="selTeam('A')">DRUŻYNA A (LEWA): <span id="s-a">0</span></button>
-                <button id="btn-b" class="red" onclick="selTeam('B')">DRUŻYNA B (PRAWA): <span id="s-b">0</span></button>
+                <button id="btn-a" class="blue" onclick="selTeam('A')">NIEBIESCY (LEWA)</button>
+                <button id="btn-b" class="red" onclick="selTeam('B')">CZERWONI (PRAWA)</button>
             </div>
-            <button class="red" style="margin-top:10px; font-size: 20px;" onclick="sendStrike()">❌ BŁĄD DLA AKTYWNEJ</button>
-            <div style="text-align:center; font-size:24px; margin:15px; color: gold;">W TEJ RUNDZIE: <span id="s-r">0</span></div>
-            <button class="gold" onclick="addPts()">DODAJ PUNKTY DO AKTYWNEJ</button>
+            <button class="red" style="margin-top:15px; font-size: 18px;" onclick="sendStrike()">❌ BŁĄD (X)</button>
+            <div style="text-align:center; font-size:32px; margin:20px 0; color: #ffcc00; border: 1px solid #333; padding: 10px;">SUMA RUNDY: <span id="s-r">0</span></div>
+            <button class="gold" style="height: 60px; font-size: 18px;" onclick="addPts()">DODAJ PUNKTY DRUŻYNIE</button>
+            <div style="display:flex; justify-content: space-around; margin-top: 10px;">
+                <span>Pkt A: <b id="s-a">0</b></span>
+                <span>Pkt B: <b id="s-b">0</b></span>
+            </div>
         </div>
     </div>
 
-    <div class="right">
+    <div>
         <div class="card">
-            <h3>4. BAZA PYTAŃ (EDYCJA SZKOLNA)</h3>
+            <h3>4. RUNDA I PYTANIA</h3>
             <select id="q-sel" onchange="preview()"></select>
-            <button class="gold" onclick="sendSetup()">WYŚLIJ PYTANIE NA TABLICĘ</button>
+            <button class="gold" style="height: 50px; margin-bottom: 15px;" onclick="sendSetup()">WYŚLIJ PYTANIE NA TABLICĘ</button>
             <div id="ans-list"></div>
         </div>
     </div>
@@ -54,11 +62,11 @@
     <script>
         const db = [
             {q:"Przedmiot szkolny?", a:[["MATEMATYKA",45],["POLSKI",25],["WF",15],["HISTORIA",10],["BIOLOGIA",5]]},
-            {q:"Co robimy na przerwie?", a:[["JEMY ŚNIADANIE",40],["ROZMAWIAMY",30],["BIEGAMY",15],["POWTARZAMY",10],["GRAMY NA TEL",5]]},
+            {q:"Co robimy na przerwie?", a:[["JEMY ŚNIADANIE",40],["ROZMAWIAMY",30],["BIEGAMY",15],["POWTARZAMY",10],["TELEFON",5]]},
             {q:"Wyposażenie piórnika?", a:[["DŁUGOPIS",50],["OŁÓWEK",20],["GUMKA",15],["LINIJKA",10],["KREDKI",5]]},
-            {q:"Co można dostać od nauczyciela?", a:[["OCENĘ",45],["POCHWAŁĘ",25],["UWAGĘ",15],["ZADANIE",10],["PYTANIE",5]]},
-            {q:"Gdzie jeździmy na wycieczki?", a:[["KINO",35],["MUZEUM",30],["GÓRY",20],["LAS",10],["BASEN",5]]},
-            {q:"Co jest w plecaku oprócz książek?", a:[["ZESZYT",40],["ŚNIADANIE",30],["WODA",15],["STRÓJ NA WF",10],["TELEFON",5]]}
+            {q:"Co kojarzy się z wakacjami?", a:[["MORZE",40],["SŁOŃCE",25],["LODY",20],["PIASEK",10],["GÓRY",5]]},
+            {q:"Zwierzę na literę K?", a:[["KOT",45],["KOŃ",25],["KROWA",15],["KANGUR",10],["KROKODYL",5]]},
+            {q:"Co można dostać od nauczyciela?", a:[["OCENĘ",48],["POCHWAŁĘ",22],["UWAGĘ",15],["ZADANIE",10],["PYTANIE",5]]}
         ];
 
         let peer = new Peer(), conn, scoreA=0, scoreB=0, scoreR=0, team='A';
@@ -71,7 +79,7 @@
 
         function connect() {
             conn = peer.connect(document.getElementById('tv-id').value);
-            conn.on('open', () => alert("Połączono!"));
+            conn.on('open', () => alert("POŁĄCZONO Z TABLICĄ!"));
         }
 
         function send(d) { if(conn) conn.send(d); }
@@ -80,7 +88,7 @@
             const data = db[document.getElementById('q-sel').value];
             const div = document.getElementById('ans-list'); div.innerHTML = "";
             data.a.forEach((ans, i) => {
-                div.innerHTML += `<button onclick="reveal(${i}, ${ans[1]})">${ans[0]} (${ans[1]})</button>`;
+                div.innerHTML += `<button class="ans-btn" onclick="reveal(${i}, ${ans[1]})">${ans[0]} (${ans[1]})</button>`;
             });
         }
 
