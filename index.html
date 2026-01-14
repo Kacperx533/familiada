@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA TV - ULTIMATE</title>
+    <title>FAMILIADA TV - PRO</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
@@ -12,53 +12,57 @@
             margin: 0; overflow: hidden; height: 100vh; text-transform: uppercase;
         }
 
-        /* INTENSYWNA POŚWIATA BOCZNA */
-        body::before { 
-            content: ''; position: absolute; inset: 0; 
-            background: radial-gradient(circle at 5% 50%, rgba(0,102,255,0.4), transparent 40%); 
-            pointer-events: none; z-index: 1;
-        }
-        body::after { 
-            content: ''; position: absolute; inset: 0; 
-            background: radial-gradient(circle at 95% 50%, rgba(255,0,0,0.4), transparent 40%); 
-            pointer-events: none; z-index: 1;
-        }
+        /* TŁO I POŚWIATA */
+        .glow-left { position: absolute; inset: 0; background: radial-gradient(circle at 0% 50%, rgba(0,102,255,0.2), transparent 40%); pointer-events: none; }
+        .glow-right { position: absolute; inset: 0; background: radial-gradient(circle at 100% 50%, rgba(255,0,0,0.2), transparent 40%); pointer-events: none; }
 
-        /* EKRAN STARTOWY (Z ID) */
-        #setup-screen { 
-            position: fixed; inset: 0; background: #050505; 
-            display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; 
-        }
-        .id-display { font-size: 120px; color: #fff; text-shadow: 0 0 30px var(--gold); margin-bottom: 30px; }
-        .start-btn { padding: 30px 80px; font-size: 45px; background: var(--gold); border: none; cursor: pointer; border-radius: 20px; font-family: 'VT323'; box-shadow: 0 0 40px rgba(255,204,0,0.5); }
+        /* ID STARTOWE */
+        #setup-screen { position: fixed; inset: 0; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
+        #display-id { font-size: 100px; color: white; margin: 20px; text-shadow: 0 0 20px var(--gold); }
+        .start-btn { padding: 20px 60px; font-size: 30px; background: var(--gold); border: none; cursor: pointer; border-radius: 10px; font-family: 'VT323'; }
+
+        /* NAGŁÓWEK Z PUNKTAMI */
+        .header { display: flex; justify-content: space-between; align-items: center; height: 22vh; padding: 0 50px; position: relative; z-index: 10; }
+        .team-box { text-align: center; width: 300px; }
+        .t-name { font-size: 40px; color: #fff; margin-bottom: 5px; }
+        .t-score { font-size: 90px; background: #111; border: 3px solid #333; min-width: 120px; }
+        .main-sum-box { text-align: center; }
+        .main-sum-val { font-size: 130px; color: #fff; text-shadow: 0 0 40px var(--gold); line-height: 0.8; }
 
         /* TABLICA */
-        .container { display: flex; flex-direction: column; height: 100vh; padding: 20px; box-sizing: border-box; position: relative; z-index: 2; }
-        .header { display: flex; justify-content: space-around; align-items: center; height: 25vh; }
-        .team-name { font-size: 5vw; font-weight: bold; }
-        .main-score { font-size: 12vw; color: #fff; text-shadow: 0 0 50px var(--gold); }
-
         .board-frame { 
-            width: 85vw; margin: 0 auto; background: #000; border: 8px solid #222; 
-            border-radius: 50px; padding: 40px; box-shadow: inset 0 0 60px #111;
+            width: 80vw; margin: 0 auto; background: #000; border: 6px solid #222; 
+            border-radius: 40px; padding: 25px; box-shadow: inset 0 0 50px #000;
         }
-        .row { display: flex; height: 10vh; margin-bottom: 12px; background: #080808; font-size: 8vh; border-bottom: 3px solid #111; position: relative; }
-        .row-num { width: 90px; color: #222; border-right: 4px solid #000; text-align: center; }
-        .row-txt { flex-grow: 1; text-align: left; padding-left: 50px; color: white; display: none; }
-        .row-pts { width: 150px; color: var(--gold); display: none; text-align: right; padding-right: 20px; }
-        .dots { position: absolute; left: 140px; color: #0f0f0f; letter-spacing: 18px; }
+        .row { 
+            display: flex; height: 9vh; margin-bottom: 8px; background: #050505; 
+            font-size: 7vh; border-bottom: 2px solid #111; position: relative; overflow: hidden;
+        }
+        .row-num { width: 80px; color: #1a1a1a; text-align: center; border-right: 4px solid #000; }
+        .row-txt { flex-grow: 1; padding-left: 30px; color: white; display: none; transform: translateX(-20px); transition: 0.4s; }
+        .row-pts { width: 120px; color: var(--gold); display: none; text-align: right; padding-right: 20px; }
+        .dots { position: absolute; left: 110px; color: #0a0a0a; letter-spacing: 15px; }
         
-        .revealed .row-txt, .revealed .row-pts { display: block; }
+        /* ANIMACJA WEJŚCIA */
+        .revealed .row-txt { display: block; transform: translateX(0); animation: flash 0.5s; }
+        .revealed .row-pts { display: block; }
         .revealed .dots { display: none; }
+        @keyframes flash { 0% { color: var(--gold); } 100% { color: white; } }
 
-        /* GIGANTYCZNE IKSY */
-        #strike-overlay { 
-            position: fixed; inset: 0; display: none; 
-            align-items: center; justify-content: center; z-index: 5000; 
-            background: rgba(0,0,0,0.3);
+        /* BŁĘDY PO BOKACH */
+        .strike-zone { position: fixed; top: 30%; font-size: 35vh; font-weight: bold; display: none; z-index: 5000; animation: pop 0.3s cubic-bezier(0.17, 0.89, 0.32, 1.28); }
+        #strike-L { left: 50px; color: var(--blue); text-shadow: 0 0 60px var(--blue); }
+        #strike-R { right: 50px; color: var(--red); text-shadow: 0 0 60px var(--red); }
+        @keyframes pop { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+
+        /* NAPISY KOŃCOWE */
+        #credits-screen { 
+            position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 8000; 
+            display: none; flex-direction: column; align-items: center; justify-content: flex-start;
+            padding-top: 100vh; animation: scrollCredits 15s linear forwards;
         }
-        .big-x { font-size: 75vh; font-weight: bold; text-shadow: 0 0 100px currentColor; animation: popX 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        @keyframes popX { 0% { transform: scale(0); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        @keyframes scrollCredits { 0% { transform: translateY(0); } 100% { transform: translateY(-200vh); } }
+        .credit-line { font-size: 50px; color: white; margin: 20px 0; }
 
         #vid-layer { position: fixed; inset: 0; display: none; z-index: 4000; background: #000; }
         video { width: 100%; height: 100%; }
@@ -67,28 +71,49 @@
 <body>
 
     <div id="setup-screen">
-        <h1 style="color:#888; margin:0">ID TWOJEJ TABLICY:</h1>
-        <div class="id-display" id="display-id">...</div>
-        <button class="start-btn" onclick="startApp()">OTWÓRZ SYSTEM TV</button>
+        <div id="display-id">ŁĄCZENIE...</div>
+        <button class="start-btn" onclick="startApp()">URUCHOM TABLICĘ</button>
     </div>
 
+    <div class="glow-left"></div><div class="glow-right"></div>
     <div id="vid-layer"><video id="player"></video></div>
-    <div id="strike-overlay"><div class="big-x" id="x-txt">X</div></div>
+    
+    <div id="strike-L" class="strike-zone">X</div>
+    <div id="strike-R" class="strike-zone">X</div>
 
-    <div class="container">
-        <div class="header">
-            <div class="team-name" id="t1-n" style="color: #00a2ff; text-shadow: 0 0 20px #00a2ff;">NIEBIESCY</div>
-            <div class="main-score" id="sum-val">0</div>
-            <div class="team-name" id="t2-n" style="color: #ff3333; text-shadow: 0 0 20px #ff3333;">CZERWONI</div>
-        </div>
-        <div class="board-frame" id="rows-cont"></div>
+    <div id="credits-screen">
+        <div class="credit-line" style="color:var(--gold)">PRODUKCJA</div>
+        <div class="credit-line">TWOJA SZKOŁA / FIRMA</div>
+        <div class="credit-line" style="color:var(--gold)">PROWADZĄCY</div>
+        <div class="credit-line">KAROL STRASBURGER</div>
+        <div class="credit-line" style="color:var(--gold)">WYSTĄPILI</div>
+        <div class="credit-line">DRUŻYNA NIEBIESKICH</div>
+        <div class="credit-line">DRUŻYNA CZERWONYCH</div>
+        <div class="credit-line" style="color:var(--gold)">DZIĘKUJEMY ZA UWAGĘ!</div>
     </div>
+
+    <div class="header">
+        <div class="team-box">
+            <div class="t-name" id="n1">NIEBIESCY</div>
+            <div class="t-score" id="s1">0</div>
+        </div>
+        <div class="main-sum-box">
+            <div style="font-size: 25px; color: #555;">SUMA RUNDY</div>
+            <div class="main-sum-val" id="sum">0</div>
+        </div>
+        <div class="team-box">
+            <div class="t-name" id="n2">CZERWONI</div>
+            <div class="t-score" id="s2">0</div>
+        </div>
+    </div>
+
+    <div class="board-frame" id="rows-cont"></div>
 
     <audio id="s-ok" src="ok.mp3"></audio>
     <audio id="s-bad" src="zla.mp3"></audio>
     <audio id="s-intro" src="intro.mp3"></audio>
     <audio id="s-round" src="runda.mp3"></audio>
-    <audio id="s-final" src="final.mp3"></audio>
+    <audio id="s-end" src="koniec.mp3"></audio>
 
     <script>
         const peer = new Peer();
@@ -99,6 +124,7 @@
         peer.on('connection', conn => {
             conn.on('data', data => {
                 if(data.type === 'SETUP') {
+                    document.getElementById('s-round').play();
                     const c = document.getElementById('rows-cont'); c.innerHTML = '';
                     data.ans.forEach((a, i) => {
                         c.innerHTML += `<div class="row" id="r-${i}"><div class="row-num">${i+1}</div><div class="dots">.....................</div><div class="row-txt">${a.t}</div><div class="row-pts">${a.p}</div></div>`;
@@ -107,20 +133,23 @@
                 if(data.type === 'REV') { document.getElementById('s-ok').play(); document.getElementById('r-'+data.idx).classList.add('revealed'); }
                 if(data.type === 'STRIKE') {
                     document.getElementById('s-bad').play();
-                    const o = document.getElementById('strike-overlay');
-                    const x = document.getElementById('x-txt');
-                    x.innerText = "X".repeat(data.n);
-                    x.style.color = (data.team === 'blue') ? '#00a2ff' : '#ff3333';
-                    o.style.display = 'flex'; setTimeout(() => o.style.display='none', 1600);
+                    const el = document.getElementById('strike-' + (data.team === 'blue' ? 'L' : 'R'));
+                    el.innerText = "X".repeat(data.n);
+                    el.style.display = 'block'; setTimeout(() => el.style.display='none', 1500);
                 }
-                if(data.type === 'SCORE') document.getElementById('sum-val').innerText = data.s;
-                if(data.type === 'SOUND') document.getElementById('s-' + data.file).play();
+                if(data.type === 'SCORE') {
+                    document.getElementById('s1').innerText = data.s1;
+                    document.getElementById('s2').innerText = data.s2;
+                    document.getElementById('sum').innerText = data.sum;
+                }
                 if(data.type === 'INTRO') {
-                    const v = document.getElementById('player');
-                    document.getElementById('vid-layer').style.display = 'block';
-                    document.getElementById('s-intro').play();
-                    v.src = 'czolowka.mp4'; v.play();
+                    const v = document.getElementById('player'); document.getElementById('vid-layer').style.display = 'block';
+                    document.getElementById('s-intro').play(); v.src = 'czolowka.mp4'; v.play();
                     v.onended = () => document.getElementById('vid-layer').style.display = 'none';
+                }
+                if(data.type === 'CREDITS') {
+                    document.getElementById('s-end').play();
+                    document.getElementById('credits-screen').style.display = 'flex';
                 }
             });
         });
