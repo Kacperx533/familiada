@@ -2,19 +2,20 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>PANEL FAMILIADA</title>
+    <title>PANEL STEROWANIA</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        body { font-family: sans-serif; background: #222; color: #fff; display: grid; grid-template-columns: 320px 1fr 320px; gap: 10px; padding: 10px; }
-        .card { background: #333; padding: 15px; border-radius: 8px; border-top: 4px solid gold; margin-bottom: 10px; }
-        h3 { margin: 0 0 10px; font-size: 14px; color: gold; text-transform: uppercase; }
-        button { width: 100%; padding: 10px; margin: 2px 0; cursor: pointer; border: none; font-weight: bold; border-radius: 4px; }
+        body { font-family: sans-serif; background: #1a1a1a; color: white; display: grid; grid-template-columns: 320px 1fr 320px; gap: 15px; padding: 15px; }
+        .card { background: #2a2a2a; padding: 15px; border-radius: 10px; border-top: 4px solid gold; margin-bottom: 10px; }
+        h3 { margin: 0 0 10px; font-size: 13px; color: gold; text-transform: uppercase; letter-spacing: 1px; }
+        button { width: 100%; padding: 12px; margin: 4px 0; cursor: pointer; border: none; font-weight: bold; border-radius: 5px; transition: 0.2s; }
+        button:hover { opacity: 0.8; }
         .b-ok { background: #28a745; color: white; }
         .b-zla { background: #dc3545; color: white; }
         .b-blue { background: #007bff; color: white; }
         .b-gold { background: gold; color: #000; }
-        input, select { width: 100%; padding: 8px; box-sizing: border-box; background: #000; color: #fff; border: 1px solid #555; margin-bottom: 5px; }
-        .preview-btn { text-align: left; background: #444; color: #fff; }
+        input, select { width: 100%; padding: 10px; box-sizing: border-box; background: #000; color: #fff; border: 1px solid #444; margin-bottom: 8px; }
+        .preview-btn { text-align: left; background: #333; color: #fff; border-left: 4px solid #555; }
     </style>
 </head>
 <body>
@@ -22,61 +23,75 @@
     <div class="col">
         <div class="card">
             <h3>1. Połączenie</h3>
-            <input type="text" id="peer-id" placeholder="Wklej ID z TV">
-            <button class="b-ok" onclick="connect()">POŁĄCZ</button>
+            <input type="text" id="peer-id" placeholder="Wpisz ID z ekranu TV">
+            <button class="b-ok" onclick="connect()">POŁĄCZ Z TV</button>
         </div>
         <div class="card">
             <h3>2. Drużyny</h3>
-            <input type="text" id="n1" value="DRUŻYNA A">
-            <input type="text" id="n2" value="DRUŻYNA B">
-            <button class="b-blue" onclick="updateNames()">USTAW NAZWY</button>
-            <hr>
-            <button class="b-gold" onclick="addPts('1')">DAJ PUNKTY LEWEJ</button>
-            <button class="b-gold" onclick="addPts('2')">DAJ PUNKTY PRAWEJ</button>
-            <button onclick="resetAll()">RESET PUNKTÓW</button>
+            <input type="text" id="n1" value="Klasa 4A">
+            <input type="text" id="n2" value="Nauczyciele">
+            <button class="b-blue" onclick="updateNames()">ZASTOSUJ NAZWY</button>
         </div>
         <div class="card">
-            <h3>3. Multimedia</h3>
+            <h3>3. Multimedia i X</h3>
             <button class="b-blue" onclick="send({type:'INTRO'})">🎬 CZOŁÓWKA</button>
-            <button class="b-zla" onclick="send({type:'STRIKE', num:1})">❌ ZŁA (X)</button>
-            <button class="b-zla" onclick="send({type:'STRIKE', num:2})">❌❌ ZŁA (XX)</button>
-            <button class="b-zla" onclick="send({type:'STRIKE', num:3})">❌❌❌ ZŁA (XXX)</button>
+            <button class="b-zla" style="font-size:20px" onclick="send({type:'STRIKE', num:1})">❌ ZŁA (X)</button>
+            <button class="b-zla" style="font-size:20px" onclick="send({type:'STRIKE', num:2})">❌❌ ZŁA (XX)</button>
+            <button class="b-zla" style="font-size:20px" onclick="send({type:'STRIKE', num:3})">❌❌❌ ZŁA (XXX)</button>
         </div>
     </div>
 
     <div class="col">
         <div class="card">
-            <h3>4. Pytania i Rundy</h3>
-            <select id="m-select"><option value="1">Mnożnik x1</option><option value="2">Mnożnik x2</option><option value="3">Mnożnik x3</option></select>
-            <select id="q-select" onchange="loadQ()" size="12"></select>
-            <button class="b-ok" onclick="sendQ()">WYŚLIJ PYTANIE NA TABLICĘ</button>
+            <h3>4. Pytania</h3>
+            <select id="m-select">
+                <option value="1">Runda 1 (x1)</option>
+                <option value="2">Runda 2 (x2)</option>
+                <option value="3">Runda 3 (x3)</option>
+            </select>
+            <select id="q-select" onchange="loadQ()" size="15"></select>
+            <button class="b-ok" style="height:60px" onclick="sendQ()">WYŚLIJ PYTANIE NA TV</button>
         </div>
         <div class="card" id="ans-list">
-            <h3>Odpowiedzi (Kliknij = OK)</h3>
+            <h3>Odpowiedzi</h3>
         </div>
     </div>
 
     <div class="col">
         <div class="card">
             <h3>5. Finał</h3>
-            <button class="b-zla" onclick="send({type:'FINAL_MODE'})">AKTYWUJ FINAŁ</button>
+            <button class="b-zla" onclick="send({type:'FINAL_MODE'})">TRYB FINAŁOWY</button>
+            <hr>
             <input type="text" id="ft" placeholder="Słowo">
             <input type="number" id="fp" placeholder="Punkty">
-            <select id="fi"><option value="0">Pytanie 1</option><option value="1">Pytanie 2</option><option value="2">Pytanie 3</option><option value="3">Pytanie 4</option><option value="4">Pytanie 5</option></select>
-            <button class="b-blue" onclick="sendF(1)">GRACZ 1 (OK)</button>
-            <button class="b-gold" onclick="sendF(2)">GRACZ 2 (OK)</button>
+            <select id="fi">
+                <option value="0">Hasło 1</option>
+                <option value="1">Hasło 2</option>
+                <option value="2">Hasło 3</option>
+                <option value="3">Hasło 4</option>
+                <option value="4">Hasło 5</option>
+            </select>
+            <button class="b-blue" onclick="sendF(1)">GRACZ 1 - ODSŁOŃ</button>
+            <button class="b-gold" onclick="sendF(2)">GRACZ 2 - ODSŁOŃ</button>
+        </div>
+        <div class="card">
+            <h3>Punkty</h3>
+            <button onclick="resetScore()">ZERUJ SUMĘ</button>
         </div>
     </div>
 
     <script>
+        // BAZA PYTAŃ (MOŻESZ DOPISAĆ WIĘCEJ)
         const DB = [
-            {q:"Co robimy rano?", a:[["MYJEMY ZĘBY",40],["PIJEMY KAWĘ",30],["UBIERAMY SIĘ",15],["ŚCIELIMY ŁÓŻKO",10],["ĆWICZYMY",5]]},
-            {q:"Zwierzę na wieś?", a:[["KROWA",45],["KOŃ",25],["KURA",15],["ŚWINIA",10],["KACZKA",5]]},
-            {q:"Przedmiot szkolny?", a:[["MATEMATYKA",40],["POLSKI",20],["WF",20],["HISTORIA",10],["PLASTYKA",10]]}
+            {q:"Więcej niż jeden?", a:[["DUŻO",40],["KILKA",30],["PARA",20],["TŁUM",10]]},
+            {q:"Zwierzę z trąbą?", a:[["SŁOŃ",60],["KOMAR",25],["TAPIR",15]]},
+            {q:"Co robimy w ferie?", a:[["JEŹDZIMY NA NARTACH",40],["ŚPIMY",25],["GRAMY",20],["LEPIMY BAŁWANA",15]]},
+            {q:"Przedmiot szkolny?", a:[["MATEMATYKA",35],["WF",25],["POLSKI",20],["HISTORIA",10],["BIOLOGIA",10]]}
         ];
-        for(let i=4; i<=50; i++) DB.push({q:"Pytanie zapasowe "+i, a:[["ODPOWIEDŹ 1",50],["ODPOWIEDŹ 2",30],["ODPOWIEDŹ 3",20]]});
+        // Automatyczne wypełnienie do 50 zestawów
+        for(let i=5; i<=50; i++) DB.push({q:"Zestaw pytań nr "+i, a:[["ODPOWIEDŹ A",50],["ODPOWIEDŹ B",30],["ODPOWIEDŹ C",20]]});
 
-        let conn, peer = new Peer(), s1=0, s2=0, rSum=0;
+        let conn, peer = new Peer(), currentSum = 0;
 
         window.onload = () => {
             const sel = document.getElementById('q-select');
@@ -85,7 +100,7 @@
 
         function connect() {
             conn = peer.connect(document.getElementById('peer-id').value);
-            conn.on('open', () => alert("Połączono!"));
+            conn.on('open', () => alert("POŁĄCZONO Z TABLICĄ TV!"));
         }
 
         function send(d) { if(conn) conn.send(d); }
@@ -93,14 +108,14 @@
         function loadQ() {
             const q = DB[document.getElementById('q-select').value];
             const list = document.getElementById('ans-list');
-            list.innerHTML = '<h3>Odpowiedzi (Kliknij = OK)</h3>';
+            list.innerHTML = '<h3>Odpowiedzi</h3>';
             q.a.forEach((x, i) => {
                 list.innerHTML += `<button class="preview-btn" onclick="reveal(${i}, ${x[1]})">${x[0]} (${x[1]})</button>`;
             });
         }
 
         function sendQ() {
-            rSum = 0; updateScore();
+            currentSum = 0; updateScore();
             const q = DB[document.getElementById('q-select').value];
             const m = document.getElementById('m-select').value;
             send({type:'SETUP', ans: q.a.map(x=>({t:x[0], p:x[1]*m}))});
@@ -109,7 +124,7 @@
 
         function reveal(idx, pts) {
             const m = document.getElementById('m-select').value;
-            rSum += (pts * m);
+            currentSum += (pts * m);
             updateScore();
             send({type:'REV', idx: idx});
         }
@@ -118,16 +133,8 @@
             send({type:'NAMES', n1: document.getElementById('n1').value, n2: document.getElementById('n2').value});
         }
 
-        function addPts(t) {
-            if(t==='1') s1 += rSum; else s2 += rSum;
-            rSum = 0; updateScore();
-        }
-
-        function updateScore() {
-            send({type:'SCORE', s1:s1, s2:s2, sum:rSum});
-        }
-
-        function resetAll() { s1=0; s2=0; rSum=0; updateScore(); }
+        function updateScore() { send({type:'SCORE', sum: currentSum}); }
+        function resetScore() { currentSum = 0; updateScore(); }
 
         function sendF(p) {
             send({type:'FINAL_REV', p:p, i:document.getElementById('fi').value, txt:document.getElementById('ft').value.toUpperCase(), pts:document.getElementById('fp').value});
