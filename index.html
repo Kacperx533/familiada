@@ -11,7 +11,7 @@
             --led-dim: #4a3b00;
             --border-blue: #0055ff;
             --border-red: #ff0044;
-            --bg-dark: #050505;
+            --bg-dark: #000000;
         }
         
         body {
@@ -28,15 +28,15 @@
             text-transform: uppercase;
         }
 
-        /* Tło - siatka LED */
+        /* Tło - ciemna siatka LED */
         .led-grid {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             background-image: 
-                linear-gradient(rgba(10,10,10,0.8) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(10,10,10,0.8) 1px, transparent 1px);
+                linear-gradient(rgba(20,20,20,0.5) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(20,20,20,0.5) 1px, transparent 1px);
             background-size: 4px 4px;
-            background-color: #080808;
+            background-color: #000;
             z-index: -1;
         }
 
@@ -62,46 +62,41 @@
 
         /* Główna Tablica */
         .game-board {
-            display: none; /* Ukryte do startu */
+            display: none; 
             width: 90vw;
             max-width: 1200px;
             position: relative;
         }
 
-        /* Górny wynik rundy (w tej małej ramce) */
+        /* Wynik rundy */
         .round-score-box {
-            width: 200px;
-            margin: 0 auto 10px auto;
-            border: 4px solid #444;
-            border-top-color: var(--border-red);
-            border-bottom-color: var(--border-blue);
+            width: 180px;
+            margin: 0 auto 15px auto;
+            border: 4px solid #222;
+            border-image: linear-gradient(to right, var(--border-blue), var(--border-red)) 1;
             background: #000;
             text-align: center;
-            font-size: 80px;
+            font-size: 85px;
             line-height: 1;
-            padding: 5px;
-            border-radius: 15px;
-            box-shadow: 0 0 15px rgba(255,255,255,0.1);
+            padding: 10px;
+            box-shadow: 0 0 15px rgba(255,255,255,0.05);
         }
 
-        /* Główna ramka z pytaniami */
+        /* Główna ramka - CZARNA z bocznymi poświatami */
         .main-display {
-            border: 6px solid;
-            border-image: linear-gradient(to bottom, var(--border-red), var(--border-blue)) 1;
-            border-radius: 20px; /* Hack dla border-image */
-            padding: 5px;
+            border: 8px solid;
+            border-image: linear-gradient(to right, var(--border-blue), var(--border-red)) 1;
             background: #000;
             position: relative;
+            /* Poświata: lewa niebieska, prawa czerwona */
             box-shadow: 
-                0 -5px 20px var(--border-red), 
-                0 5px 20px var(--border-blue);
+                -30px 0 60px -15px rgba(0, 85, 255, 0.6), 
+                 30px 0 60px -15px rgba(255, 0, 68, 0.6);
         }
         
-        /* Fix dla zaokrąglonych rogów z gradientem */
         .display-inner {
-            border: 2px solid #333;
-            border-radius: 10px;
-            padding: 20px 40px;
+            background: #000;
+            padding: 30px 50px;
             min-height: 50vh;
             display: flex;
             flex-direction: column;
@@ -111,14 +106,14 @@
         .row {
             display: flex;
             align-items: center;
-            font-size: 60px;
-            margin-bottom: 5px;
-            height: 70px;
+            font-size: 65px;
+            margin-bottom: 10px;
+            height: 75px;
         }
 
         .row-num {
-            width: 40px;
-            color: #d4d4d4;
+            width: 50px;
+            color: #333;
             margin-right: 15px;
         }
 
@@ -128,84 +123,75 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: rgba(255, 200, 0, 0.05); /* Lekkie podświetlenie linii */
+            border-bottom: 1px solid #111;
         }
 
         .dots {
             position: absolute;
             left: 0; top: 0; width: 100%;
-            letter-spacing: 8px;
+            letter-spacing: 10px;
             color: var(--led-dim);
             z-index: 0;
             overflow: hidden;
             white-space: nowrap;
         }
 
-        .answer-text {
+        .answer-text, .points {
             z-index: 1;
             background: #000;
-            padding-right: 15px;
-            display: none; /* Ukryte */
-            text-shadow: 0 0 5px var(--led-gold);
+            display: none;
+            text-shadow: 0 0 10px var(--led-gold);
         }
 
-        .points {
-            z-index: 1;
-            background: #000;
-            padding-left: 15px;
-            display: none; /* Ukryte */
-            text-shadow: 0 0 5px var(--led-gold);
-        }
-
-        .revealed .answer-text, .revealed .points { display: block; }
+        .revealed .answer-text { display: block; padding-right: 20px; }
+        .revealed .points { display: block; padding-left: 20px; }
         .revealed .dots { display: none; }
 
-        /* Stopka (Suma) */
+        /* Stopka */
         .footer {
-            margin-top: 20px;
+            margin-top: 30px;
             display: flex;
             justify-content: space-between;
-            align-items: flex-end;
+            align-items: center;
             font-size: 50px;
         }
         
         .strikes-container {
             display: flex;
-            gap: 15px;
+            gap: 20px;
+            min-width: 200px;
         }
         .strike {
             color: var(--border-red);
-            font-size: 80px;
-            line-height: 50px;
-            display: none;
-            text-shadow: 0 0 15px red;
+            font-size: 90px;
+            text-shadow: 0 0 20px red;
         }
 
         .total-score {
             text-align: right;
         }
-        .total-label { font-size: 40px; color: #aaa; margin-right: 20px; }
-        .total-val { font-size: 60px; }
+        .total-label { font-size: 40px; color: #555; margin-right: 15px; }
+        .total-val { font-size: 70px; color: #fff; text-shadow: 0 0 10px #fff; }
 
-        /* Wielkie X na środku */
+        /* Wielkie X */
         #fullscreen-strike {
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,0.7);
-            z-index: 5000;
+            background: rgba(0,0,0,0.8);
+            z-index: 10000;
             display: none;
             align-items: center;
             justify-content: center;
         }
         .big-x {
-            width: 300px; height: 300px;
+            width: 350px; height: 350px;
             position: relative;
         }
         .big-x::before, .big-x::after {
             content: ''; position: absolute;
-            width: 100%; height: 40px;
+            width: 100%; height: 45px;
             background: red;
-            box-shadow: 0 0 30px red;
+            box-shadow: 0 0 40px red;
             top: 50%; left: 0;
         }
         .big-x::before { transform: translateY(-50%) rotate(45deg); }
@@ -215,17 +201,15 @@
         #final-board {
             display: none;
             width: 100%;
-            height: 100%;
             flex-direction: column;
         }
-        .final-cols { display: flex; gap: 50px; justify-content: center; margin-top: 20px; }
+        .final-cols { display: flex; gap: 40px; justify-content: center; margin-top: 20px; }
         .final-row { 
-            display: flex; width: 450px; justify-content: space-between; 
-            font-size: 50px; background: #111; margin-bottom: 10px; padding: 0 10px; border: 1px solid #333;
+            display: flex; width: 480px; justify-content: space-between; 
+            font-size: 55px; background: #000; margin-bottom: 12px; padding: 0 15px; border: 2px solid #222;
         }
-        .f-txt { width: 350px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0; }
-        .f-pts { width: 60px; text-align: right; border-left: 2px solid #333; opacity: 0; }
-        
+        .f-txt { width: 380px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0; }
+        .f-pts { width: 70px; text-align: right; border-left: 2px solid #222; opacity: 0; color: #fff; }
         .f-rev .f-txt, .f-rev .f-pts { opacity: 1; }
     </style>
 </head>
@@ -238,11 +222,11 @@
     <audio id="snd-bad" src="zle.mp3"></audio>
 
     <div id="connect-screen">
-        <div style="font-size: 30px; margin-bottom:10px; color:#fff">ID DO PANELU:</div>
+        <div style="font-size: 30px; margin-bottom:10px; color:#fff">ID DO PANELU STEROWANIA:</div>
         <div class="code-display" id="my-id">...</div>
         <button onclick="document.getElementById('connect-screen').style.display='none'; document.querySelector('.game-board').style.display='block';" 
-            style="font-family:'VT323'; font-size:30px; padding:10px 40px; cursor:pointer; background:var(--led-gold); border:none;">
-            URUCHOM EKRAN
+            style="font-family:'VT323'; font-size:30px; padding:15px 50px; cursor:pointer; background:var(--led-gold); border:none; border-radius:5px; font-weight:bold;">
+            URUCHOM EKRAN GRY
         </button>
     </div>
 
@@ -258,7 +242,7 @@
                     </div>
 
                 <div id="final-board">
-                    <div style="text-align:center; font-size:120px; color:var(--border-red); text-shadow:0 0 20px red;" id="timer">00</div>
+                    <div style="text-align:center; font-size:130px; color:var(--border-red); text-shadow:0 0 30px red; margin-bottom:20px;" id="timer">00</div>
                     <div class="final-cols">
                         <div id="col-1"></div>
                         <div id="col-2"></div>
@@ -269,8 +253,7 @@
         </div>
 
         <div class="footer">
-            <div class="strikes-container" id="strikes-box">
-                </div>
+            <div class="strikes-container" id="strikes-box"></div>
             <div class="total-score">
                 <span class="total-label">SUMA</span>
                 <span class="total-val" id="global-score">0</span>
@@ -281,10 +264,9 @@
     <script>
         const peer = new Peer();
         
-        // Funkcje dźwiękowe
         const play = (id) => { 
             const a = document.getElementById(id); 
-            if(a) { a.currentTime=0; a.play().catch(e=>console.log(e)); }
+            if(a) { a.currentTime=0; a.play().catch(e=>console.log("Audio play blocked")); }
         };
 
         peer.on('open', id => {
@@ -294,8 +276,6 @@
         peer.on('connection', conn => {
             conn.on('data', data => {
                 console.log("Otrzymano:", data);
-
-                // --- LOGIKA GRY ---
 
                 if (data.type === 'SETUP_ROUND') {
                     document.getElementById('final-board').style.display = 'none';
@@ -313,7 +293,7 @@
                         row.innerHTML = `
                             <div class="row-num">${index + 1}</div>
                             <div class="row-content">
-                                <div class="dots">..............................</div>
+                                <div class="dots">..................................................</div>
                                 <div class="answer-text">${ans.text}</div>
                                 <div class="points">${ans.points}</div>
                             </div>
@@ -338,30 +318,23 @@
 
                 if (data.type === 'STRIKE') {
                     play('snd-bad');
-                    // Pokaż wielkie X na chwilę
                     const fs = document.getElementById('fullscreen-strike');
                     fs.style.display = 'flex';
-                    setTimeout(() => fs.style.display = 'none', 1000);
+                    setTimeout(() => fs.style.display = 'none', 1200);
 
-                    // Dodaj małego X na dole
                     const box = document.getElementById('strikes-box');
-                    if (data.count <= 3) {
-                        box.innerHTML += `<div class="strike" style="display:block">X</div>`;
-                    }
+                    box.innerHTML += `<div class="strike">X</div>`;
                 }
 
                 if (data.type === 'CLEAR_STRIKES') {
                     document.getElementById('strikes-box').innerHTML = '';
                 }
 
-                // --- OBSŁUGA FINAŁU ---
-
                 if (data.type === 'SETUP_FINAL') {
                     document.getElementById('normal-rows').style.display = 'none';
                     document.getElementById('final-board').style.display = 'flex';
                     document.getElementById('timer').innerText = data.time || '15';
                     
-                    // Generuj puste sloty
                     const genSlots = (id) => {
                         const c = document.getElementById(id);
                         c.innerHTML = '';
