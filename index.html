@@ -38,11 +38,11 @@
         .strike-zone { position: absolute; top: 50%; transform: translateY(-50%); width: 150px; font-size: 120px; color: red; text-align: center; text-shadow: 0 0 20px red; }
         #strikes-L { left: -180px; } #strikes-R { right: -180px; }
 
-        #id-box { position: fixed; bottom: 10px; right: 10px; font-size: 20px; color: #333; z-index: 10001; }
+        #id-status { position: fixed; bottom: 20px; left: 20px; font-size: 30px; color: white; background: rgba(0,0,0,0.8); padding: 10px; border: 2px solid gold; z-index: 10001; }
     </style>
 </head>
 <body>
-    <div id="id-box">ID: ...</div>
+    <div id="id-status">ID: GENEROWANIE... (Wymagany Internet)</div>
     <div id="media-overlay"><video id="v-player"></video></div>
     
     <audio id="snd-repeat" src="powtorzenie.mp3"></audio>
@@ -71,13 +71,24 @@
         const peer = new Peer();
         const vPlayer = document.getElementById('v-player');
         const bgAudio = document.getElementById('snd-bg');
-        bgAudio.volume = 0.3; // Cichsze audio w tle
+        bgAudio.volume = 0.3;
 
-        peer.on('open', id => document.getElementById('id-box').innerText = "ID: " + id);
+        peer.on('open', id => {
+            document.getElementById('id-status').innerText = "ID: " + id;
+            console.log("Twój ID to: " + id);
+        });
+
+        peer.on('error', err => {
+            document.getElementById('id-status').innerText = "BŁĄD: Brak internetu!";
+        });
+
         peer.on('connection', conn => {
+            document.getElementById('id-status').style.display = 'none';
             conn.on('data', data => {
                 if(data.type === 'INTRO') {
-                    vPlayer.src = 'czolowka.mp4'; document.getElementById('media-overlay').style.display='block'; vPlayer.play();
+                    vPlayer.src = 'czolowka.mp4'; 
+                    document.getElementById('media-overlay').style.display='block'; 
+                    vPlayer.play().catch(e => console.log("Zablokowano autoodtwarzanie. Kliknij na ekran."));
                     vPlayer.onended = () => { document.getElementById('media-overlay').style.display='none'; };
                 }
                 if(data.type === 'BG_MUSIC') { data.play ? bgAudio.play() : bgAudio.pause(); }
@@ -93,7 +104,7 @@
                     document.getElementById('strikes-L').innerHTML = ''; document.getElementById('strikes-R').innerHTML = '';
                     data.answers.forEach((a, i) => {
                         const r = document.createElement('div'); r.className = 'row'; r.id = 'r-'+i;
-                        r.innerHTML = `<div class="row-num">${i+1}</div><div class="row-content"><div class="dots">............</div><div class="ans-txt">${a.text}</div><div class="ans-pts">${a.points*data.mult}</div></div>`;
+                        r.innerHTML = `<div class="row-num">${i+1}</div><div class="row-content"><div class="dots">...................................</div><div class="ans-txt">${a.text}</div><div class="ans-pts">${a.points*data.mult}</div></div>`;
                         c.appendChild(r); setTimeout(() => r.classList.add('visible'), i*150);
                     });
                 }
