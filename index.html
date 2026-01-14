@@ -2,93 +2,116 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA - EKRAN TV</title>
+    <title>FAMILIADA TV - PROSTOKĄT</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root { --led-gold: #ffcc00; }
         body { background: #000; margin: 0; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: 'VT323', monospace; color: var(--led-gold); text-transform: uppercase; overflow: hidden; }
         
-        /* TŁO I AMBIENT */
-        body::before { content: ''; position: absolute; top: 0; left: 0; bottom: 0; width: 45%; background: radial-gradient(circle at 0% 50%, rgba(0, 85, 255, 0.35), transparent 80%); z-index: 0; }
-        body::after { content: ''; position: absolute; top: 0; right: 0; bottom: 0; width: 45%; background: radial-gradient(circle at 100% 50%, rgba(255, 0, 68, 0.35), transparent 80%); z-index: 0; }
+        /* EFEKT PROSTOKĄTA I POŚWIATY */
+        body::before { content: ''; position: absolute; top: 0; left: 0; bottom: 0; width: 45%; background: radial-gradient(circle at 0% 50%, rgba(0, 85, 255, 0.3), transparent 80%); z-index: 0; }
+        body::after { content: ''; position: absolute; top: 0; right: 0; bottom: 0; width: 45%; background: radial-gradient(circle at 100% 50%, rgba(255, 0, 68, 0.3), transparent 80%); z-index: 0; }
 
-        /* MULTIMEDIA FULLSCREEN */
         #media-overlay { position: fixed; inset: 0; background: #000; z-index: 10000; display: none; }
         video { width: 100%; height: 100%; object-fit: contain; }
 
-        /* TABLICA */
         .game-board { display: none; width: 95vw; max-width: 1600px; z-index: 10; }
-        .round-score-box { font-size: 120px; text-align: center; color: #fff; margin-bottom: 20px; }
-        .main-display { background: #000; min-height: 45vh; padding: 20px 80px; }
-        .row { display: flex; align-items: center; font-size: 70px; height: 80px; border-bottom: 1px solid #111; }
-        .row-num { width: 60px; color: #222; }
-        .row-content { flex-grow: 1; display: flex; justify-content: space-between; position: relative; }
-        .answer-text, .points { display: none; z-index: 1; background: #000; }
-        .revealed .answer-text, .revealed .points { display: block; }
+        .round-score-box { font-size: 110px; text-align: center; color: #fff; margin-bottom: 20px; text-shadow: 0 0 20px rgba(255,255,255,0.5); }
+        .main-display { background: #000; min-height: 45vh; padding: 20px 60px; display: flex; flex-direction: column; justify-content: center; border: 2px solid #111; }
         
+        .row { display: flex; align-items: center; font-size: 65px; height: 75px; border-bottom: 1px solid #0d0d0d; }
+        .row-num { width: 50px; color: #151515; }
+        .row-content { flex-grow: 1; display: flex; justify-content: space-between; }
+        .answer-text, .points { display: none; background: #000; z-index: 2; }
+        .revealed .answer-text, .revealed .points { display: block; }
+        .dots { color: #080808; letter-spacing: 10px; position: absolute; width: 100%; z-index: 1; }
+
+        /* FINAŁ */
+        .final-grid { display: none; grid-template-columns: 1fr 1fr; gap: 50px; width: 100%; }
+        .f-row { display: flex; justify-content: space-between; font-size: 50px; border-bottom: 1px solid #111; margin-bottom: 10px; min-height: 60px; }
+        .f-ans { color: var(--led-gold); visibility: hidden; }
+        .f-pts { color: #fff; visibility: hidden; }
+        .f-show { visibility: visible; }
+
         #connect-screen { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .code-display { font-size: 60px; border: 2px solid var(--led-gold); padding: 20px; }
+        .code-box { font-size: 50px; border: 2px solid var(--led-gold); padding: 20px; margin: 20px; }
     </style>
 </head>
 <body>
 
-    <div id="media-overlay">
-        <video id="main-video"></video>
-    </div>
+    <div id="media-overlay"><video id="v-player"></video></div>
     <audio id="snd-repeat" src="powtorzenie.mp3"></audio>
 
     <div id="connect-screen">
-        <div class="code-display" id="my-id">ŁĄCZENIE...</div>
-        <button onclick="document.getElementById('connect-screen').style.display='none'; document.querySelector('.game-board').style.display='block';">START</button>
+        <div class="code-box" id="my-id">ŁĄCZENIE...</div>
+        <button onclick="startApp()" style="padding:10px 30px; cursor:pointer;">OTWÓRZ SYSTEM</button>
     </div>
 
-    <div class="game-board">
+    <div class="game-board" id="board">
+        <div id="timer" style="display:none; font-size: 100px; text-align: center; color: red;">20</div>
         <div class="round-score-box" id="round-score">0</div>
-        <div class="main-display" id="normal-rows"></div>
-        <div id="strikes-box" style="display:flex; gap:20px; justify-content: center; font-size: 100px; color: red;"></div>
+        
+        <div class="main-display">
+            <div id="normal-rows"></div>
+            <div id="final-rows" class="final-grid">
+                <div id="player1-cols"></div>
+                <div id="player2-cols"></div>
+            </div>
+        </div>
+
+        <div id="strikes" style="display:flex; justify-content:center; font-size:120px; color:red; margin-top:20px;"></div>
+        <div style="text-align:right; font-size:80px; color:white;">SUMA: <span id="total-score">0</span></div>
     </div>
 
     <script>
         const peer = new Peer();
-        const vPlayer = document.getElementById('main-video');
+        const vPlayer = document.getElementById('v-player');
         const vOverlay = document.getElementById('media-overlay');
-        const sndRepeat = document.getElementById('snd-repeat');
+
+        function startApp() { document.getElementById('connect-screen').style.display='none'; document.getElementById('board').style.display='block'; }
 
         peer.on('open', id => document.getElementById('my-id').innerText = id);
-
         peer.on('connection', conn => {
             conn.on('data', data => {
-                // OBSŁUGA WIDEO
-                if (data.type === 'PLAY_VIDEO') {
-                    vPlayer.src = data.file;
-                    vOverlay.style.display = 'block';
-                    vPlayer.play();
-                    vPlayer.onended = () => vOverlay.style.display = 'none';
+                if(data.type === 'VIDEO') {
+                    vPlayer.src = data.file; vOverlay.style.display='block'; vPlayer.play();
+                    vPlayer.onended = () => vOverlay.style.display='none';
                 }
-
-                // OBSŁUGA DŹWIĘKU POWTÓRZENIA
-                if (data.type === 'PLAY_REPEAT') {
-                    sndRepeat.currentTime = 0;
-                    sndRepeat.play();
-                }
-
-                // TABLICA
-                if (data.type === 'SETUP_ROUND') {
-                    document.getElementById('strikes-box').innerHTML = '';
-                    const container = document.getElementById('normal-rows');
-                    container.innerHTML = '';
-                    data.answers.forEach((ans, i) => {
-                        container.innerHTML += `<div class="row" id="row-${i}"><div class="row-num">${i+1}</div><div class="row-content"><div class="answer-text">${ans.text}</div><div class="points">${ans.points}</div></div></div>`;
+                if(data.type === 'REPEAT') document.getElementById('snd-repeat').play();
+                
+                if(data.type === 'SETUP_ROUND') {
+                    document.getElementById('final-rows').style.display='none';
+                    const cont = document.getElementById('normal-rows'); cont.style.display='block';
+                    cont.innerHTML = ''; document.getElementById('strikes').innerHTML = '';
+                    data.answers.forEach((a, i) => {
+                        cont.innerHTML += `<div class="row" id="r-${i}"><div class="row-num">${i+1}</div><div class="row-content"><div class="answer-text">${a.text}</div><div class="points">${a.points}</div></div></div>`;
                     });
                 }
 
-                if (data.type === 'REVEAL_ANSWER') {
-                    document.getElementById(`row-${data.index}`).classList.add('revealed');
+                if(data.type === 'REVEAL') document.getElementById(`r-${data.idx}`).classList.add('revealed');
+                if(data.type === 'STRIKE') document.getElementById('strikes').innerHTML += 'X ';
+                if(data.type === 'SCORE') {
+                    document.getElementById('round-score').innerText = data.r;
+                    document.getElementById('total-score').innerText = data.t;
                 }
 
-                if (data.type === 'STRIKE') {
-                    document.getElementById('strikes-box').innerHTML += 'X ';
+                if(data.type === 'SETUP_FINAL') {
+                    document.getElementById('normal-rows').style.display='none';
+                    document.getElementById('final-rows').style.display='grid';
+                    const p1 = document.getElementById('player1-cols'); p1.innerHTML = '';
+                    const p2 = document.getElementById('player2-cols'); p2.innerHTML = '';
+                    for(let i=0; i<5; i++) {
+                        p1.innerHTML += `<div class="f-row"><span id="p1-a-${i}" class="f-ans"></span><span id="p1-p-${i}" class="f-pts"></span></div>`;
+                        p2.innerHTML += `<div class="f-row"><span id="p2-a-${i}" class="f-ans"></span><span id="p2-p-${i}" class="f-pts"></span></div>`;
+                    }
+                }
+
+                if(data.type === 'FINAL_REVEAL') {
+                    const a = document.getElementById(`p${data.p}-a-${data.i}`);
+                    const p = document.getElementById(`p${data.p}-p-${data.i}`);
+                    a.innerText = data.ans; p.innerText = data.pts;
+                    a.classList.add('f-show'); p.classList.add('f-show');
                 }
             });
         });
