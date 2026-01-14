@@ -2,131 +2,144 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>PANEL FAMILIADA - 50 ZESTAWÓW</title>
+    <title>PANEL STEROWANIA</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        body { font-family: sans-serif; background: #1a1a1a; color: white; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 20px; }
-        .card { background: #222; padding: 15px; border-radius: 8px; border-top: 4px solid gold; margin-bottom: 15px; }
-        button { padding: 10px; cursor: pointer; font-weight: bold; width: 100%; margin: 3px 0; }
-        .gold { background: gold; border: none; }
-        .blue { background: #0055ff; color: white; border: none; }
-        .red { background: #ff0044; color: white; border: none; }
-        input, select { width: 100%; padding: 10px; background: #000; color: #fff; border: 1px solid #444; margin: 5px 0; }
-        #preview { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+        body { font-family: 'Segoe UI', sans-serif; background: #222; color: white; display: grid; grid-template-columns: 300px 1fr 300px; gap: 10px; padding: 10px; height: 95vh; }
+        .col { display: flex; flex-direction: column; gap: 10px; overflow-y: auto; }
+        .card { background: #333; padding: 15px; border-radius: 8px; border-left: 5px solid gold; }
+        h3 { margin: 0 0 10px 0; color: gold; font-size: 14px; text-transform: uppercase; }
+        button { width: 100%; padding: 10px; cursor: pointer; border: none; border-radius: 4px; font-weight: bold; margin-bottom: 5px; transition: 0.2s; }
+        button:hover { opacity: 0.8; }
+        .btn-green { background: #28a745; color: white; }
+        .btn-red { background: #dc3545; color: white; }
+        .btn-blue { background: #007bff; color: white; }
+        .btn-yellow { background: gold; color: black; }
+        .btn-grey { background: #555; color: white; }
+        input, select { width: 100%; padding: 8px; background: #111; border: 1px solid #555; color: white; margin-bottom: 5px; box-sizing: border-box; }
+        #preview-area button { text-align: left; padding-left: 15px; }
     </style>
 </head>
 <body>
-    <div>
+    <div class="col">
         <div class="card">
-            <h3>POŁĄCZENIE</h3>
-            <input type="text" id="tv-id" placeholder="Wpisz ID z ekranu TV">
-            <button class="gold" onclick="connect()">POŁĄCZ Z TABLICĄ</button>
+            <h3>1. Połączenie</h3>
+            <input type="text" id="tv-id" placeholder="Wpisz ID z TV">
+            <button class="btn-green" onclick="connect()">POŁĄCZ</button>
+            <div id="conn-status" style="color:gray; font-size:12px">Rozłączono</div>
         </div>
-
         <div class="card">
-            <h3>MULTIMEDIA</h3>
-            <button onclick="send({type:'INTRO'})">🎬 CZOŁÓWKA + AUDIO</button>
-            <button class="blue" onclick="send({type:'STRIKE', team:'A'})">❌ BŁĄD LEWA</button>
-            <button class="red" onclick="send({type:'STRIKE', team:'B'})">❌ BŁĄD PRAWA</button>
-            <h2 id="scr-disp" style="text-align:center">PUNKTY: 0</h2>
-            <button onclick="resetScr()">ZERUJ PUNKTY RUNDY</button>
+            <h3>2. Drużyny</h3>
+            <input type="text" id="t-a" value="Drużyna A">
+            <input type="text" id="t-b" value="Drużyna B">
+            <button class="btn-blue" onclick="sendNames()">ZMIEŃ NAZWY</button>
         </div>
-
         <div class="card">
-            <h3>TRYB FINAŁU</h3>
-            <button class="red" onclick="send({type:'FINAL_MODE'})">AKTYWUJ FINAŁ NA TV</button>
-            <div style="display:flex; gap:5px">
-                <input type="text" id="ft" placeholder="Słowo">
-                <input type="number" id="fp" placeholder="Pkt">
-            </div>
-            <div style="display:flex; gap:5px">
-                <button onclick="revF(1)">GRACZ 1</button>
-                <button onclick="revF(2)">GRACZ 2</button>
-            </div>
-            <select id="fi"><option value="0">Pyt 1</option><option value="1">Pyt 2</option><option value="2">Pyt 3</option><option value="3">Pyt 4</option><option value="4">Pyt 5</option></select>
+            <h3>3. Punkty</h3>
+            <span>RUNDA: <b id="r-sum">0</b></span>
+            <button class="btn-yellow" onclick="addPtsTo('A')">DODAJ DO LEWEJ</button>
+            <button class="btn-yellow" onclick="addPtsTo('B')">DODAJ DO PRAWEJ</button>
+            <hr style="border-color:#555">
+            <div>LEWA: <b id="s-a">0</b> | PRAWA: <b id="s-b">0</b></div>
+            <button class="btn-grey" onclick="resetAll()">RESET GRY</button>
+        </div>
+        <div class="card">
+            <h3>4. Efekty</h3>
+            <button class="btn-blue" onclick="send({type:'VIDEO_INTRO'})">🎬 CZOŁÓWKA</button>
+            <button class="btn-grey" onclick="send({type:'MUSIC_STOP'})">🔇 STOP MUZYKI</button>
+            <button class="btn-red" onclick="send({type:'STRIKE', count:1})">❌ ZŁA (X)</button>
+            <button class="btn-red" onclick="send({type:'STRIKE', count:2})">❌❌ ZŁA (XX)</button>
+            <button class="btn-red" onclick="send({type:'STRIKE', count:3})">❌❌❌ ZŁA (XXX)</button>
+            <button class="btn-green" onclick="send({type:'TIMER'})">⏱️ CZAS (3s)</button>
         </div>
     </div>
 
-    <div>
+    <div class="col">
         <div class="card">
-            <h3>BAZA 50 PYTAŃ</h3>
-            <select id="r-mult"><option value="1">RUNDA 1 (X1)</option><option value="2">RUNDA 2 (X1)</option><option value="3">RUNDA 3 (X2)</option><option value="4">RUNDA 4 (X3)</option></select>
-            <select id="q-list" onchange="showQ()"></select>
-            <button class="gold" onclick="setupQ()">WYŚLIJ NA TABLICĘ</button>
-            <div id="preview"></div>
+            <h3>Pytania</h3>
+            <select id="round-multi"><option value="1">Mnożnik x1</option><option value="2">Mnożnik x2</option><option value="3">Mnożnik x3</option></select>
+            <select id="q-select" onchange="previewQ()" size="10" style="height: 150px;"></select>
+            <button class="btn-green" style="height: 50px" onclick="sendRound()">WYŚLIJ PYTANIE NA TV</button>
+        </div>
+        <div class="card" style="flex-grow: 1;">
+            <h3>Odpowiedzi (Kliknij = OK)</h3>
+            <div id="preview-area">Wybierz pytanie...</div>
+        </div>
+    </div>
+
+    <div class="col">
+        <div class="card">
+            <h3>Finał</h3>
+            <button class="btn-red" onclick="send({type:'FINAL_SETUP'})">AKTYWUJ FINAŁ</button>
+            <input type="text" id="f-txt" placeholder="Hasło">
+            <input type="number" id="f-pts" placeholder="Pkt">
+            <select id="f-row"><option value="0">Wiersz 1</option><option value="1">Wiersz 2</option><option value="2">Wiersz 3</option><option value="3">Wiersz 4</option><option value="4">Wiersz 5</option></select>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:5px; margin-top:10px">
+                <button class="btn-blue" onclick="sendFinal(1)">GRACZ 1 (OK)</button>
+                <button class="btn-yellow" onclick="sendFinal(2)">GRACZ 2 (OK)</button>
+            </div>
         </div>
     </div>
 
     <script>
-        const db = [
-            {q:"Przedmiot szkolny?", a:[["MATEMATYKA",45],["POLSKI",25],["WF",15],["HISTORIA",10],["BIOLOGIA",5]]},
-            {q:"Co robimy na przerwie?", a:[["JEMY",40],["GADAMY",30],["TELEFON",20],["BIEGAMY",10]]},
-            {q:"W plecaku?", a:[["ZESZYT",50],["KSIĄŻKA",20],["PIÓRNIK",15],["KANAPKA",10]]},
-            {q:"Zwierzę na K?", a:[["KOT",50],["KOŃ",20],["KROWA",15],["KANGUR",10]]},
-            {q:"Kolor tęczy?", a:[["CZERWONY",30],["NIEBIESKI",25],["ZIELONY",20],["ŻÓŁTY",15]]},
-            {q:"Pojazd?", a:[["SAMOCHÓD",40],["ROWER",30],["AUTOBUS",20],["MOTOCYKL",10]]},
-            {q:"Dyscyplina sportu?", a:[["PIŁKA NOŻNA",50],["SIATKÓWKA",20],["BIEGANIE",15],["PŁYWANIE",10]]},
-            {q:"Owoc?", a:[["JABŁKO",45],["BANAN",25],["TRUSKAWKA",15],["GRUSZKA",10]]},
-            {q:"Mebel?", a:[["KRZESŁO",40],["STÓŁ",30],["SZAFA",20],["ŁÓŻKO",10]]},
-            {q:"Instrument?", a:[["GITARA",40],["PIANINO",30],["SKRZYPCE",20],["PERKUSJA",10]]},
-            // ... (Tu można dopisać kolejne 40 pytań według schematu)
+        const DB = [
+            {q: "Przedmiot w szkole?", a: [["MATEMATYKA", 40], ["WF", 30], ["POLSKI", 15], ["HISTORIA", 10], ["MUZYKA", 5]]},
+            {q: "Co pijemy rano?", a: [["KAWĘ", 50], ["HERBATĘ", 30], ["WODĘ", 10], ["SOK", 5], ["MLEKO", 5]]},
+            {q: "Zwierzę domowe?", a: [["PIES", 45], ["KOT", 35], ["CHOMIK", 10], ["RYBKI", 5], ["PAPUGA", 5]]},
+            {q: "Co zabieramy na plażę?", a: [["RĘCZNIK", 40], ["KREM", 25], ["PARASOL", 15], ["PIŁKĘ", 10], ["WODĘ", 10]]},
+            {q: "Co robi krowa?", a: [["DAJE MLEKO", 50], ["MUCZY", 30], ["JE TRAWĘ", 20]]},
+            {q: "Co jest w lodówce?", a: [["ŚWIATŁO", 50], ["MLEKO", 20], ["SER", 15], ["JAJKA", 10], ["WĘDLINA", 5]]},
+            {q: "Kolor flagi Polski?", a: [["BIAŁY", 50], ["CZERWONY", 50]]},
+            {q: "Zawód w mundurze?", a: [["POLICJANT", 40], ["STRAŻAK", 30], ["ŻOŁNIERZ", 20], ["LEKARZ", 10]]},
+            {q: "Miesiąc wakacyjny?", a: [["LIPIEC", 50], ["SIERPIEŃ", 40], ["CZERWIEC", 10]]},
+            {q: "Co ma koła?", a: [["SAMOCHÓD", 40], ["ROWER", 30], ["AUTOBUS", 15], ["WOZ", 10], ["DESKOROLKA", 5]]}
         ];
-        
-        // Automatyczne generowanie brakujących pytań dla demonstracji struktury
-        for(let i=11; i<=50; i++) {
-            db.push({q: "Pytanie zapasowe nr "+i+"?", a:[["ODPOWIEDŹ 1",50],["ODPOWIEDŹ 2",30],["ODPOWIEDŹ 3",20]]});
-        }
+        for(let i=11; i<=50; i++) DB.push({q: `Pytanie zapasowe nr ${i}`, a:[["ODP A", 50], ["ODP B", 30], ["ODP C", 20]]});
 
-        let peer = new Peer(), conn, scr=0;
+        let conn, peer = new Peer(), currentRoundScore = 0, scoreA = 0, scoreB = 0;
 
         window.onload = () => {
-            const l = document.getElementById('q-list');
-            db.forEach((x, i) => l.innerHTML += `<option value="${i}">${x.q}</option>`);
-            showQ();
+            const sel = document.getElementById('q-select');
+            DB.forEach((item, idx) => { const opt = document.createElement('option'); opt.value = idx; opt.text = (idx+1) + ". " + item.q; sel.add(opt); });
+            previewQ();
         };
 
         function connect() {
             conn = peer.connect(document.getElementById('tv-id').value);
-            conn.on('open', () => alert("POŁĄCZONO!"));
+            conn.on('open', () => { document.getElementById('conn-status').innerText = "POŁĄCZONO!"; document.getElementById('conn-status').style.color = "lime"; });
         }
-
-        function send(d) { if(conn) conn.send(d); }
-
-        function showQ() {
-            const q = db[document.getElementById('q-list').value];
-            const p = document.getElementById('preview'); p.innerHTML = '';
-            q.a.forEach((x, i) => {
-                p.innerHTML += `<button onclick="rev(${i}, ${x[1]})">${x[0]} (${x[1]})</button>`;
+        function send(data) { if(conn) conn.send(data); }
+        function sendNames() { send({ type: 'NAMES', a: document.getElementById('t-a').value, b: document.getElementById('t-b').value }); }
+        
+        function previewQ() {
+            const idx = document.getElementById('q-select').value; const q = DB[idx]; const div = document.getElementById('preview-area'); div.innerHTML = '';
+            q.a.forEach((ans, i) => {
+                const btn = document.createElement('button'); btn.className = 'btn-grey'; btn.innerText = `${ans[0]} (${ans[1]})`;
+                btn.onclick = () => reveal(i, ans[1], btn); div.appendChild(btn);
             });
         }
-
-        function setupQ() {
-            scr = 0; upScr();
-            const q = db[document.getElementById('q-list').value];
-            const m = document.getElementById('r-mult').value;
-            const multVal = m == 3 ? 2 : (m == 4 ? 3 : 1);
-            send({type:'SETUP', num: m, mult: multVal, ans: q.a.map(x=>({t:x[0], p:x[1]}))});
+        function sendRound() {
+            currentRoundScore = 0; updateStats();
+            const idx = document.getElementById('q-select').value; const multi = document.getElementById('round-multi').value;
+            const q = DB[idx]; const answersToSend = q.a.map(item => ({ text: item[0], pts: item[1] * multi }));
+            send({type: 'SETUP_BOARD', answers: answersToSend});
         }
-
-        function rev(idx, pts) {
-            const m = document.getElementById('r-mult').value;
-            const multVal = m == 3 ? 2 : (m == 4 ? 3 : 1);
-            scr += (pts * multVal); upScr();
-            send({type:'REV', idx: idx});
+        function reveal(idx, rawPts, btnElement) {
+            btnElement.className = 'btn-green'; const multi = document.getElementById('round-multi').value;
+            currentRoundScore += (rawPts * multi); updateStats(); send({type: 'REVEAL', idx: idx});
         }
-
-        function revF(p) {
-            send({
-                type: 'FINAL_REV',
-                p: p,
-                i: document.getElementById('fi').value,
-                txt: document.getElementById('ft').value,
-                pts: document.getElementById('fp').value
-            });
+        function addPtsTo(team) {
+            if(team === 'A') scoreA += currentRoundScore; if(team === 'B') scoreB += currentRoundScore;
+            currentRoundScore = 0; updateStats();
         }
-
-        function upScr() { document.getElementById('scr-disp').innerText = "PUNKTY: " + scr; send({type:'SCORE', val: scr}); }
-        function resetScr() { scr = 0; upScr(); }
+        function updateStats() {
+            document.getElementById('r-sum').innerText = currentRoundScore; document.getElementById('s-a').innerText = scoreA; document.getElementById('s-b').innerText = scoreB;
+            send({ type: 'SCORE_UPDATE', a: scoreA, b: scoreB, sum: currentRoundScore });
+        }
+        function resetAll() { scoreA = 0; scoreB = 0; currentRoundScore = 0; updateStats(); }
+        function sendFinal(player) {
+            send({ type: 'FINAL_SHOW', player: player, idx: document.getElementById('f-row').value, txt: document.getElementById('f-txt').value.toUpperCase(), pts: document.getElementById('f-pts').value });
+        }
     </script>
 </body>
 </html>
