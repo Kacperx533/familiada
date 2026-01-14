@@ -2,60 +2,45 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>PANEL STEROWANIA - FULL OPTION</title>
+    <title>PANEL STEROWANIA</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #121212; color: white; padding: 20px; display: grid; grid-template-columns: 400px 1fr; gap: 20px; }
-        .card { background: #1e1e1e; padding: 15px; border-radius: 10px; border-top: 4px solid gold; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
-        h3 { color: gold; margin-top: 0; font-size: 14px; text-transform: uppercase; }
-        button { width: 100%; padding: 10px; margin: 3px 0; cursor: pointer; border: none; border-radius: 5px; font-weight: bold; transition: 0.2s; }
-        button:hover { filter: brightness(1.2); }
+        body { font-family: sans-serif; background: #1a1a1a; color: white; padding: 20px; display: grid; grid-template-columns: 350px 1fr; gap: 20px; }
+        .card { background: #2a2a2a; padding: 15px; border-radius: 10px; border-top: 4px solid gold; margin-bottom: 15px; }
+        button { width: 100%; padding: 10px; margin: 3px 0; cursor: pointer; border: none; border-radius: 5px; font-weight: bold; }
         .btn-blue { background: #0066ff; color: white; }
         .btn-red { background: #cc0000; color: white; }
         .btn-green { background: #28a745; color: white; }
         .btn-gold { background: gold; color: black; }
-        .btn-grey { background: #444; color: white; }
+        .btn-grey { background: #555; color: white; }
+        input, select { width: 100%; padding: 10px; box-sizing: border-box; background: #000; color: white; border: 1px solid #444; }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
-        input, select { width: 100%; padding: 10px; background: #000; color: white; border: 1px solid #333; border-radius: 5px; box-sizing: border-box; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { border: 1px solid #333; padding: 8px; text-align: left; }
         #panel-final { display: none; }
+        table { width: 100%; color: white; border-collapse: collapse; }
+        th, td { border: 1px solid #444; padding: 5px; }
     </style>
 </head>
 <body>
-
     <div>
         <div class="card">
             <h3>1. POŁĄCZENIE</h3>
-            <input type="text" id="tv-id" placeholder="Wklej ID z ekranu TV">
-            <button class="btn-green" onclick="connect()" style="margin-top:10px">POŁĄCZ SYSTEMY</button>
+            <input type="text" id="tv-id" placeholder="Wpisz ID z TV">
+            <button class="btn-green" onclick="connect()" style="margin-top:5px">POŁĄCZ</button>
         </div>
-
         <div class="card">
             <h3>2. MULTIMEDIA</h3>
             <button class="btn-blue" onclick="send({type:'VIDEO'})">🎬 ODTWÓRZ CZOŁÓWKĘ (WIDEO)</button>
-            <button class="btn-gold" onclick="send({type:'THEME'})">🎵 MUZYKA INTRA (AUDIO)</button>
+            <button class="btn-gold" onclick="send({type:'SOUND', f:'intro'})">🎵 MUZYKA INTRA (AUDIO)</button>
             <div class="grid-2">
-                <button class="btn-grey" onclick="send({type:'SOUND', f:'round'})">🎵 MUZYKA RUNDY</button>
-                <button class="btn-grey" onclick="send({type:'SOUND', f:'rep'})">⚠️ POWTÓRZENIE</button>
-            </div>
-            <div class="grid-2">
-                <button class="btn-grey" onclick="send({type:'SOUND', f:'ok'})">✔️ DŹWIĘK OK</button>
-                <button class="btn-grey" onclick="send({type:'SOUND', f:'bad'})">❌ DŹWIĘK BŁĄD</button>
+                <button class="btn-grey" onclick="send({type:'SOUND', f:'round'})">MUZYKA RUNDY</button>
+                <button class="btn-grey" onclick="send({type:'SOUND', f:'rep'})">POWTÓRZENIE</button>
             </div>
         </div>
-
         <div class="card">
             <h3>3. BŁĘDY (X)</h3>
             <div class="grid-2">
-                <div style="text-align:center; color:#0066ff">NIEBIESCY</div>
-                <div style="text-align:center; color:#cc0000">CZERWONI</div>
-                <button class="btn-blue" onclick="send({type:'STRIKE', n:1, team:'blue'})">X</button>
-                <button class="btn-red" onclick="send({type:'STRIKE', n:1, team:'red'})">X</button>
-                <button class="btn-blue" onclick="send({type:'STRIKE', n:2, team:'blue'})">XX</button>
-                <button class="btn-red" onclick="send({type:'STRIKE', n:2, team:'red'})">XX</button>
-                <button class="btn-blue" onclick="send({type:'STRIKE', n:3, team:'blue'})">XXX</button>
-                <button class="btn-red" onclick="send({type:'STRIKE', n:3, team:'red'})">XXX</button>
+                <button class="btn-blue" onclick="send({type:'STRIKE', n:1, team:'blue'})">NIEB. X</button>
+                <button class="btn-red" onclick="send({type:'STRIKE', n:1, team:'red'})">CZER. X</button>
             </div>
         </div>
     </div>
@@ -63,65 +48,58 @@
     <div>
         <div id="panel-rounds">
             <div class="card">
-                <h3>4. WYBÓR ZESTAWU (RUNDY 1-10)</h3>
+                <h3>4. WYBÓR ZESTAWU (1-10)</h3>
                 <select id="q-sel" onchange="loadQ()"></select>
-                <button class="btn-gold" onclick="sendQ()" style="margin-top:10px; height:50px">WYŚLIJ PYTANIE NA TABLICĘ</button>
-                <button class="btn-red" onclick="showFinal()" style="margin-top:10px">URUCHOM TRYB FINAŁU</button>
+                <button class="btn-gold" onclick="sendQ()" style="margin-top:10px; height:50px">WYŚLIJ NA TABLICĘ</button>
+                <button class="btn-red" onclick="showFinal()" style="margin-top:10px">PRZEJDŹ DO FINAŁU</button>
             </div>
             <div class="card">
-                <h3>ODPOWIEDZI NA TABLICY</h3>
+                <h3>ODPOWIEDZI</h3>
                 <div id="ans-box" style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;"></div>
             </div>
         </div>
 
         <div id="panel-final">
             <div class="card">
-                <h3>🏆 TRYB FINAŁOWY</h3>
+                <h3>🏆 FINAŁ</h3>
                 <div class="grid-2">
-                    <button class="btn-red" onclick="send({type:'TIMER', val:15})">START 15 SEKUND (G1)</button>
-                    <button class="btn-red" onclick="send({type:'TIMER', val:20})">START 20 SEKUND (G2)</button>
+                    <button class="btn-red" onclick="send({type:'TIMER', val:15})">START 15s</button>
+                    <button class="btn-red" onclick="send({type:'TIMER', val:20})">START 20s</button>
                 </div>
                 <button class="btn-grey" onclick="showRounds()" style="margin-top:10px">POWRÓT DO RUND</button>
-            </div>
-            <div class="card">
-                <h3>TABELA FINAŁOWA</h3>
                 <table>
-                    <thead>
-                        <tr><th>NR</th><th>GRACZ 1 (Hasło | Pkt)</th><th>GRACZ 2 (Hasło | Pkt)</th></tr>
-                    </thead>
-                    <tbody id="final-table-body">
-                        </tbody>
+                    <tr><th>Pyt</th><th>Gracz 1</th><th>Gracz 2</th></tr>
+                    <tbody id="f-table"></tbody>
                 </table>
             </div>
         </div>
 
         <div class="card">
-            <h3>5. PUNKTACJA OGÓLNA</h3>
-            <div class="grid-2" style="text-align: center; font-size: 24px;">
-                <div>NIEBIESCY: <span id="ds1" style="color:white">0</span></div>
-                <div>CZERWONI: <span id="ds2" style="color:white">0</span></div>
+            <h3>PUNKTY</h3>
+            <div class="grid-2" style="font-size: 20px; text-align: center;">
+                <div>Niebiescy: <span id="ds1">0</span></div>
+                <div>Czerwoni: <span id="ds2">0</span></div>
             </div>
-            <div style="text-align: center; font-size: 40px; color: gold; margin: 10px 0;">SUMA RUNDY: <span id="dsum">0</span></div>
+            <div style="text-align: center; font-size: 30px; color: gold;">Suma rundy: <span id="dsum">0</span></div>
             <div class="grid-2">
-                <button class="btn-blue" onclick="addScore('blue')">PRZEKAŻ NIEBIESKIM</button>
-                <button class="btn-red" onclick="addScore('red')">PRZEKAŻ CZERWONYM</button>
+                <button class="btn-blue" onclick="addScore('blue')">DODAJ NIEB.</button>
+                <button class="btn-red" onclick="addScore('red')">DODAJ CZER.</button>
             </div>
-            <button class="btn-grey" onclick="resetAll()">ZERUJ WSZYSTKO</button>
         </div>
     </div>
 
     <script>
         const DB = [
-            {q:"Zestaw 1: Co robimy rano?", a:[["MYJEMY ZĘBY",40],["JEMY ŚNIADANIE",30],["PIJEMY KAWĘ",20],["UBIERAMY SIĘ",10]]},
-            {q:"Zestaw 2: Zwierzę na wieś?", a:[["KROWA",45],["KURA",25],["KOŃ",15],["ŚWINIA",10],["KACZKA",5]]},
-            {q:"Zestaw 3: Co pijemy na gorąco?", a:[["HERBATĘ",50],["KAWĘ",30],["KAKAO",20]]},
-            {q:"Zestaw 4: Przedmiot szkolny?", a:[["MATEMATYKA",40],["WF",30],["POLSKI",20],["PLASTYKA",10]]},
-            {q:"Zestaw 5: Co jest w piórniku?", a:[["DŁUGOPIS",40],["OŁÓWEK",30],["GUMKA",20],["LINIJKA",10]]},
-            {q:"Zestaw 6: Owoc na literę J?", a:[["JABŁKO",60],["JEŻYNA",20],["JAGODA",20]]},
-            {q:"Zestaw 7: Co na plażę?", a:[["RĘCZNIK",40],["KREM",30],["PARAWAN",20],["PIŁKA",10]]},
-            {q:"Zestaw 8: Dyscyplina sportowa?", a:[["PIŁKA NOŻNA",50],["SIATKÓWKA",30],["BIEGANIE",20]]},
-            {q:"Zestaw 9: Co rośnie w lesie?", a:[["DRZEWA",50],["GRZYBY",30],["MECH",20]]},
-            {q:"Zestaw 10: Marka samochodu?", a:[["FIAT",30],["BMW",25],["AUDI",20],["TOYOTA",15]]}
+            {q:"Zestaw 1: Zwierzę z trąbą", a:[["SŁOŃ",50],["KOMAR",10]]},
+            {q:"Zestaw 2: Co pijemy rano", a:[["KAWA",40],["HERBATA",30],["WODA",10]]},
+            {q:"Zestaw 3: Marka auta", a:[["FIAT",30],["BMW",20]]},
+            {q:"Zestaw 4: Przedmiot szkolny", a:[["MATEMATYKA",40],["WF",30]]},
+            {q:"Zestaw 5: Kolor flagi PL", a:[["BIAŁY",50],["CZERWONY",50]]},
+            {q:"Zestaw 6: Co na głowę", a:[["CZAPKA",40],["KASK",20]]},
+            {q:"Zestaw 7: Dzień na P", a:[["PONIEDZIAŁEK",50],["PIĄTEK",40]]},
+            {q:"Zestaw 8: Miasto w PL", a:[["WARSZAWA",40],["KRAKÓW",30]]},
+            {q:"Zestaw 9: Imię na A", a:[["ADAM",30],["ANIA",30]]},
+            {q:"Zestaw 10: Co w lesie", a:[["DRZEWA",50],["GRZYBY",20]]}
         ];
 
         let conn, peer = new Peer(), s1=0, s2=0, rSum=0;
@@ -129,65 +107,31 @@
         window.onload = () => {
             const s = document.getElementById('q-sel');
             DB.forEach((x, i) => s.innerHTML += `<option value="${i}">${x.q}</option>`);
-            
-            const tbody = document.getElementById('final-table-body');
+            const ft = document.getElementById('f-table');
             for(let i=0; i<5; i++) {
-                tbody.innerHTML += `
-                    <tr>
-                        <td>${i+1}</td>
-                        <td>
-                            <input type="text" id="f1t-${i}" style="width:100px"> <input type="number" id="f1p-${i}">
-                            <button class="btn-blue" style="width:auto; padding:5px 10px" onclick="revF(1, ${i})">OK</button>
-                        </td>
-                        <td>
-                            <input type="text" id="f2t-${i}" style="width:100px"> <input type="number" id="f2p-${i}">
-                            <button class="btn-red" style="width:auto; padding:5px 10px" onclick="revF(2, ${i})">OK</button>
-                        </td>
-                    </tr>`;
+                ft.innerHTML += `<tr><td>${i+1}</td>
+                <td><input id="f1t-${i}" style="width:70px"><input id="f1p-${i}" type="number" style="width:40px"><button onclick="revF(1,${i})">OK</button></td>
+                <td><input id="f2t-${i}" style="width:70px"><input id="f2p-${i}" type="number" style="width:40px"><button onclick="revF(2,${i})">OK</button></td></tr>`;
             }
             loadQ();
         };
 
-        function connect() {
-            conn = peer.connect(document.getElementById('tv-id').value);
-            conn.on('open', () => alert("POŁĄCZONO Z TABLICĄ!"));
-        }
-
+        function connect() { conn = peer.connect(document.getElementById('tv-id').value); conn.on('open', () => alert("POŁĄCZONO!")); }
         function loadQ() {
             const q = DB[document.getElementById('q-sel').value];
             const box = document.getElementById('ans-box'); box.innerHTML = '';
             q.a.forEach((x, i) => {
-                const b = document.createElement('button');
-                b.className = 'btn-grey';
-                b.innerText = `${x[0]} (${x[1]})`;
-                b.onclick = () => { rSum += x[1]; update(); send({type:'REV', idx:i}); b.style.background = '#28a745'; };
+                const b = document.createElement('button'); b.className = 'btn-grey'; b.innerText = `${x[0]} (${x[1]})`;
+                b.onclick = () => { rSum += x[1]; update(); send({type:'REV', idx:i}); b.style.background = 'green'; };
                 box.appendChild(b);
             });
         }
-
-        function sendQ() {
-            rSum = 0; update();
-            const q = DB[document.getElementById('q-sel').value];
-            send({type:'SETUP', ans: q.a.map(x=>({t:x[0], p:x[1]}))});
-        }
-
+        function sendQ() { rSum = 0; update(); send({type:'SETUP', ans: DB[document.getElementById('q-sel').value].a.map(x=>({t:x[0], p:x[1]}))}); }
         function showFinal() { document.getElementById('panel-rounds').style.display='none'; document.getElementById('panel-final').style.display='block'; send({type:'FINAL_UI'}); }
         function showRounds() { document.getElementById('panel-rounds').style.display='block'; document.getElementById('panel-final').style.display='none'; }
-        
-        function revF(p, i) {
-            const txt = document.getElementById(`f${p}t-${i}`).value.toUpperCase();
-            const pts = document.getElementById(`f${p}p-${i}`).value;
-            send({type:'FINAL_REV', p:p, i:i, txt:txt, pts:pts});
-        }
-
+        function revF(p, i) { send({type:'FINAL_REV', p:p, i:i, txt:document.getElementById(`f${p}t-${i}`).value.toUpperCase(), pts:document.getElementById(`f${p}p-${i}`).value}); }
         function addScore(team) { if(team==='blue') s1+=rSum; else s2+=rSum; rSum=0; update(); }
-        function update() {
-            document.getElementById('ds1').innerText=s1;
-            document.getElementById('ds2').innerText=s2;
-            document.getElementById('dsum').innerText=rSum;
-            send({type:'SCORE', s1:s1, s2:s2, sum:rSum});
-        }
-        function resetAll() { s1=0; s2=0; rSum=0; update(); }
+        function update() { document.getElementById('ds1').innerText=s1; document.getElementById('ds2').innerText=s2; document.getElementById('dsum').innerText=rSum; send({type:'SCORE', s1:s1, s2:s2, sum:rSum}); }
         function send(d) { if(conn) conn.send(d); }
     </script>
 </body>
