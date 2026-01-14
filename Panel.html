@@ -2,24 +2,26 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>PANEL</title>
+    <title>PANEL - FAMILIADA</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         body { font-family: sans-serif; background: #1a1a1a; color: #fff; padding: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .card { background: #222; padding: 15px; border-radius: 10px; border-top: 4px solid gold; }
+        .card { background: #222; padding: 15px; border-radius: 10px; border-top: 4px solid gold; margin-bottom: 10px; }
         button { padding: 10px; margin: 4px 0; width: 100%; cursor: pointer; font-weight: bold; border-radius: 5px; border: none; }
-        .gold { background: gold; } .blue { background: #0055ff; color: #fff; } .red { background: #ff0044; color: #fff; }
-        input, select { width: 100%; padding: 10px; margin: 5px 0; background: #000; color: #fff; border: 1px solid #444; }
+        .gold { background: gold; color: black; } .blue { background: #0055ff; color: #fff; } .red { background: #ff0044; color: #fff; }
+        input, select { width: 100%; padding: 10px; margin: 5px 0; background: #000; color: #fff; border: 1px solid #444; font-size: 16px; }
+        .active { outline: 4px solid yellow; }
     </style>
 </head>
 <body>
     <div>
         <div class="card">
-            <input type="text" id="tv-id" placeholder="ID z TV">
-            <button class="gold" onclick="conn = peer.connect(document.getElementById('tv-id').value)">POŁĄCZ</button>
+            <h3>1. POŁĄCZ Z TV</h3>
+            <input type="text" id="tv-id" placeholder="Wpisz ID z ekranu TV">
+            <button class="gold" id="conn-btn" onclick="connectToTV()">POŁĄCZ</button>
         </div>
         <div class="card">
-            <h3>AUDIO / VIDEO</h3>
+            <h3>2. MULTIMEDIA</h3>
             <button onclick="send({type:'INTRO'})">🎬 CZOŁÓWKA (VIDEO)</button>
             <button class="gold" onclick="send({type:'BG_MUSIC', play:true})">🎵 MUZYKA TŁA (START)</button>
             <button onclick="send({type:'BG_MUSIC', play:false})">🔇 MUZYKA TŁA (STOP)</button>
@@ -27,52 +29,96 @@
             <button class="red" onclick="send({type:'GO_FINAL'})">🏁 FINAŁ (DŹWIĘK)</button>
         </div>
         <div class="card">
-            <h3>PUNKTY</h3>
-            <div style="display:flex; gap:5px;"><button class="blue" onclick="team='A'">LEWA</button><button class="red" onclick="team='B'">PRAWA</button></div>
-            <button class="red" style="margin-top:10px" onclick="send({type:'STRIKE', team:team})">❌ BŁĄD (X)</button>
-            <h2 id="scr">0</h2>
-            <button class="gold" onclick="scr=0; send({type:'SCORE', r:0})">RESRT PUNKTÓW RUNDY</button>
+            <h3>3. PUNKTY I BŁĘDY</h3>
+            <div style="display:flex; gap:10px;">
+                <button id="ta" class="blue" onclick="setTeam('A')">TEAM A (LEWY)</button>
+                <button id="tb" class="red" onclick="setTeam('B')">TEAM B (PRAWY)</button>
+            </div>
+            <button class="red" style="margin-top:10px; height: 60px; font-size: 20px;" onclick="send({type:'STRIKE', team:currentTeam})">❌ WYŚLIJ BŁĄD (X)</button>
+            <h2 style="text-align:center">SUMA RUNDY: <span id="scr">0</span></h2>
+            <button class="gold" onclick="resetScore()">RESET PUNKTÓW RUNDY</button>
         </div>
     </div>
     <div>
         <div class="card">
-            <h3>PYTANIA</h3>
+            <h3>4. WYBÓR PYTANIA</h3>
             <select id="r-sel"><option value="1">R1 (x1)</option><option value="2">R2 (x1)</option><option value="3">R3 (x2)</option><option value="4">R4 (x3)</option></select>
             <select id="q-sel" onchange="preview()"></select>
-            <button class="gold" onclick="sendSetup()">WYŚLIJ NA TABLICĘ</button>
-            <div id="ans"></div>
+            <button class="gold" style="height: 50px;" onclick="sendSetup()">WYŚLIJ PYTANIE NA TABLICĘ</button>
+            <div id="ans-list" style="margin-top:10px;"></div>
         </div>
     </div>
 
     <script>
         const db = [
-            {q:"Przedmiot szkolny?", a:[["MATEMATYKA",45],["POLSKI",25],["WF",15],["HISTORIA",10]]},
-            {q:"Co robimy na przerwie?", a:[["JEMY",40],["GADAMY",30],["BIEGAMY",20]]}
+            {q:"Przedmiot szkolny?", a:[["MATEMATYKA",45],["POLSKI",25],["WF",15],["HISTORIA",10],["BIOLOGIA",5]]},
+            {q:"Co robimy na przerwie?", a:[["JEMY ŚNIADANIE",40],["GADAMY",30],["BIEGAMY",15],["POWTARZAMY",10],["TELEFON",5]]},
+            {q:"Co jest w piórniku?", a:[["DŁUGOPIS",50],["OŁÓWEK",20],["GUMKA",15],["LINIJKA",10],["TEMPERÓWKA",5]]},
+            {q:"Zwierzę na literę K?", a:[["KOT",45],["KOŃ",25],["KROWA",15],["KANGUR",10],["KROKODYL",5]]},
+            {q:"Co kojarzy się z wakacjami?", a:[["MORZE",40],["SŁOŃCE",30],["LODY",15],["GÓRY",10],["PIASEK",5]]},
+            {q:"Co można dostać od nauczyciela?", a:[["OCENĘ",50],["POCHWAŁĘ",20],["UWAGĘ",15],["ZADANIE",10],["PYTANIE",5]]},
+            {q:"Dyscyplina sportu?", a:[["PIŁKA NOŻNA",45],["SIATKÓWKA",25],["KOSZYKÓWKA",15],["PŁYWANIE",10],["TENIS",5]]},
+            {q:"Co jest w plecaku?", a:[["ZESZYT",40],["KSIĄŻKA",30],["ŚNIADANIÓWKA",15],["STRÓJ NA WF",10],["WODA",5]]},
+            {q:"Miesiąc letni?", a:[["LIPIEC",45],["SIERPIEŃ",35],["CZERWIEC",20]]},
+            {q:"Kolor tęczy?", a:[["CZERWONY",30],["NIEBIESKI",25],["ŻÓŁTY",20],["ZIELONY",15],["FIOLETOWY",10]]},
+            {q:"Miasto w Polsce?", a:[["WARSZAWA",40],["KRAKÓW",30],["WROCŁAW",15],["GDAŃSK",10],["POZNAŃ",5]]},
+            {q:"Warzywo do zupy?", a:[["MARCHEW",40],["PIETRUSZKA",25],["SELER",15],["POR",10],["CEBULA",5]]}
         ];
-        let peer = new Peer(), conn, scr=0, team='A';
+
+        let peer = new Peer(), conn, currentScore=0, currentTeam='A';
+
+        function connectToTV() {
+            const id = document.getElementById('tv-id').value;
+            conn = peer.connect(id);
+            conn.on('open', () => {
+                document.getElementById('conn-btn').innerText = "POŁĄCZONO!";
+                document.getElementById('conn-btn').style.background = "lime";
+            });
+        }
+
         window.onload = () => {
             const s = document.getElementById('q-sel');
             db.forEach((it, i) => s.innerHTML += `<option value="${i}">${it.q}</option>`);
-            preview();
+            preview(); setTeam('A');
         };
+
         function send(d) { if(conn) conn.send(d); }
+
         function preview() {
             const d = db[document.getElementById('q-sel').value];
-            const div = document.getElementById('ans'); div.innerHTML = "";
-            d.a.forEach((ans, i) => { div.innerHTML += `<button onclick="reveal(${i}, ${ans[1]})">${ans[0]} (${ans[1]})</button>`; });
+            const div = document.getElementById('ans-list'); div.innerHTML = "";
+            d.a.forEach((ans, i) => { 
+                div.innerHTML += `<button onclick="reveal(${i}, ${ans[1]})">${ans[0]} (${ans[1]})</button>`; 
+            });
         }
+
+        function setTeam(t) {
+            currentTeam = t;
+            document.getElementById('ta').className = t==='A' ? 'blue active' : 'blue';
+            document.getElementById('tb').className = t==='B' ? 'red active' : 'red';
+        }
+
         function sendSetup() {
-            scr = 0; document.getElementById('scr').innerText = 0;
+            currentScore = 0; document.getElementById('scr').innerText = 0;
             const q = db[document.getElementById('q-sel').value];
             const r = document.getElementById('r-sel').value;
             const m = r == 3 ? 2 : (r == 4 ? 3 : 1);
             send({type:'SETUP_ROUND', rNum:r, mult:m, answers: q.a.map(x=>({text:x[0], points:x[1]}))});
         }
+
         function reveal(i, p) {
             const r = document.getElementById('r-sel').value;
             const m = r == 3 ? 2 : (r == 4 ? 3 : 1);
-            scr += (p * m); document.getElementById('scr').innerText = scr;
-            send({type:'REVEAL', idx:i}); send({type:'SCORE', r:scr});
+            currentScore += (p * m); 
+            document.getElementById('scr').innerText = currentScore;
+            send({type:'REVEAL', idx:i}); 
+            send({type:'SCORE', r:currentScore});
+        }
+
+        function resetScore() {
+            currentScore = 0;
+            document.getElementById('scr').innerText = 0;
+            send({type:'SCORE', r:0});
         }
     </script>
 </body>
