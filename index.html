@@ -2,135 +2,207 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA TV</title>
+    <title>FAMILIADA - TABLICA RETRO</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        :root { --gold: #ffcc00; --bg: #111; }
-        body { background: #000; color: var(--gold); font-family: 'VT323', monospace; margin: 0; overflow: hidden; height: 100vh; user-select: none; }
-        
-        #layer-setup { position: fixed; inset: 0; z-index: 999; background: black; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        #layer-video { position: fixed; inset: 0; z-index: 500; background: black; display: none; }
-        #layer-game { position: fixed; inset: 0; z-index: 100; display: none; flex-direction: column; }
-        video { width: 100%; height: 100%; object-fit: contain; }
-        
-        .header { display: flex; justify-content: space-between; align-items: flex-end; padding: 2vh 5vw; height: 15vh; }
-        .team-box { text-align: center; color: white; }
-        .team-name { font-size: 3vw; display: block; }
-        .team-score { font-size: 6vw; font-weight: bold; text-shadow: 0 0 20px gold; }
-        
-        .main-board { flex-grow: 1; display: flex; justify-content: center; align-items: center; position: relative; }
-        .board-frame { width: 80vw; background: #0a0a0a; border: 0.5vw solid #333; border-radius: 2vw; padding: 2vw; box-shadow: inset 0 0 5vw #000; }
-        
-        .row { display: flex; height: 9vh; margin-bottom: 1.5vh; background: #000; border-bottom: 2px solid #222; font-size: 5vh; overflow: hidden; position: relative; }
-        .row-num { width: 8vh; background: #222; color: #fff; display: flex; align-items: center; justify-content: center; border-right: 2px solid #000; }
-        .row-content { flex-grow: 1; display: flex; justify-content: space-between; align-items: center; position: relative; }
-        
-        .text-layer { position: absolute; left: 0; right: 0; top: 0; bottom: 0; display: flex; justify-content: space-between; align-items: center; padding: 0 2vw; opacity: 0; transition: opacity 0.5s; background: #000; z-index: 10; }
-        .dots-layer { position: absolute; left: 2vw; right: 2vw; color: #111; z-index: 1; letter-spacing: 0.5vw; }
-        .row.revealed .text-layer { opacity: 1; }
-        .row.revealed .dots-layer { opacity: 0; }
-        
-        #final-container { display: none; width: 100%; height: 100%; grid-template-columns: 1fr 1fr; gap: 4vw; }
-        .final-col { display: flex; flex-direction: column; gap: 1vh; }
+        :root { --gold: #ffcc00; --blue: #0044ff; --bg: #050505; }
+        body { 
+            background: var(--bg); 
+            background: radial-gradient(circle, #1a1a1a 0%, #000 100%);
+            color: var(--gold); 
+            font-family: 'VT323', monospace; 
+            margin: 0; padding: 0; 
+            overflow: hidden; height: 100vh; 
+            text-transform: uppercase;
+        }
 
-        .strike-overlay { position: fixed; inset: 0; z-index: 800; display: none; align-items: center; justify-content: center; pointer-events: none; }
-        .big-x { font-size: 35vh; color: red; font-weight: bold; text-shadow: 0 0 50px red, 5px 5px 0px white; animation: shake 0.5s; }
+        /* Poświata boczna dla drużyn */
+        body::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; background: var(--blue); box-shadow: 0 0 50px var(--blue); }
+        body::after { content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 5px; background: #ff0000; box-shadow: 0 0 50px #ff0000; }
+
+        #unlocker { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; align-items: center; justify-content: center; }
+        #unlocker button { padding: 30px 60px; font-size: 40px; background: var(--gold); border: none; cursor: pointer; font-family: 'VT323'; border-radius: 10px; }
+
+        #media-layer { position: fixed; inset: 0; z-index: 1000; display: none; background: #000; }
+        video { width: 100%; height: 100%; object-fit: contain; }
+
+        /* GŁÓWNA TABLICA */
+        .container { display: none; flex-direction: column; height: 100vh; padding: 20px 60px; box-sizing: border-box; }
         
-        #timer-box { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 20vh; color: white; background: rgba(0,0,0,0.9); padding: 50px; border: 5px solid red; display: none; z-index: 900; border-radius: 50%; width: 30vh; height: 30vh; text-align: center; line-height: 30vh; }
-        @keyframes shake { 0% { transform: translate(1px, 1px) rotate(0deg); } 20% { transform: translate(-3px, 0px) rotate(1deg); } 40% { transform: translate(1px, -1px) rotate(1deg); } 60% { transform: translate(-3px, 1px) rotate(0deg); } 80% { transform: translate(-1px, -1px) rotate(1deg); } 100% { transform: translate(1px, -2px) rotate(-1deg); } }
+        .header { display: flex; justify-content: space-between; align-items: center; height: 20vh; margin-bottom: 20px; }
+        .team { text-align: center; width: 250px; }
+        .team-name { font-size: 40px; color: #fff; margin-bottom: 5px; }
+        .team-score { font-size: 100px; line-height: 1; background: #111; border: 4px solid #333; padding: 10px; min-width: 120px; }
+
+        .main-score-box { text-align: center; }
+        .main-score-label { font-size: 30px; color: #888; }
+        .main-score-val { font-size: 140px; color: #fff; text-shadow: 0 0 30px var(--gold); line-height: 1; }
+
+        /* RAMA TABLICY */
+        .board-frame { 
+            flex-grow: 1; 
+            background: #000; 
+            border: 10px solid #222; 
+            border-radius: 30px; 
+            padding: 30px; 
+            display: flex; 
+            flex-direction: column; 
+            box-shadow: inset 0 0 100px #111;
+        }
+
+        .row { 
+            display: flex; 
+            align-items: center; 
+            height: 11vh; 
+            margin-bottom: 10px; 
+            background: #080808; 
+            border-bottom: 2px solid #1a1a1a;
+            font-size: 8vh; 
+            position: relative;
+        }
+        .row-num { width: 80px; color: #333; text-align: center; border-right: 4px solid #111; }
+        .row-content { flex-grow: 1; display: flex; justify-content: space-between; padding: 0 30px; position: relative; }
         
-        button.start-btn { padding: 20px 40px; font-size: 30px; background: gold; border: none; cursor: pointer; margin-top: 20px; }
-        .id-display { font-size: 24px; color: #555; margin-top: 10px; font-family: sans-serif; }
+        .row-text { color: #fff; display: none; }
+        .row-pts { color: var(--gold); display: none; }
+        .dots { color: #111; position: absolute; left: 30px; letter-spacing: 15px; z-index: 0; }
+
+        .revealed .row-text, .revealed .row-pts { display: block; z-index: 1; }
+        .revealed .dots { display: none; }
+
+        /* FINAŁ */
+        #final-grid { display: none; grid-template-columns: 1fr 1fr; gap: 40px; height: 100%; }
+        .final-col { display: flex; flex-direction: column; gap: 10px; }
+
+        /* STRIKE (X) */
+        #strike-overlay { 
+            position: fixed; inset: 0; display: none; 
+            align-items: center; justify-content: center; 
+            z-index: 2000; pointer-events: none; 
+        }
+        .big-x { font-size: 40vh; color: #ff0000; text-shadow: 0 0 50px #ff0000, 5px 5px 0 white; font-weight: bold; }
+
+        #timer { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); font-size: 60px; color: red; display: none; }
     </style>
 </head>
 <body>
-    <div id="layer-setup">
-        <h1 style="font-size: 80px; color: white; margin: 0;">FAMILIADA TV</h1>
-        <div class="id-display" id="my-id">Generowanie ID...</div>
-        <button class="start-btn" onclick="activateSystem()">KLIKNIJ ABY URUCHOMIĆ</button>
-    </div>
 
-    <div id="layer-video"><video id="vid-player"></video></div>
+    <div id="unlocker"><button onclick="startTV()">KLIKNIJ, ABY AKTYWOWAĆ SYSTEM</button></div>
+    <div id="media-layer"><video id="v-player"></video></div>
+    <div id="strike-overlay"><div class="big-x" id="x-txt">X</div></div>
+    <div id="timer">0</div>
 
-    <div id="layer-game">
+    <div class="container" id="board-ui">
         <div class="header">
-            <div class="team-box"><span class="team-name" id="name-a">DRUŻYNA A</span><div class="team-score" id="score-a">0</div></div>
-            <div style="text-align: center;"><div style="font-size: 40px; color: #888;">SUMA</div><div style="font-size: 90px;" id="round-sum">0</div></div>
-            <div class="team-box"><span class="team-name" id="name-b">DRUŻYNA B</span><div class="team-score" id="score-b">0</div></div>
-        </div>
-        <div class="main-board">
-            <div class="board-frame">
-                <div id="normal-rows"></div>
-                <div id="final-container"><div class="final-col" id="f-col-1"></div><div class="final-col" id="f-col-2"></div></div>
+            <div class="team">
+                <div class="team-name" id="t1-n">DRUŻYNA A</div>
+                <div class="team-score" id="t1-s">0</div>
             </div>
-            <div id="timer-box"></div>
+            <div class="main-score-box">
+                <div class="main-score-label">SUMA</div>
+                <div class="main-score-val" id="total-s">0</div>
+            </div>
+            <div class="team">
+                <div class="team-name" id="t2-n">DRUŻYNA B</div>
+                <div class="team-score" id="t2-s">0</div>
+            </div>
+        </div>
+
+        <div class="board-frame">
+            <div id="normal-grid"></div>
+            <div id="final-grid">
+                <div class="final-col" id="fc1"></div>
+                <div class="final-col" id="fc2"></div>
+            </div>
         </div>
     </div>
 
-    <div class="strike-overlay" id="strike-box"><div class="big-x" id="x-content">X</div></div>
-
-    <audio id="s-intro" src="intro.mp3" loop></audio>
-    <audio id="s-ok" src="ok.mp3"></audio>  <audio id="s-bad" src="zla.mp3"></audio> <audio id="s-round" src="runda.mp3"></audio>
-    <audio id="s-final" src="final.mp3"></audio>
+    <audio id="snd-ok" src="ok.mp3"></audio>
+    <audio id="snd-zla" src="zla.mp3"></audio>
+    <audio id="snd-intro" src="intro.mp3"></audio>
+    <audio id="snd-runda" src="runda.mp3"></audio>
+    <audio id="snd-final" src="final.mp3"></audio>
 
     <script>
         const peer = new Peer();
-        let active = false;
-
-        peer.on('open', id => document.getElementById('my-id').innerText = "TWOJE ID: " + id);
-
-        function activateSystem() {
-            active = true;
-            document.getElementById('layer-setup').style.display = 'none';
-            document.getElementById('layer-game').style.display = 'flex';
-            document.getElementById('s-ok').play().catch(()=>{}).then(() => document.getElementById('s-ok').pause());
+        function startTV() {
+            document.getElementById('unlocker').style.display = 'none';
+            document.getElementById('board-ui').style.display = 'flex';
         }
+
+        peer.on('open', id => console.log("ID: " + id));
 
         peer.on('connection', conn => {
             conn.on('data', data => {
-                if(!active) return;
-                if(data.type === 'NAMES') { document.getElementById('name-a').innerText = data.a; document.getElementById('name-b').innerText = data.b; }
-                if(data.type === 'SCORE_UPDATE') { document.getElementById('score-a').innerText = data.a; document.getElementById('score-b').innerText = data.b; document.getElementById('round-sum').innerText = data.sum; }
-                if(data.type === 'VIDEO_INTRO') {
-                    const v = document.getElementById('vid-player'); const l = document.getElementById('layer-video'); const m = document.getElementById('s-intro');
-                    m.volume = 0.5; m.currentTime = 0; m.play(); v.src = 'czolowka.mp4'; l.style.display = 'block'; v.play();
-                    v.onended = () => { l.style.display = 'none'; };
+                if(data.type === 'INTRO') {
+                    const v = document.getElementById('v-player');
+                    const l = document.getElementById('media-layer');
+                    document.getElementById('snd-intro').play();
+                    v.src = 'czolowka.mp4'; l.style.display = 'block'; v.play();
+                    v.onended = () => l.style.display = 'none';
                 }
-                if(data.type === 'MUSIC_STOP') document.getElementById('s-intro').pause();
-                
-                if(data.type === 'SETUP_BOARD') {
-                    document.getElementById('s-round').play();
-                    document.getElementById('normal-rows').style.display = 'block'; document.getElementById('final-container').style.display = 'none';
-                    const cont = document.getElementById('normal-rows'); cont.innerHTML = '';
-                    data.answers.forEach((ans, i) => {
-                        cont.innerHTML += `<div class="row" id="r-${i}"><div class="row-num">${i+1}</div><div class="row-content"><div class="dots-layer">..........................</div><div class="text-layer"><span>${ans.text}</span><span style="color:var(--gold)">${ans.pts}</span></div></div></div>`;
+
+                if(data.type === 'SETUP') {
+                    document.getElementById('snd-runda').play();
+                    document.getElementById('normal-grid').style.display = 'block';
+                    document.getElementById('final-grid').style.display = 'none';
+                    const g = document.getElementById('normal-grid'); g.innerHTML = '';
+                    data.ans.forEach((a, i) => {
+                        g.innerHTML += `
+                        <div class="row" id="r-${i}">
+                            <div class="row-num">${i+1}</div>
+                            <div class="row-content">
+                                <div class="dots">................................</div>
+                                <div class="row-text">${a.t}</div>
+                                <div class="row-pts">${a.p}</div>
+                            </div>
+                        </div>`;
                     });
                 }
-                if(data.type === 'REVEAL') { 
-                    const row = document.getElementById('r-' + data.idx);
-                    if(row) { row.classList.add('revealed'); document.getElementById('s-ok').play(); }
+
+                if(data.type === 'REV') {
+                    document.getElementById('snd-ok').play();
+                    document.getElementById('r-'+data.idx).classList.add('revealed');
                 }
+
                 if(data.type === 'STRIKE') {
-                    const box = document.getElementById('strike-box'); const x = document.getElementById('x-content');
-                    x.innerText = data.count === 1 ? 'X' : (data.count === 2 ? 'XX' : 'XXX');
-                    box.style.display = 'flex'; document.getElementById('s-bad').play();
-                    setTimeout(() => box.style.display = 'none', 1500);
+                    document.getElementById('snd-zla').play();
+                    const ov = document.getElementById('strike-overlay');
+                    document.getElementById('x-txt').innerText = "X".repeat(data.num);
+                    ov.style.display = 'flex';
+                    setTimeout(() => ov.style.display = 'none', 1500);
                 }
-                if(data.type === 'TIMER') {
-                    const t = document.getElementById('timer-box'); t.style.display = 'block'; let val = 3; t.innerText = val;
-                    const int = setInterval(() => { val--; t.innerText = val; if(val <= 0) { clearInterval(int); t.style.display = 'none'; document.getElementById('s-bad').play(); } }, 1000);
+
+                if(data.type === 'SCORE') {
+                    document.getElementById('t1-s').innerText = data.s1;
+                    document.getElementById('t2-s').innerText = data.s2;
+                    document.getElementById('total-s').innerText = data.sum;
                 }
-                if(data.type === 'FINAL_SETUP') {
-                    document.getElementById('s-final').play(); document.getElementById('normal-rows').style.display = 'none'; document.getElementById('final-container').style.display = 'grid';
-                    const c1 = document.getElementById('f-col-1'); const c2 = document.getElementById('f-col-2'); c1.innerHTML = ''; c2.innerHTML = '';
+
+                if(data.type === 'NAMES') {
+                    document.getElementById('t1-n').innerText = data.n1;
+                    document.getElementById('t2-n').innerText = data.n2;
+                }
+
+                if(data.type === 'FINAL_MODE') {
+                    document.getElementById('snd-final').play();
+                    document.getElementById('normal-grid').style.display = 'none';
+                    document.getElementById('final-grid').style.display = 'grid';
+                    const c1 = document.getElementById('fc1'); const c2 = document.getElementById('fc2');
+                    c1.innerHTML = ''; c2.innerHTML = '';
                     for(let i=0; i<5; i++) {
-                        c1.innerHTML += `<div class="row" style="height:7vh"><div class="row-content"><div class="text-layer" id="f1-${i}" style="opacity:0; display:flex"><span>---</span><span>0</span></div></div></div>`;
-                        c2.innerHTML += `<div class="row" style="height:7vh"><div class="row-content"><div class="text-layer" id="f2-${i}" style="opacity:0; display:flex"><span>---</span><span>0</span></div></div></div>`;
+                        c1.innerHTML += `<div class="row" style="height:7vh"><div class="row-content"><div class="row-text" id="f1t-${i}" style="display:none">--</div><div class="row-pts" id="f1p-${i}" style="display:none">0</div></div></div>`;
+                        c2.innerHTML += `<div class="row" style="height:7vh"><div class="row-content"><div class="row-text" id="f2t-${i}" style="display:none">--</div><div class="row-pts" id="f2p-${i}" style="display:none">0</div></div></div>`;
                     }
                 }
-                if(data.type === 'FINAL_SHOW') {
-                    const el = document.getElementById(`f${data.player}-${data.idx}`); el.innerHTML = `<span>${data.txt}</span><span>${data.pts}</span>`; el.style.opacity = 1; document.getElementById('s-ok').play();
+
+                if(data.type === 'FINAL_REV') {
+                    document.getElementById('snd-ok').play();
+                    const t = document.getElementById(`f${data.p}t-${data.i}`);
+                    const p = document.getElementById(`f${data.p}p-${data.i}`);
+                    t.innerText = data.txt; p.innerText = data.pts;
+                    t.style.display = 'block'; p.style.display = 'block';
                 }
             });
         });
