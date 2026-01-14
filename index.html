@@ -1,1 +1,393 @@
-<!DOCTYPE html> <html lang="pl"> <head> <meta charset="UTF-8"> <title>FAMILIADA TV - WERSJA ULTIMATE</title> <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet"> <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script> <style> :root { --gold: #f5b041; --red: #ff0000; --bg: #050505; --led-off: #121212; } body { background: #000; color: var(--gold); font-family: 'VT323', monospace; margin: 0; overflow: hidden; text-transform: uppercase; } #overlay { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; } #peer-id-display { font-size: 70px; color: var(--gold); border: 4px solid var(--gold); padding: 20px; border-radius: 15px; margin: 20px; } .led-bg { position: fixed; inset: 0; background-image: radial-gradient(rgba(0,0,0,0.4) 40%, transparent 45%); background-size: 4px 4px; z-index: 100; pointer-events: none; } #video-layer { position: fixed; inset: 0; width: 100%; height: 100%; background: #000; z-index: 5000; display: none; } .main-container { display: flex; height: 100vh; align-items: center; justify-content: center; gap: 20px; } .strike-zone { width: 120px; display: flex; flex-direction: column; gap: 20px; } .strike-x { width: 100px; height: 100px; position: relative; display: none; filter: drop-shadow(0 0 15px var(--red)); } .strike-x::before, .strike-x::after { content: ''; position: absolute; top: 45%; width: 100%; height: 15px; background: var(--red); } .strike-x::before { transform: rotate(45deg); } .strike-x::after { transform: rotate(-45deg); } .board-frame { border: 10px solid #222; border-radius: 30px; padding: 40px; background: var(--bg); width: 80vw; height: 85vh; display: flex; flex-direction: column; box-shadow: inset 0 0 50px #000; } #normal-ui { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; } .row { display: flex; font-size: 85px; height: 95px; border-bottom: 2px solid #111; align-items: center; overflow: hidden; } .row-num { width: 60px; color: #333; } .row-content { flex-grow: 1; display: flex; justify-content: space-between; position: relative; } .dots { color: var(--led-off); letter-spacing: 12px; position: absolute; left: 50%; transform: translateX(-50%); } .ans-text, .pts-val { display: none; background: var(--bg); z-index: 2; padding: 0 10px; } #final-ui { display: none; height: 100%; flex-direction: column; } .timer { font-size: 130px; text-align: center; color: var(--red); height: 130px; text-shadow: 0 0 20px var(--red); } .final-tables { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; flex-grow: 1; margin-top: 20px; } .final-slot { border: 4px solid #111; height: 80px; display: flex; font-size: 55px; align-items: center; padding: 0 15px; background: #080808; margin-bottom: 8px; } .f-ans { flex-grow: 1; display: none; overflow: hidden; } .f-pts { width: 90px; text-align: right; border-left: 4px solid #111; display: none; padding-left: 10px; } .revealed .ans-text, .revealed .pts-val, .revealed .f-ans, .revealed .f-pts { display: block !important; } .revealed .dots { display: none; } .footer { display: flex; justify-content: space-between; font-size: 100px; border-top: 6px double #222; margin-top: 15px; } </style> </head> <body> <div id="overlay"> <div id="peer-id-display">ŁADOWANIE...</div> <button onclick="this.parentElement.style.display='none'" style="padding:20px 60px; font-size:40px; font-family:'VT323'; cursor:pointer; background:var(--gold); border:none; border-radius:10px;">URUCHOM PANEL TV</button> </div> <div class="led-bg"></div> <video id="video-layer" playsinline></video> <audio id="sndOk" src="ok.mp3"></audio> <audio id="sndNo" src="zle.mp3"></audio> <audio id="sndRunda" src="runda.mp3"></audio> <audio id="sndFinal" src="final.mp3"></audio> <audio id="sndBuzz" src="powtorzenie.mp3"></audio> <div class="main-container"> <div class="strike-zone"> <div class="strike-x" id="xA1"></div><div class="strike-x" id="xA2"></div><div class="strike-x" id="xA3"></div> </div> <div class="board-frame"> <div id="normal-ui"></div> <div id="final-ui"> <div class="timer" id="timer">15</div> <div class="final-tables"><div id="col-G1"></div><div id="col-G2"></div></div> </div> <div class="footer"><span>SUMA</span><span id="total-val">0</span></div> </div> <div class="strike-zone"> <div class="strike-x" id="xB1"></div><div class="strike-x" id="xB2"></div><div class="strike-x" id="xB3"></div> </div> </div> <script> const peer = new Peer(); let timerInt; peer.on('open', id => document.getElementById('peer-id-display').innerText = "KOD: " + id); const playSnd = (id) => { const s = document.getElementById(id); s.currentTime = 0; s.play().catch(()=>{}); }; peer.on('connection', conn => { conn.on('data', m => { if(m.type === 'PLAY_VIDEO') { const v = document.getElementById('video-layer'); v.src = m.file; v.style.display = 'block'; v.play(); v.onended = () => v.style.display = 'none'; } if(m.type === 'SETUP') { document.getElementById('normal-ui').style.display = 'flex'; document.getElementById('final-ui').style.display = 'none'; document.getElementById('normal-ui').innerHTML = m.a.map((ans, i) => <div class="row" id="row-${i}"><div class="row-num">${i+1}</div> <div class="row-content"><div class="dots">.......</div> <div class="ans-text">${ans.t}</div><div class="pts-val">${ans.p}</div></div></div>).join(''); } if(m.type === 'NEXT_ROUND') { playSnd('sndRunda'); document.querySelectorAll('.strike-x').forEach(x => x.style.display = 'none'); document.getElementById('normal-ui').innerHTML = ""; document.getElementById('total-val').innerText = "0"; } if(m.type === 'FINAL_MODE') { if(m.time === 15) { playSnd('sndFinal'); const draw = (id) => document.getElementById(id).innerHTML = Array(5).fill(0).map((_,i)=> <div class="final-slot" id="f-${id}-${i}"><div class="f-ans"></div><div class="f-pts">0</div></div>).join(''); draw('col-G1'); draw('col-G2'); } document.getElementById('normal-ui').style.display = 'none'; document.getElementById('final-ui').style.display = 'flex'; document.getElementById('timer').innerText = m.time; } if(m.type === 'START_TIMER') { let t = parseInt(document.getElementById('timer').innerText); clearInterval(timerInt); timerInt = setInterval(() => { t--; document.getElementById('timer').innerText = t; if(t <= 0) { clearInterval(timerInt); playSnd('sndNo'); } }, 1000); } if(m.type === 'FINAL_REVEAL') { playSnd('sndOk'); const slot = document.getElementById(f-col-G${m.gracz}-${m.index}); slot.querySelector('.f-ans').innerText = m.ans; slot.querySelector('.f-pts').innerText = m.pts; slot.classList.add('revealed'); document.getElementById('total-val').innerText = m.total; } if(m.type === 'STRIKE') { playSnd('sndNo'); document.getElementById(x${m.team}${m.num}).style.display = 'block'; } if(m.type === 'RESET_X') document.querySelectorAll('.strike-x').forEach(x => x.style.display = 'none'); if(m.type === 'REVEAL') { playSnd('sndOk'); document.getElementById(row-${m.index}).classList.add('revealed'); document.getElementById('total-val').innerText = m.total; } if(m.type === 'BUZZER') playSnd('sndBuzz'); if(m.type === 'UPDATE') document.getElementById('total-val').innerText = m.sc; }); }); </script> </body> </html>
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>FAMILIADA TV - RETRO EDITION</title>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <style>
+        :root {
+            --led-gold: #ffcc00;
+            --led-dim: #4a3b00;
+            --border-blue: #0055ff;
+            --border-red: #ff0044;
+            --bg-dark: #050505;
+        }
+        
+        body {
+            background-color: #000;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: 'VT323', monospace;
+            overflow: hidden;
+            color: var(--led-gold);
+            text-transform: uppercase;
+        }
+
+        /* Tło - siatka LED */
+        .led-grid {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: 
+                linear-gradient(rgba(10,10,10,0.8) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(10,10,10,0.8) 1px, transparent 1px);
+            background-size: 4px 4px;
+            background-color: #080808;
+            z-index: -1;
+        }
+
+        /* Ekran łączenia */
+        #connect-screen {
+            position: fixed;
+            z-index: 9999;
+            background: #000;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .code-display {
+            font-size: 80px;
+            border: 4px solid var(--led-gold);
+            padding: 20px 40px;
+            border-radius: 20px;
+            box-shadow: 0 0 20px var(--led-gold);
+            margin-bottom: 20px;
+        }
+
+        /* Główna Tablica */
+        .game-board {
+            display: none; /* Ukryte do startu */
+            width: 90vw;
+            max-width: 1200px;
+            position: relative;
+        }
+
+        /* Górny wynik rundy (w tej małej ramce) */
+        .round-score-box {
+            width: 200px;
+            margin: 0 auto 10px auto;
+            border: 4px solid #444;
+            border-top-color: var(--border-red);
+            border-bottom-color: var(--border-blue);
+            background: #000;
+            text-align: center;
+            font-size: 80px;
+            line-height: 1;
+            padding: 5px;
+            border-radius: 15px;
+            box-shadow: 0 0 15px rgba(255,255,255,0.1);
+        }
+
+        /* Główna ramka z pytaniami */
+        .main-display {
+            border: 6px solid;
+            border-image: linear-gradient(to bottom, var(--border-red), var(--border-blue)) 1;
+            border-radius: 20px; /* Hack dla border-image */
+            padding: 5px;
+            background: #000;
+            position: relative;
+            box-shadow: 
+                0 -5px 20px var(--border-red), 
+                0 5px 20px var(--border-blue);
+        }
+        
+        /* Fix dla zaokrąglonych rogów z gradientem */
+        .display-inner {
+            border: 2px solid #333;
+            border-radius: 10px;
+            padding: 20px 40px;
+            min-height: 50vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .row {
+            display: flex;
+            align-items: center;
+            font-size: 60px;
+            margin-bottom: 5px;
+            height: 70px;
+        }
+
+        .row-num {
+            width: 40px;
+            color: #d4d4d4;
+            margin-right: 15px;
+        }
+
+        .row-content {
+            flex-grow: 1;
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 200, 0, 0.05); /* Lekkie podświetlenie linii */
+        }
+
+        .dots {
+            position: absolute;
+            left: 0; top: 0; width: 100%;
+            letter-spacing: 8px;
+            color: var(--led-dim);
+            z-index: 0;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        .answer-text {
+            z-index: 1;
+            background: #000;
+            padding-right: 15px;
+            display: none; /* Ukryte */
+            text-shadow: 0 0 5px var(--led-gold);
+        }
+
+        .points {
+            z-index: 1;
+            background: #000;
+            padding-left: 15px;
+            display: none; /* Ukryte */
+            text-shadow: 0 0 5px var(--led-gold);
+        }
+
+        .revealed .answer-text, .revealed .points { display: block; }
+        .revealed .dots { display: none; }
+
+        /* Stopka (Suma) */
+        .footer {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            font-size: 50px;
+        }
+        
+        .strikes-container {
+            display: flex;
+            gap: 15px;
+        }
+        .strike {
+            color: var(--border-red);
+            font-size: 80px;
+            line-height: 50px;
+            display: none;
+            text-shadow: 0 0 15px red;
+        }
+
+        .total-score {
+            text-align: right;
+        }
+        .total-label { font-size: 40px; color: #aaa; margin-right: 20px; }
+        .total-val { font-size: 60px; }
+
+        /* Wielkie X na środku */
+        #fullscreen-strike {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 5000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .big-x {
+            width: 300px; height: 300px;
+            position: relative;
+        }
+        .big-x::before, .big-x::after {
+            content: ''; position: absolute;
+            width: 100%; height: 40px;
+            background: red;
+            box-shadow: 0 0 30px red;
+            top: 50%; left: 0;
+        }
+        .big-x::before { transform: translateY(-50%) rotate(45deg); }
+        .big-x::after { transform: translateY(-50%) rotate(-45deg); }
+
+        /* FINAŁ */
+        #final-board {
+            display: none;
+            width: 100%;
+            height: 100%;
+            flex-direction: column;
+        }
+        .final-cols { display: flex; gap: 50px; justify-content: center; margin-top: 20px; }
+        .final-row { 
+            display: flex; width: 450px; justify-content: space-between; 
+            font-size: 50px; background: #111; margin-bottom: 10px; padding: 0 10px; border: 1px solid #333;
+        }
+        .f-txt { width: 350px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0; }
+        .f-pts { width: 60px; text-align: right; border-left: 2px solid #333; opacity: 0; }
+        
+        .f-rev .f-txt, .f-rev .f-pts { opacity: 1; }
+    </style>
+</head>
+<body>
+
+    <div class="led-grid"></div>
+
+    <audio id="snd-intro" src="intro.mp3"></audio>
+    <audio id="snd-ok" src="ok.mp3"></audio>
+    <audio id="snd-bad" src="zle.mp3"></audio>
+
+    <div id="connect-screen">
+        <div style="font-size: 30px; margin-bottom:10px; color:#fff">ID DO PANELU:</div>
+        <div class="code-display" id="my-id">...</div>
+        <button onclick="document.getElementById('connect-screen').style.display='none'; document.querySelector('.game-board').style.display='block';" 
+            style="font-family:'VT323'; font-size:30px; padding:10px 40px; cursor:pointer; background:var(--led-gold); border:none;">
+            URUCHOM EKRAN
+        </button>
+    </div>
+
+    <div id="fullscreen-strike"><div class="big-x"></div></div>
+
+    <div class="game-board">
+        <div class="round-score-box" id="round-score">0</div>
+
+        <div class="main-display">
+            <div class="display-inner">
+                
+                <div id="normal-rows">
+                    </div>
+
+                <div id="final-board">
+                    <div style="text-align:center; font-size:120px; color:var(--border-red); text-shadow:0 0 20px red;" id="timer">00</div>
+                    <div class="final-cols">
+                        <div id="col-1"></div>
+                        <div id="col-2"></div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="footer">
+            <div class="strikes-container" id="strikes-box">
+                </div>
+            <div class="total-score">
+                <span class="total-label">SUMA</span>
+                <span class="total-val" id="global-score">0</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const peer = new Peer();
+        
+        // Funkcje dźwiękowe
+        const play = (id) => { 
+            const a = document.getElementById(id); 
+            if(a) { a.currentTime=0; a.play().catch(e=>console.log(e)); }
+        };
+
+        peer.on('open', id => {
+            document.getElementById('my-id').innerText = id;
+        });
+
+        peer.on('connection', conn => {
+            conn.on('data', data => {
+                console.log("Otrzymano:", data);
+
+                // --- LOGIKA GRY ---
+
+                if (data.type === 'SETUP_ROUND') {
+                    document.getElementById('final-board').style.display = 'none';
+                    document.getElementById('normal-rows').style.display = 'block';
+                    document.getElementById('round-score').innerText = '0';
+                    document.getElementById('strikes-box').innerHTML = '';
+                    
+                    const container = document.getElementById('normal-rows');
+                    container.innerHTML = '';
+                    
+                    data.answers.forEach((ans, index) => {
+                        const row = document.createElement('div');
+                        row.className = 'row';
+                        row.id = `row-${index}`;
+                        row.innerHTML = `
+                            <div class="row-num">${index + 1}</div>
+                            <div class="row-content">
+                                <div class="dots">..............................</div>
+                                <div class="answer-text">${ans.text}</div>
+                                <div class="points">${ans.points}</div>
+                            </div>
+                        `;
+                        container.appendChild(row);
+                    });
+                    play('snd-intro');
+                }
+
+                if (data.type === 'REVEAL_ANSWER') {
+                    const r = document.getElementById(`row-${data.index}`);
+                    if (r) {
+                        r.classList.add('revealed');
+                        play('snd-ok');
+                    }
+                }
+
+                if (data.type === 'UPDATE_SCORES') {
+                    document.getElementById('round-score').innerText = data.roundScore;
+                    document.getElementById('global-score').innerText = data.globalScore;
+                }
+
+                if (data.type === 'STRIKE') {
+                    play('snd-bad');
+                    // Pokaż wielkie X na chwilę
+                    const fs = document.getElementById('fullscreen-strike');
+                    fs.style.display = 'flex';
+                    setTimeout(() => fs.style.display = 'none', 1000);
+
+                    // Dodaj małego X na dole
+                    const box = document.getElementById('strikes-box');
+                    if (data.count <= 3) {
+                        box.innerHTML += `<div class="strike" style="display:block">X</div>`;
+                    }
+                }
+
+                if (data.type === 'CLEAR_STRIKES') {
+                    document.getElementById('strikes-box').innerHTML = '';
+                }
+
+                // --- OBSŁUGA FINAŁU ---
+
+                if (data.type === 'SETUP_FINAL') {
+                    document.getElementById('normal-rows').style.display = 'none';
+                    document.getElementById('final-board').style.display = 'flex';
+                    document.getElementById('timer').innerText = data.time || '15';
+                    
+                    // Generuj puste sloty
+                    const genSlots = (id) => {
+                        const c = document.getElementById(id);
+                        c.innerHTML = '';
+                        for(let i=0; i<5; i++) {
+                            c.innerHTML += `<div class="final-row" id="f-${id}-${i}"><div class="f-txt"></div><div class="f-pts">0</div></div>`;
+                        }
+                    };
+                    genSlots('col-1');
+                    genSlots('col-2');
+                }
+
+                if (data.type === 'TIMER_TICK') {
+                    document.getElementById('timer').innerText = data.val;
+                }
+
+                if (data.type === 'FINAL_REVEAL') {
+                    const el = document.getElementById(`f-col-${data.player}-${data.index}`);
+                    if(el) {
+                        el.querySelector('.f-txt').innerText = data.ans;
+                        el.querySelector('.f-pts').innerText = data.pts;
+                        el.classList.add('f-rev');
+                        play('snd-ok');
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
