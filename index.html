@@ -2,111 +2,99 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA - TABLICA RETRO</title>
+    <title>FAMILIADA TV - ULTIMATE GLOW</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        :root { --gold: #ffcc00; --blue: #0044ff; --bg: #050505; }
+        :root { --gold: #ffcc00; --blue: #0066ff; --red: #ff0000; --bg: #020202; }
         body { 
             background: var(--bg); 
-            background: radial-gradient(circle, #1a1a1a 0%, #000 100%);
             color: var(--gold); 
             font-family: 'VT323', monospace; 
-            margin: 0; padding: 0; 
-            overflow: hidden; height: 100vh; 
+            margin: 0; overflow: hidden; height: 100vh; 
             text-transform: uppercase;
         }
 
-        /* Poświata boczna dla drużyn */
-        body::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; background: var(--blue); box-shadow: 0 0 50px var(--blue); }
-        body::after { content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 5px; background: #ff0000; box-shadow: 0 0 50px #ff0000; }
+        /* Tło z poświatą boczną */
+        body::before { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 15% 50%, rgba(0,102,255,0.15), transparent 40%); pointer-events: none; }
+        body::after { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 85% 50%, rgba(255,0,0,0.15), transparent 40%); pointer-events: none; }
 
         #unlocker { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; align-items: center; justify-content: center; }
-        #unlocker button { padding: 30px 60px; font-size: 40px; background: var(--gold); border: none; cursor: pointer; font-family: 'VT323'; border-radius: 10px; }
+        #unlocker button { padding: 30px 60px; font-size: 40px; background: var(--gold); border: none; cursor: pointer; font-family: 'VT323'; border-radius: 15px; box-shadow: 0 0 30px var(--gold); }
 
-        #media-layer { position: fixed; inset: 0; z-index: 1000; display: none; background: #000; }
-        video { width: 100%; height: 100%; object-fit: contain; }
+        /* NAGŁÓWEK - TYLKO NAZWY I SUMA */
+        .header { display: flex; justify-content: space-around; align-items: center; height: 25vh; padding: 0 50px; }
+        .team-name { font-size: 5vw; color: #fff; text-shadow: 0 0 20px rgba(255,255,255,0.5); }
+        .main-score-box { text-align: center; background: rgba(255,204,0,0.05); padding: 20px 40px; border-radius: 20px; border: 2px solid rgba(255,204,0,0.2); }
+        .main-score-label { font-size: 2vw; color: #888; }
+        .main-score-val { font-size: 8vw; color: #fff; text-shadow: 0 0 40px var(--gold); line-height: 0.8; }
 
-        /* GŁÓWNA TABLICA */
-        .container { display: none; flex-direction: column; height: 100vh; padding: 20px 60px; box-sizing: border-box; }
-        
-        .header { display: flex; justify-content: space-between; align-items: center; height: 20vh; margin-bottom: 20px; }
-        .team { text-align: center; width: 250px; }
-        .team-name { font-size: 40px; color: #fff; margin-bottom: 5px; }
-        .team-score { font-size: 100px; line-height: 1; background: #111; border: 4px solid #333; padding: 10px; min-width: 120px; }
-
-        .main-score-box { text-align: center; }
-        .main-score-label { font-size: 30px; color: #888; }
-        .main-score-val { font-size: 140px; color: #fff; text-shadow: 0 0 30px var(--gold); line-height: 1; }
-
-        /* RAMA TABLICY */
+        /* TABLICA */
         .board-frame { 
-            flex-grow: 1; 
+            width: 85vw; margin: 0 auto; 
             background: #000; 
-            border: 10px solid #222; 
-            border-radius: 30px; 
-            padding: 30px; 
-            display: flex; 
-            flex-direction: column; 
-            box-shadow: inset 0 0 100px #111;
+            border: 6px solid #222; 
+            border-radius: 40px; 
+            padding: 40px; 
+            box-shadow: 0 0 60px rgba(0,0,0,1), inset 0 0 40px #111;
+            position: relative;
         }
 
         .row { 
-            display: flex; 
-            align-items: center; 
-            height: 11vh; 
-            margin-bottom: 10px; 
-            background: #080808; 
-            border-bottom: 2px solid #1a1a1a;
-            font-size: 8vh; 
-            position: relative;
+            display: flex; align-items: center; height: 10vh; margin-bottom: 12px; 
+            background: #050505; border-bottom: 3px solid #111; font-size: 7vh; 
+            position: relative; overflow: hidden;
         }
-        .row-num { width: 80px; color: #333; text-align: center; border-right: 4px solid #111; }
-        .row-content { flex-grow: 1; display: flex; justify-content: space-between; padding: 0 30px; position: relative; }
+        .row-num { width: 90px; color: #222; text-align: center; border-right: 4px solid #000; font-weight: bold; }
+        .row-content { flex-grow: 1; display: flex; justify-content: space-between; padding: 0 40px; position: relative; }
         
-        .row-text { color: #fff; display: none; }
-        .row-pts { color: var(--gold); display: none; }
-        .dots { color: #111; position: absolute; left: 30px; letter-spacing: 15px; z-index: 0; }
+        .row-text { color: #fff; display: none; z-index: 2; text-shadow: 0 0 10px rgba(255,255,255,0.3); }
+        .row-pts { color: var(--gold); display: none; z-index: 2; text-shadow: 0 0 15px var(--gold); }
+        .dots { color: #0f0f0f; position: absolute; left: 40px; letter-spacing: 12px; z-index: 1; }
 
-        .revealed .row-text, .revealed .row-pts { display: block; z-index: 1; }
+        .revealed { background: #0a0a0a !important; }
+        .revealed .row-text, .revealed .row-pts { display: block; }
         .revealed .dots { display: none; }
 
-        /* FINAŁ */
-        #final-grid { display: none; grid-template-columns: 1fr 1fr; gap: 40px; height: 100%; }
-        .final-col { display: flex; flex-direction: column; gap: 10px; }
-
-        /* STRIKE (X) */
+        /* OGROMNE X (BŁĄD) */
         #strike-overlay { 
             position: fixed; inset: 0; display: none; 
             align-items: center; justify-content: center; 
-            z-index: 2000; pointer-events: none; 
+            z-index: 5000; pointer-events: none;
+            background: rgba(0,0,0,0.4);
         }
-        .big-x { font-size: 40vh; color: #ff0000; text-shadow: 0 0 50px #ff0000, 5px 5px 0 white; font-weight: bold; }
+        .big-x { 
+            font-size: 60vh; color: var(--red); 
+            text-shadow: 0 0 100px var(--red), 0 0 20px white; 
+            font-weight: bold; transform: scale(1.2);
+            animation: popX 0.5s ease-out;
+        }
+        @keyframes popX { 0% { transform: scale(0); } 80% { transform: scale(1.3); } 100% { transform: scale(1.2); } }
 
-        #timer { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); font-size: 60px; color: red; display: none; }
+        /* FINAŁ */
+        #final-grid { display: none; grid-template-columns: 1fr 1fr; gap: 60px; }
+        .final-col { display: flex; flex-direction: column; gap: 15px; }
+
+        #media-layer { position: fixed; inset: 0; z-index: 4000; display: none; background: #000; }
+        video { width: 100%; height: 100%; }
     </style>
 </head>
 <body>
 
-    <div id="unlocker"><button onclick="startTV()">KLIKNIJ, ABY AKTYWOWAĆ SYSTEM</button></div>
+    <div id="unlocker"><button onclick="startTV()">URUCHOM SYSTEM TV</button></div>
+    
     <div id="media-layer"><video id="v-player"></video></div>
-    <div id="strike-overlay"><div class="big-x" id="x-txt">X</div></div>
-    <div id="timer">0</div>
 
-    <div class="container" id="board-ui">
+    <div id="strike-overlay"><div class="big-x" id="x-txt">X</div></div>
+
+    <div class="container" id="main-ui">
         <div class="header">
-            <div class="team">
-                <div class="team-name" id="t1-n">DRUŻYNA A</div>
-                <div class="team-score" id="t1-s">0</div>
-            </div>
+            <div class="team-name" id="t1-n">DRUŻYNA A</div>
             <div class="main-score-box">
                 <div class="main-score-label">SUMA</div>
                 <div class="main-score-val" id="total-s">0</div>
             </div>
-            <div class="team">
-                <div class="team-name" id="t2-n">DRUŻYNA B</div>
-                <div class="team-score" id="t2-s">0</div>
-            </div>
+            <div class="team-name" id="t2-n">DRUŻYNA B</div>
         </div>
 
         <div class="board-frame">
@@ -128,10 +116,15 @@
         const peer = new Peer();
         function startTV() {
             document.getElementById('unlocker').style.display = 'none';
-            document.getElementById('board-ui').style.display = 'flex';
         }
 
-        peer.on('open', id => console.log("ID: " + id));
+        peer.on('open', id => {
+            const el = document.createElement('div');
+            el.style: "position:fixed; bottom:10px; right:10px; color:#333; font-family:sans-serif; font-size:12px;";
+            el.innerText = "ID: " + id;
+            document.body.appendChild(el);
+            console.log("ID TV:", id);
+        });
 
         peer.on('connection', conn => {
             conn.on('data', data => {
@@ -153,7 +146,7 @@
                         <div class="row" id="r-${i}">
                             <div class="row-num">${i+1}</div>
                             <div class="row-content">
-                                <div class="dots">................................</div>
+                                <div class="dots">..........................................</div>
                                 <div class="row-text">${a.t}</div>
                                 <div class="row-pts">${a.p}</div>
                             </div>
@@ -171,12 +164,10 @@
                     const ov = document.getElementById('strike-overlay');
                     document.getElementById('x-txt').innerText = "X".repeat(data.num);
                     ov.style.display = 'flex';
-                    setTimeout(() => ov.style.display = 'none', 1500);
+                    setTimeout(() => ov.style.display = 'none', 1600);
                 }
 
                 if(data.type === 'SCORE') {
-                    document.getElementById('t1-s').innerText = data.s1;
-                    document.getElementById('t2-s').innerText = data.s2;
                     document.getElementById('total-s').innerText = data.sum;
                 }
 
@@ -192,8 +183,8 @@
                     const c1 = document.getElementById('fc1'); const c2 = document.getElementById('fc2');
                     c1.innerHTML = ''; c2.innerHTML = '';
                     for(let i=0; i<5; i++) {
-                        c1.innerHTML += `<div class="row" style="height:7vh"><div class="row-content"><div class="row-text" id="f1t-${i}" style="display:none">--</div><div class="row-pts" id="f1p-${i}" style="display:none">0</div></div></div>`;
-                        c2.innerHTML += `<div class="row" style="height:7vh"><div class="row-content"><div class="row-text" id="f2t-${i}" style="display:none">--</div><div class="row-pts" id="f2p-${i}" style="display:none">0</div></div></div>`;
+                        c1.innerHTML += `<div class="row" style="height:8vh"><div class="row-content"><div class="row-text" id="f1t-${i}" style="display:none">--</div><div class="row-pts" id="f1p-${i}" style="display:none">0</div></div></div>`;
+                        c2.innerHTML += `<div class="row" style="height:8vh"><div class="row-content"><div class="row-text" id="f2t-${i}" style="display:none">--</div><div class="row-pts" id="f2p-${i}" style="display:none">0</div></div></div>`;
                     }
                 }
 
