@@ -2,154 +2,148 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA TV - PRO</title>
+    <title>FAMILIADA TV - FINAL EDITION</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        :root { --gold: #ffcc00; --blue: #0066ff; --red: #ff0000; }
+        :root { --gold: #ffcc00; --blue: #0066ff; --red: #ff0000; --neon: #00ffcc; }
         body { 
             background: #000; color: var(--gold); font-family: 'VT323', monospace; 
             margin: 0; overflow: hidden; height: 100vh; text-transform: uppercase;
         }
 
-        /* TŁO I POŚWIATA */
-        .glow-left { position: absolute; inset: 0; background: radial-gradient(circle at 0% 50%, rgba(0,102,255,0.2), transparent 40%); pointer-events: none; }
-        .glow-right { position: absolute; inset: 0; background: radial-gradient(circle at 100% 50%, rgba(255,0,0,0.2), transparent 40%); pointer-events: none; }
-
-        /* ID STARTOWE */
-        #setup-screen { position: fixed; inset: 0; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
-        #display-id { font-size: 100px; color: white; margin: 20px; text-shadow: 0 0 20px var(--gold); }
-        .start-btn { padding: 20px 60px; font-size: 30px; background: var(--gold); border: none; cursor: pointer; border-radius: 10px; font-family: 'VT323'; }
-
-        /* NAGŁÓWEK Z PUNKTAMI */
-        .header { display: flex; justify-content: space-between; align-items: center; height: 22vh; padding: 0 50px; position: relative; z-index: 10; }
-        .team-box { text-align: center; width: 300px; }
-        .t-name { font-size: 40px; color: #fff; margin-bottom: 5px; }
-        .t-score { font-size: 90px; background: #111; border: 3px solid #333; min-width: 120px; }
-        .main-sum-box { text-align: center; }
-        .main-sum-val { font-size: 130px; color: #fff; text-shadow: 0 0 40px var(--gold); line-height: 0.8; }
-
-        /* TABLICA */
-        .board-frame { 
-            width: 80vw; margin: 0 auto; background: #000; border: 6px solid #222; 
-            border-radius: 40px; padding: 25px; box-shadow: inset 0 0 50px #000;
+        /* POŚWIATA I TŁO */
+        .bg-glow { position: fixed; inset: 0; background: 
+            radial-gradient(circle at 0% 50%, rgba(0,102,255,0.15), transparent 40%),
+            radial-gradient(circle at 100% 50%, rgba(255,0,0,0.15), transparent 40%); 
+            z-index: -1;
         }
-        .row { 
-            display: flex; height: 9vh; margin-bottom: 8px; background: #050505; 
-            font-size: 7vh; border-bottom: 2px solid #111; position: relative; overflow: hidden;
-        }
-        .row-num { width: 80px; color: #1a1a1a; text-align: center; border-right: 4px solid #000; }
-        .row-txt { flex-grow: 1; padding-left: 30px; color: white; display: none; transform: translateX(-20px); transition: 0.4s; }
-        .row-pts { width: 120px; color: var(--gold); display: none; text-align: right; padding-right: 20px; }
-        .dots { position: absolute; left: 110px; color: #0a0a0a; letter-spacing: 15px; }
-        
-        /* ANIMACJA WEJŚCIA */
-        .revealed .row-txt { display: block; transform: translateX(0); animation: flash 0.5s; }
-        .revealed .row-pts { display: block; }
+
+        /* NAGŁÓWEK */
+        .header { display: flex; justify-content: space-between; align-items: center; height: 20vh; padding: 0 60px; }
+        .score-box { background: #111; border: 4px solid #333; padding: 10px 30px; border-radius: 15px; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+        .score-val { font-size: 80px; color: white; text-shadow: 0 0 20px var(--gold); }
+        .main-sum { font-size: 130px; color: #fff; text-shadow: 0 0 40px var(--neon); }
+
+        /* TABLICA RUNDY */
+        #board-round { width: 85vw; margin: 0 auto; display: block; }
+        .row { display: flex; height: 9vh; margin-bottom: 10px; background: rgba(10,10,10,0.9); border-bottom: 3px solid #222; font-size: 7vh; position: relative; }
+        .row-num { width: 80px; color: #222; text-align: center; border-right: 4px solid #000; }
+        .row-txt { flex-grow: 1; padding-left: 40px; color: white; visibility: hidden; }
+        .row-pts { width: 130px; color: var(--gold); visibility: hidden; text-align: right; padding-right: 25px; }
+        .dots { position: absolute; left: 120px; color: #0a0a0a; letter-spacing: 15px; }
+        .revealed .row-txt, .revealed .row-pts { visibility: visible; animation: blink 0.4s ease; }
         .revealed .dots { display: none; }
-        @keyframes flash { 0% { color: var(--gold); } 100% { color: white; } }
 
-        /* BŁĘDY PO BOKACH */
-        .strike-zone { position: fixed; top: 30%; font-size: 35vh; font-weight: bold; display: none; z-index: 5000; animation: pop 0.3s cubic-bezier(0.17, 0.89, 0.32, 1.28); }
-        #strike-L { left: 50px; color: var(--blue); text-shadow: 0 0 60px var(--blue); }
-        #strike-R { right: 50px; color: var(--red); text-shadow: 0 0 60px var(--red); }
-        @keyframes pop { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+        /* TABLICA FINAŁOWA */
+        #board-final { display: none; width: 95vw; margin: 0 auto; grid-template-columns: 1fr 1fr; gap: 40px; }
+        .final-col { display: flex; flex-direction: column; gap: 10px; }
+        .timer-display { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); font-size: 100px; color: var(--red); text-shadow: 0 0 30px var(--red); border: 5px solid var(--red); padding: 0 30px; border-radius: 20px; background: black; z-index: 100; }
 
-        /* NAPISY KOŃCOWE */
-        #credits-screen { 
-            position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 8000; 
-            display: none; flex-direction: column; align-items: center; justify-content: flex-start;
-            padding-top: 100vh; animation: scrollCredits 15s linear forwards;
-        }
-        @keyframes scrollCredits { 0% { transform: translateY(0); } 100% { transform: translateY(-200vh); } }
-        .credit-line { font-size: 50px; color: white; margin: 20px 0; }
+        /* BŁĘDY */
+        .strike { position: fixed; top: 30%; font-size: 35vh; font-weight: bold; display: none; z-index: 5000; }
+        #strike-L { left: 50px; color: var(--blue); text-shadow: 0 0 50px var(--blue); }
+        #strike-R { right: 50px; color: var(--red); text-shadow: 0 0 50px var(--red); }
 
+        /* MULTIMEDIA */
         #vid-layer { position: fixed; inset: 0; display: none; z-index: 4000; background: #000; }
         video { width: 100%; height: 100%; }
+
+        @keyframes blink { 0% { opacity: 0; } 50% { opacity: 1; } 100% { opacity: 1; } }
     </style>
 </head>
 <body>
-
-    <div id="setup-screen">
-        <div id="display-id">ŁĄCZENIE...</div>
-        <button class="start-btn" onclick="startApp()">URUCHOM TABLICĘ</button>
-    </div>
-
-    <div class="glow-left"></div><div class="glow-right"></div>
-    <div id="vid-layer"><video id="player"></video></div>
+    <div class="bg-glow"></div>
     
-    <div id="strike-L" class="strike-zone">X</div>
-    <div id="strike-R" class="strike-zone">X</div>
-
-    <div id="credits-screen">
-        <div class="credit-line" style="color:var(--gold)">PRODUKCJA</div>
-        <div class="credit-line">TWOJA SZKOŁA / FIRMA</div>
-        <div class="credit-line" style="color:var(--gold)">PROWADZĄCY</div>
-        <div class="credit-line">KAROL STRASBURGER</div>
-        <div class="credit-line" style="color:var(--gold)">WYSTĄPILI</div>
-        <div class="credit-line">DRUŻYNA NIEBIESKICH</div>
-        <div class="credit-line">DRUŻYNA CZERWONYCH</div>
-        <div class="credit-line" style="color:var(--gold)">DZIĘKUJEMY ZA UWAGĘ!</div>
-    </div>
+    <div id="vid-layer"><video id="player"></video></div>
+    <div class="timer-display" id="timer" style="display: none;">15</div>
+    <div id="strike-L" class="strike">X</div>
+    <div id="strike-R" class="strike">X</div>
 
     <div class="header">
-        <div class="team-box">
-            <div class="t-name" id="n1">NIEBIESCY</div>
-            <div class="t-score" id="s1">0</div>
-        </div>
-        <div class="main-sum-box">
-            <div style="font-size: 25px; color: #555;">SUMA RUNDY</div>
-            <div class="main-sum-val" id="sum">0</div>
-        </div>
-        <div class="team-box">
-            <div class="t-name" id="n2">CZERWONI</div>
-            <div class="t-score" id="s2">0</div>
-        </div>
+        <div class="score-box"><div id="s1" class="score-val">0</div></div>
+        <div class="main-sum" id="sum">0</div>
+        <div class="score-box"><div id="s2" class="score-val">0</div></div>
     </div>
 
-    <div class="board-frame" id="rows-cont"></div>
+    <div id="board-round"></div>
 
-    <audio id="s-ok" src="ok.mp3"></audio>
-    <audio id="s-bad" src="zla.mp3"></audio>
-    <audio id="s-intro" src="intro.mp3"></audio>
-    <audio id="s-round" src="runda.mp3"></audio>
-    <audio id="s-end" src="koniec.mp3"></audio>
+    <div id="board-final">
+        <div class="final-col" id="f-col-1"></div>
+        <div class="final-col" id="f-col-2"></div>
+    </div>
+
+    <audio id="snd-ok" src="ok.mp3"></audio>
+    <audio id="snd-bad" src="zla.mp3"></audio>
+    <audio id="snd-intro" src="intro.mp3"></audio>
+    <audio id="snd-round" src="runda.mp3"></audio>
+    <audio id="snd-repeat" src="powtorzenie.mp3"></audio>
 
     <script>
         const peer = new Peer();
-        peer.on('open', id => document.getElementById('display-id').innerText = id);
+        peer.on('open', id => { console.log("ID:", id); window.alert("ID TABLICY: " + id); });
 
-        function startApp() { document.getElementById('setup-screen').style.display = 'none'; }
+        let timerInt;
 
         peer.on('connection', conn => {
             conn.on('data', data => {
                 if(data.type === 'SETUP') {
-                    document.getElementById('s-round').play();
-                    const c = document.getElementById('rows-cont'); c.innerHTML = '';
+                    document.getElementById('board-round').style.display = 'block';
+                    document.getElementById('board-final').style.display = 'none';
+                    document.getElementById('timer').style.display = 'none';
+                    const b = document.getElementById('board-round'); b.innerHTML = '';
                     data.ans.forEach((a, i) => {
-                        c.innerHTML += `<div class="row" id="r-${i}"><div class="row-num">${i+1}</div><div class="dots">.....................</div><div class="row-txt">${a.t}</div><div class="row-pts">${a.p}</div></div>`;
+                        b.innerHTML += `<div class="row" id="r-${i}"><div class="row-num">${i+1}</div><div class="dots">...................</div><div class="row-txt">${a.t}</div><div class="row-pts">${a.p}</div></div>`;
                     });
+                    document.getElementById('snd-round').play();
                 }
-                if(data.type === 'REV') { document.getElementById('s-ok').play(); document.getElementById('r-'+data.idx).classList.add('revealed'); }
+                if(data.type === 'REV') { document.getElementById('snd-ok').play(); document.getElementById('r-'+data.idx).classList.add('revealed'); }
                 if(data.type === 'STRIKE') {
-                    document.getElementById('s-bad').play();
-                    const el = document.getElementById('strike-' + (data.team === 'blue' ? 'L' : 'R'));
-                    el.innerText = "X".repeat(data.n);
-                    el.style.display = 'block'; setTimeout(() => el.style.display='none', 1500);
+                    document.getElementById('snd-bad').play();
+                    const el = document.getElementById(data.team === 'blue' ? 'strike-L' : 'strike-R');
+                    el.innerText = "X".repeat(data.n); el.style.display = 'block';
+                    setTimeout(() => el.style.display = 'none', 1500);
                 }
                 if(data.type === 'SCORE') {
                     document.getElementById('s1').innerText = data.s1;
                     document.getElementById('s2').innerText = data.s2;
                     document.getElementById('sum').innerText = data.sum;
                 }
-                if(data.type === 'INTRO') {
+                if(data.type === 'VIDEO') {
                     const v = document.getElementById('player'); document.getElementById('vid-layer').style.display = 'block';
-                    document.getElementById('s-intro').play(); v.src = 'czolowka.mp4'; v.play();
-                    v.onended = () => document.getElementById('vid-layer').style.display = 'none';
+                    v.src = 'czolowka.mp4'; v.play(); v.onended = () => document.getElementById('vid-layer').style.display = 'none';
                 }
-                if(data.type === 'CREDITS') {
-                    document.getElementById('s-end').play();
-                    document.getElementById('credits-screen').style.display = 'flex';
+                if(data.type === 'THEME') document.getElementById('snd-intro').play();
+                if(data.type === 'REPEAT') document.getElementById('snd-repeat').play();
+
+                // FINAŁ LOGIKA
+                if(data.type === 'FINAL_START') {
+                    document.getElementById('board-round').style.display = 'none';
+                    document.getElementById('board-final').style.display = 'grid';
+                    document.getElementById('timer').style.display = 'block';
+                    const c1 = document.getElementById('f-col-1'); const c2 = document.getElementById('f-col-2');
+                    c1.innerHTML = ''; c2.innerHTML = '';
+                    for(let i=0; i<5; i++) {
+                        c1.innerHTML += `<div class="row"><div class="row-txt" id="f1t-${i}">---</div><div class="row-pts" id="f1p-${i}">0</div></div>`;
+                        c2.innerHTML += `<div class="row"><div class="row-txt" id="f2t-${i}">---</div><div class="row-pts" id="f2p-${i}">0</div></div>`;
+                    }
+                }
+                if(data.type === 'TIMER') {
+                    clearInterval(timerInt);
+                    let time = data.val;
+                    const tEl = document.getElementById('timer');
+                    tEl.innerText = time;
+                    timerInt = setInterval(() => {
+                        time--; tEl.innerText = time;
+                        if(time <= 0) { clearInterval(timerInt); document.getElementById('snd-bad').play(); }
+                    }, 1000);
+                }
+                if(data.type === 'FINAL_REV') {
+                    document.getElementById('snd-ok').play();
+                    document.getElementById(`f${data.p}t-${data.i}`).innerText = data.txt;
+                    document.getElementById(`f${data.p}p-${data.i}`).innerText = data.pts;
+                    document.getElementById(`f${data.p}t-${data.i}`).style.visibility = 'visible';
+                    document.getElementById(`f${data.p}p-${data.i}`).style.visibility = 'visible';
                 }
             });
         });
