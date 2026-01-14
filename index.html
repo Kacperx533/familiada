@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA TV - RETRO EDITION</title>
+    <title>FAMILIADA TV - FRAMELESS EDITION</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
@@ -34,8 +34,8 @@
             content: '';
             position: absolute;
             top: 0; left: 0; bottom: 0;
-            width: 30%;
-            background: radial-gradient(circle at 0% 50%, rgba(0, 85, 255, 0.4), transparent 70%);
+            width: 40%;
+            background: radial-gradient(circle at 0% 50%, rgba(0, 85, 255, 0.35), transparent 75%);
             pointer-events: none;
             z-index: 0;
         }
@@ -45,8 +45,8 @@
             content: '';
             position: absolute;
             top: 0; right: 0; bottom: 0;
-            width: 30%;
-            background: radial-gradient(circle at 100% 50%, rgba(255, 0, 68, 0.4), transparent 70%);
+            width: 40%;
+            background: radial-gradient(circle at 100% 50%, rgba(255, 0, 68, 0.35), transparent 75%);
             pointer-events: none;
             z-index: 0;
         }
@@ -55,8 +55,8 @@
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             background-image: 
-                linear-gradient(rgba(15,15,15,0.5) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(15,15,15,0.5) 1px, transparent 1px);
+                linear-gradient(rgba(15,15,15,0.4) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(15,15,15,0.4) 1px, transparent 1px);
             background-size: 4px 4px;
             z-index: -1;
         }
@@ -74,14 +74,14 @@
 
         .code-display {
             font-size: 80px;
-            border: 4px solid var(--led-gold);
+            border: 2px solid var(--led-gold);
             padding: 20px 40px;
-            border-radius: 20px;
+            border-radius: 10px;
             box-shadow: 0 0 20px var(--led-gold);
             margin-bottom: 20px;
         }
 
-        /* GŁÓWNA TABLICA */
+        /* GŁÓWNA TABLICA - BEZ RAMKI */
         .game-board {
             display: none; 
             width: 85vw;
@@ -92,26 +92,26 @@
 
         .round-score-box {
             width: 160px;
-            margin: 0 auto 20px auto;
-            border: 4px solid #222;
-            border-image: linear-gradient(to right, var(--border-blue), var(--border-red)) 1;
-            background: #000;
+            margin: 0 auto 30px auto;
+            background: transparent;
             text-align: center;
-            font-size: 80px;
-            padding: 10px;
+            font-size: 100px;
+            color: #fff;
+            text-shadow: 0 0 15px rgba(255,255,255,0.5);
+            line-height: 1;
         }
 
         .main-display {
-            border: 10px solid;
-            border-image: linear-gradient(to right, var(--border-blue), var(--border-red)) 1;
-            background: #000; /* Całkowicie czarny środek */
+            background: #000; /* Całkowicie czarna przestrzeń */
+            position: relative;
+            /* Subtelna poświata wychodząca spod samej czerni */
             box-shadow: 
-                -40px 0 80px -20px rgba(0, 85, 255, 0.5), 
-                 40px 0 80px -20px rgba(255, 0, 68, 0.5);
+                -60px 0 120px -30px rgba(0, 85, 255, 0.3), 
+                 60px 0 120px -30px rgba(255, 0, 68, 0.3);
         }
         
         .display-inner {
-            padding: 40px 60px;
+            padding: 40px 20px;
             min-height: 50vh;
             display: flex;
             flex-direction: column;
@@ -121,15 +121,16 @@
         .row {
             display: flex;
             align-items: center;
-            font-size: 60px;
-            margin-bottom: 12px;
-            height: 70px;
+            font-size: 65px;
+            margin-bottom: 15px;
+            height: 75px;
         }
 
         .row-num {
-            width: 50px;
-            color: #222; /* Bardzo ciemny numer */
+            width: 60px;
+            color: #151515; /* Prawie niewidoczne numery */
             margin-right: 20px;
+            text-align: center;
         }
 
         .row-content {
@@ -138,31 +139,32 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 2px solid #0a0a0a;
+            border-bottom: 1px solid #080808;
         }
 
         .dots {
             position: absolute;
             left: 0; top: 0; width: 100%;
             letter-spacing: 12px;
-            color: #1a1a00;
+            color: #111; /* Bardzo ciemne kropki */
             z-index: 0;
             overflow: hidden;
+            white-space: nowrap;
         }
 
         .answer-text, .points {
             z-index: 1;
             background: #000;
             display: none;
-            text-shadow: 0 0 10px var(--led-gold);
+            text-shadow: 0 0 12px var(--led-gold);
         }
 
-        .revealed .answer-text { display: block; padding-right: 20px; }
-        .revealed .points { display: block; padding-left: 20px; }
+        .revealed .answer-text { display: block; padding-right: 25px; }
+        .revealed .points { display: block; padding-left: 25px; color: #fff; }
         .revealed .dots { display: none; }
 
         .footer {
-            margin-top: 40px;
+            margin-top: 50px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -171,43 +173,48 @@
         
         .strikes-container {
             display: flex;
-            gap: 20px;
+            gap: 25px;
         }
         .strike {
             color: var(--border-red);
-            font-size: 100px;
-            text-shadow: 0 0 20px red;
+            font-size: 110px;
+            text-shadow: 0 0 25px red;
+            line-height: 0.8;
         }
 
-        .total-val { font-size: 80px; color: #fff; text-shadow: 0 0 15px #fff; }
+        .total-val { 
+            font-size: 90px; 
+            color: #fff; 
+            text-shadow: 0 0 20px rgba(255,255,255,0.4); 
+        }
 
         /* Wielkie X */
         #fullscreen-strike {
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,0.9);
+            background: rgba(0,0,0,0.95);
             z-index: 10000;
             display: none;
             align-items: center;
             justify-content: center;
         }
-        .big-x { width: 300px; height: 300px; position: relative; }
+        .big-x { width: 320px; height: 320px; position: relative; }
         .big-x::before, .big-x::after {
-            content: ''; position: absolute; width: 100%; height: 50px;
-            background: red; box-shadow: 0 0 50px red; top: 50%;
+            content: ''; position: absolute; width: 100%; height: 55px;
+            background: red; box-shadow: 0 0 60px red; top: 50%;
         }
         .big-x::before { transform: translateY(-50%) rotate(45deg); }
         .big-x::after { transform: translateY(-50%) rotate(-45deg); }
 
         /* FINAŁ */
         #final-board { display: none; width: 100%; flex-direction: column; }
-        .final-cols { display: flex; gap: 40px; justify-content: center; }
+        .final-cols { display: flex; gap: 60px; justify-content: center; }
         .final-row { 
-            display: flex; width: 450px; justify-content: space-between; 
-            font-size: 50px; background: #000; margin-bottom: 10px; padding: 5px 15px; border: 2px solid #111;
+            display: flex; width: 460px; justify-content: space-between; 
+            font-size: 55px; background: #000; margin-bottom: 15px; padding: 5px 10px; border-bottom: 1px solid #0a0a0a;
         }
-        .f-txt { width: 350px; opacity: 0; }
-        .f-pts { width: 60px; text-align: right; opacity: 0; color: #fff; }
+        .f-txt { width: 360px; opacity: 0; }
+        .f-pts { width: 70px; text-align: right; opacity: 0; color: #fff; }
         .f-rev .f-txt, .f-rev .f-pts { opacity: 1; }
     </style>
 </head>
@@ -220,11 +227,11 @@
     <audio id="snd-bad" src="zle.mp3"></audio>
 
     <div id="connect-screen">
-        <div style="font-size: 24px; margin-bottom:10px; color:#555">PANEL STEROWANIA ID:</div>
+        <div style="font-size: 20px; margin-bottom:10px; color:#444; letter-spacing: 2px;">POŁĄCZ PANEL STEROWANIA</div>
         <div class="code-display" id="my-id">...</div>
         <button onclick="document.getElementById('connect-screen').style.display='none'; document.querySelector('.game-board').style.display='block';" 
-            style="font-family:'VT323'; font-size:30px; padding:15px 60px; cursor:pointer; background:var(--led-gold); border:none; border-radius:10px;">
-            OTWÓRZ TABLICĘ
+            style="font-family:'VT323'; font-size:28px; padding:15px 50px; cursor:pointer; background:var(--led-gold); border:none; border-radius:4px; font-weight:bold;">
+            URUCHOM SYSTEM
         </button>
     </div>
 
@@ -237,7 +244,7 @@
             <div class="display-inner">
                 <div id="normal-rows"></div>
                 <div id="final-board">
-                    <div style="text-align:center; font-size:120px; color:var(--border-red); text-shadow:0 0 30px red;" id="timer">00</div>
+                    <div style="text-align:center; font-size:140px; color:var(--border-red); text-shadow:0 0 40px red; margin-bottom:20px;" id="timer">00</div>
                     <div class="final-cols">
                         <div id="col-1"></div>
                         <div id="col-2"></div>
@@ -249,7 +256,7 @@
         <div class="footer">
             <div class="strikes-container" id="strikes-box"></div>
             <div class="total-score">
-                <span style="font-size:40px; color:#444">SUMA</span>
+                <span style="font-size:35px; color:#222; margin-right: 15px;">SUMA</span>
                 <span class="total-val" id="global-score">0</span>
             </div>
         </div>
