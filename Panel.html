@@ -5,13 +5,15 @@
     <title>PANEL STEROWANIA</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        body { font-family: sans-serif; background: #222; color: #fff; padding: 20px; display: grid; grid-template-columns: 300px 1fr; gap: 20px; }
-        .card { background: #333; padding: 15px; border-radius: 10px; margin-bottom: 20px; border-left: 5px solid gold; }
+        body { font-family: sans-serif; background: #1a1a1a; color: white; padding: 20px; display: grid; grid-template-columns: 350px 1fr; gap: 20px; }
+        .card { background: #2a2a2a; padding: 20px; border-radius: 10px; border-top: 4px solid gold; margin-bottom: 20px; }
         button { width: 100%; padding: 12px; margin: 5px 0; cursor: pointer; border: none; border-radius: 5px; font-weight: bold; }
-        .btn-green { background: #28a745; color: white; }
-        .btn-red { background: #dc3545; color: white; font-size: 20px; }
         .btn-blue { background: #007bff; color: white; }
-        input, select { width: 100%; padding: 10px; margin-bottom: 10px; box-sizing: border-box; background: #000; color: #fff; border: 1px solid #555; }
+        .btn-red { background: #dc3545; color: white; }
+        .btn-green { background: #28a745; color: white; }
+        .btn-dark { background: #444; color: white; text-align: left; }
+        input, select { width: 100%; padding: 10px; margin-bottom: 10px; box-sizing: border-box; background: #000; color: #fff; border: 1px solid #444; }
+        h3 { color: gold; margin-top: 0; }
     </style>
 </head>
 <body>
@@ -19,52 +21,63 @@
     <div class="sidebar">
         <div class="card">
             <h3>1. POŁĄCZ</h3>
-            <input type="text" id="tv-id" placeholder="Wpisz ID z TV">
-            <button class="btn-green" onclick="connect()">POŁĄCZ Z TELEWIZOREM</button>
-            <div id="status" style="color: gray; margin-top: 5px;">Brak połączenia</div>
+            <input type="text" id="tv-id" placeholder="Wpisz ID z ekranu TV">
+            <button class="btn-green" onclick="connect()">POŁĄCZ SYSTEMY</button>
         </div>
 
-        <div class="card" style="background: #442222;">
-            <h3>2. MULTIMEDIA (Dźwięk/X)</h3>
-            <button class="btn-blue" onclick="send({type:'INTRO'})">🎬 CZOŁÓWKA + INTRO</button>
-            <hr>
-            <button class="btn-red" onclick="send({type:'STRIKE', n:1})">❌ ZŁA (X)</button>
-            <button class="btn-red" onclick="send({type:'STRIKE', n:2})">❌❌ ZŁA (XX)</button>
-            <button class="btn-red" onclick="send({type:'STRIKE', n:3})">❌❌❌ ZŁA (XXX)</button>
+        <div class="card">
+            <h3>2. MULTIMEDIA</h3>
+            <button class="btn-blue" onclick="send({type:'INTRO'})">🎬 ODTWÓRZ CZOŁÓWKĘ</button>
+        </div>
+
+        <div class="card">
+            <h3>3. BŁĘDY (X)</h3>
+            <p style="font-size: 12px; color: #888;">Wybierz, kto popełnił błąd:</p>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
+                <button class="btn-blue" onclick="send({type:'STRIKE', n:1, team:'blue'})">NIEBIESCY X</button>
+                <button class="btn-red" onclick="send({type:'STRIKE', n:1, team:'red'})">CZERWONI X</button>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
+                <button class="btn-blue" onclick="send({type:'STRIKE', n:2, team:'blue'})">NIEBIESCY XX</button>
+                <button class="btn-red" onclick="send({type:'STRIKE', n:2, team:'red'})">CZERWONI XX</button>
+            </div>
+            <button class="btn-red" style="background: #800000;" onclick="send({type:'STRIKE', n:3, team:'red'})">TRZY IKSY (XXX)</button>
         </div>
     </div>
 
     <div class="main">
         <div class="card">
-            <h3>3. PYTANIA</h3>
+            <h3>4. PYTANIA</h3>
             <select id="q-sel" onchange="loadQ()"></select>
-            <button class="btn-green" onclick="sendQ()">WYŚLIJ PYTANIE NA TV</button>
-            <div id="ans-box" style="margin-top: 20px;"></div>
+            <button class="btn-green" style="height: 50px;" onclick="sendQ()">WYŚLIJ PYTANIE NA TABLICĘ</button>
+            <div id="ans-box" style="margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;"></div>
         </div>
+
         <div class="card">
-            <h3>4. PUNKTY (SUMA)</h3>
-            <div style="font-size: 40px; color: gold;" id="score-val">0</div>
-            <button onclick="resetScore()">WYCZYŚĆ PUNKTY</button>
+            <h3>5. SUMA PUNTKÓW</h3>
+            <div style="font-size: 60px; color: gold; text-align: center;" id="score-val">0</div>
+            <button onclick="resetScore()">RESETUJ PUNKTY</button>
         </div>
     </div>
 
     <script>
         const DB = [
-            {q: "Zwierzę na literę K?", a: [["KOT", 40], ["PIES", 0], ["KROWA", 30], ["KURA", 20], ["KONIK", 10]]},
-            {q: "Co pijemy?", a: [["WODA", 50], ["SOK", 30], ["KAWA", 20]]}
+            {q: "Co można robić na śniegu?", a: [["JEŹDZIĆ NA NARTACH", 40], ["LEPIĆ BAŁWANA", 30], ["RZUCAĆ ŚNIEŻKAMI", 20], ["JEŹDZIĆ NA SANKACH", 10]]},
+            {q: "Zwierzę na wieś?", a: [["KROWA", 45], ["KURA", 25], ["KOŃ", 15], ["ŚWINIA", 10], ["KACZKA", 5]]},
+            {q: "Co pijemy na gorąco?", a: [["HERBATĘ", 50], ["KAWĘ", 35], ["CZEKOLADĘ", 15]]}
         ];
         
         let conn, peer = new Peer(), total = 0;
 
         window.onload = () => {
             const s = document.getElementById('q-sel');
-            DB.forEach((x, i) => s.innerHTML += `<option value="${i}">${x.q}</option>`);
+            DB.forEach((x, i) => s.innerHTML += `<option value="${i}">${i+1}. ${x.q}</option>`);
             loadQ();
         };
 
         function connect() {
             conn = peer.connect(document.getElementById('tv-id').value);
-            conn.on('open', () => { document.getElementById('status').innerText = "POŁĄCZONO!"; document.getElementById('status').style.color = "lime"; });
+            conn.on('open', () => alert("POŁĄCZONO!"));
         }
 
         function loadQ() {
@@ -72,8 +85,14 @@
             const box = document.getElementById('ans-box'); box.innerHTML = '';
             q.a.forEach((x, i) => {
                 const b = document.createElement('button');
+                b.className = 'btn-dark';
                 b.innerText = `${x[0]} (${x[1]})`;
-                b.onclick = () => { total += x[1]; update(); send({type:'REV', idx:i}); b.style.background = 'green'; };
+                b.onclick = () => { 
+                    total += x[1]; 
+                    update(); 
+                    send({type:'REV', idx:i}); 
+                    b.style.background = '#28a745'; 
+                };
                 box.appendChild(b);
             });
         }
@@ -82,6 +101,7 @@
             total = 0; update();
             const q = DB[document.getElementById('q-sel').value];
             send({type:'SETUP', ans: q.a.map(x=>({t:x[0], p:x[1]}))});
+            loadQ();
         }
 
         function send(d) { if(conn) conn.send(d); }
