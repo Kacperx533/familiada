@@ -2,44 +2,35 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA TV - PRO</title>
+    <title>FAMILIADA TV - FINAL FIX</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        :root { --gold: #ffcc00; --blue: #0066ff; --red: #ff0000; }
+        :root { --gold: #ffcc00; --blue: #0066ff; --red: #ff0000; --neon: #00ffcc; }
         body { background: #000; color: var(--gold); font-family: 'VT323', monospace; margin: 0; overflow: hidden; height: 100vh; text-transform: uppercase; }
-        
-        /* TŁO */
         .bg-glow { position: fixed; inset: 0; background: radial-gradient(circle at 0% 50%, rgba(0,102,255,0.15), transparent 40%), radial-gradient(circle at 100% 50%, rgba(255,0,0,0.15), transparent 40%); z-index: -1; }
-
-        /* NAGŁÓWEK */
-        .header { display: flex; justify-content: space-around; align-items: center; height: 20vh; }
-        .score-box { background: #111; border: 4px solid #333; padding: 10px 40px; border-radius: 15px; font-size: 80px; color: white; }
-        .main-sum { font-size: 120px; text-shadow: 0 0 30px var(--gold); }
-
-        /* TABLICA RUND */
-        #board-round { width: 80vw; margin: 0 auto; }
-        .row { display: flex; height: 9vh; margin-bottom: 10px; background: #050505; border-bottom: 3px solid #222; font-size: 7vh; position: relative; }
-        .row-num { width: 80px; color: #222; text-align: center; border-right: 4px solid #000; }
-        .row-txt { flex-grow: 1; padding-left: 30px; color: white; visibility: hidden; }
-        .row-pts { width: 120px; color: var(--gold); visibility: hidden; text-align: right; padding-right: 20px; }
+        .header { display: flex; justify-content: space-around; align-items: center; height: 20vh; padding: 0 40px; }
+        .score-box { background: #111; border: 4px solid #333; padding: 10px 40px; border-radius: 15px; font-size: 80px; color: white; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+        .main-sum { font-size: 130px; color: #fff; text-shadow: 0 0 30px var(--neon); }
+        #board-round { width: 85vw; margin: 0 auto; }
+        .row { display: flex; height: 9vh; margin-bottom: 10px; background: rgba(10,10,10,0.9); border-bottom: 3px solid #222; font-size: 7vh; position: relative; overflow: hidden; }
+        .row-num { width: 80px; color: #222; text-align: center; border-right: 4px solid #000; background: var(--gold); }
+        .row-txt { flex-grow: 1; padding-left: 40px; color: white; visibility: hidden; }
+        .row-pts { width: 130px; color: var(--gold); visibility: hidden; text-align: right; padding-right: 25px; }
         .revealed .row-txt, .revealed .row-pts { visibility: visible; }
-
-        /* FINAŁ */
         #board-final { display: none; width: 95vw; margin: 0 auto; grid-template-columns: 1fr 1fr; gap: 40px; }
-        .final-col { display: flex; flex-direction: column; gap: 10px; }
-        #timer { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); font-size: 100px; color: var(--red); border: 5px solid var(--red); padding: 0 30px; background: #000; display: none; }
-
-        /* IKSY */
-        .strike { position: fixed; top: 30%; font-size: 40vh; font-weight: bold; display: none; z-index: 5000; }
+        #timer { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); font-size: 100px; color: var(--red); border: 5px solid var(--red); padding: 0 30px; background: #000; display: none; z-index: 100; }
+        .strike { position: fixed; top: 30%; font-size: 40vh; font-weight: bold; display: none; z-index: 5000; text-shadow: 0 0 50px black; }
         #strike-L { left: 50px; color: var(--blue); }
         #strike-R { right: 50px; color: var(--red); }
-        
         #vid-layer { position: fixed; inset: 0; display: none; z-index: 4000; background: #000; }
         video { width: 100%; height: 100%; }
+        #start-overlay { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; justify-content: center; align-items: center; }
+        #start-btn { padding: 30px 60px; font-size: 40px; background: var(--gold); cursor: pointer; border: none; font-family: 'VT323'; }
     </style>
 </head>
 <body>
+    <div id="start-overlay"><button id="start-btn" onclick="startSystem()">URUCHOM SYSTEM</button></div>
     <div class="bg-glow"></div>
     <div id="vid-layer"><video id="player"></video></div>
     <div id="timer">15</div>
@@ -53,10 +44,7 @@
     </div>
 
     <div id="board-round"></div>
-    <div id="board-final">
-        <div class="final-col" id="f1"></div>
-        <div class="final-col" id="f2"></div>
-    </div>
+    <div id="board-final"><div class="final-col" id="f1"></div><div class="final-col" id="f2"></div></div>
 
     <audio id="snd-ok" src="ok.mp3"></audio>
     <audio id="snd-bad" src="zla.mp3"></audio>
@@ -66,11 +54,32 @@
 
     <script>
         const peer = new Peer();
-        peer.on('open', id => window.alert("ID TABLICY: " + id));
+        peer.on('open', id => { console.log("ID:", id); window.myID = id; });
+
+        function startSystem() {
+            document.getElementById('start-overlay').style.display = 'none';
+            if(window.myID) alert("ID TABLICY: " + window.myID);
+            // Odblokowanie audio
+            ['snd-ok','snd-bad','snd-intro','snd-round','snd-rep'].forEach(id => {
+                const a = document.getElementById(id); a.play(); a.pause(); a.currentTime = 0;
+            });
+        }
 
         let timerInt;
         peer.on('connection', conn => {
             conn.on('data', data => {
+                if(data.type === 'VIDEO') {
+                    const vl = document.getElementById('vid-layer');
+                    const vp = document.getElementById('player');
+                    vl.style.display = 'block';
+                    vp.src = 'czolowka.mp4';
+                    vp.play();
+                    vp.onended = () => vl.style.display = 'none';
+                }
+                if(data.type === 'SOUND') {
+                    const s = document.getElementById('snd-' + data.f);
+                    if(s) { s.currentTime = 0; s.play(); }
+                }
                 if(data.type === 'SETUP') {
                     document.getElementById('board-round').style.display = 'block';
                     document.getElementById('board-final').style.display = 'none';
@@ -82,12 +91,12 @@
                     document.getElementById('snd-round').play();
                 }
                 if(data.type === 'REV') { document.getElementById('snd-ok').play(); document.getElementById('r-'+data.idx).classList.add('revealed'); }
-                if(data.type === 'SCORE') { document.getElementById('s1').innerText = data.s1; document.getElementById('s2').innerText = data.s2; document.getElementById('sum').innerText = data.sum; }
                 if(data.type === 'STRIKE') {
                     document.getElementById('snd-bad').play();
                     const el = document.getElementById(data.team === 'blue' ? 'strike-L' : 'strike-R');
                     el.innerText = "X".repeat(data.n); el.style.display = 'block'; setTimeout(() => el.style.display = 'none', 1500);
                 }
+                if(data.type === 'SCORE') { document.getElementById('s1').innerText = data.s1; document.getElementById('s2').innerText = data.s2; document.getElementById('sum').innerText = data.sum; }
                 if(data.type === 'FINAL_UI') {
                     document.getElementById('board-round').style.display = 'none';
                     document.getElementById('board-final').style.display = 'grid';
@@ -108,8 +117,6 @@
                     const t = document.getElementById(`f${data.p}t-${data.i}`); const p = document.getElementById(`f${data.p}p-${data.i}`);
                     t.innerText = data.txt; p.innerText = data.pts; t.style.visibility = 'visible'; p.style.visibility = 'visible';
                 }
-                if(data.type === 'VIDEO') { document.getElementById('vid-layer').style.display='block'; document.getElementById('snd-intro').play(); const v=document.getElementById('player'); v.src='czolowka.mp4'; v.play(); v.onended=()=>document.getElementById('vid-layer').style.display='none'; }
-                if(data.type === 'SOUND') document.getElementById('snd-'+data.f).play();
             });
         });
     </script>
