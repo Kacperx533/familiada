@@ -2,37 +2,64 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA TV</title>
+    <title>FAMILIADA TV - GLOW EDITION</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        body { background: #000; color: #ffcc00; font-family: 'VT323', monospace; margin: 0; overflow: hidden; text-align: center; }
-        
-        /* EKRAN STARTOWY Z ID */
-        #setup-screen { position: fixed; inset: 0; background: #111; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
-        .id-box { background: #222; border: 5px solid gold; padding: 40px; border-radius: 20px; margin: 20px; }
-        .id-label { font-size: 30px; color: #888; }
-        #display-id { font-size: 80px; color: white; letter-spacing: 5px; margin: 10px 0; }
-        .start-btn { padding: 20px 50px; font-size: 30px; background: gold; border: none; cursor: pointer; border-radius: 10px; font-weight: bold; }
+        :root { --gold: #ffcc00; --blue: #0066ff; --red: #ff0000; }
+        body { 
+            background: #000; color: var(--gold); font-family: 'VT323', monospace; 
+            margin: 0; overflow: hidden; height: 100vh; text-transform: uppercase;
+        }
 
-        /* GŁÓWNA TABLICA */
-        .container { display: none; flex-direction: column; height: 100vh; padding: 20px; box-sizing: border-box; }
-        .header { display: flex; justify-content: space-around; align-items: center; height: 20vh; }
-        .main-sum { font-size: 150px; color: white; text-shadow: 0 0 30px gold; }
-        
-        .board-frame { flex-grow: 1; border: 10px solid #222; border-radius: 40px; padding: 30px; background: #000; }
-        .row { display: flex; height: 10vh; margin-bottom: 10px; background: #080808; font-size: 8vh; border-bottom: 2px solid #1a1a1a; position: relative; }
-        .row-num { width: 100px; color: #222; border-right: 4px solid #000; }
+        /* POŚWIATA CZERWONO-NIEBIESKA */
+        body::before { 
+            content: ''; position: absolute; inset: 0; 
+            background: radial-gradient(circle at 10% 50%, rgba(0,102,255,0.3), transparent 45%); 
+            z-index: -1; 
+        }
+        body::after { 
+            content: ''; position: absolute; inset: 0; 
+            background: radial-gradient(circle at 90% 50%, rgba(255,0,0,0.3), transparent 45%); 
+            z-index: -1; 
+        }
+
+        /* EKRAN STARTOWY Z ID */
+        #setup-screen { 
+            position: fixed; inset: 0; background: #000; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; 
+        }
+        #display-id { font-size: 100px; color: white; text-shadow: 0 0 20px var(--gold); margin: 20px; }
+        .start-btn { padding: 25px 60px; font-size: 40px; background: var(--gold); border: none; cursor: pointer; border-radius: 15px; font-family: 'VT323'; }
+
+        /* TABLICA */
+        .header { display: flex; justify-content: space-around; align-items: center; height: 25vh; }
+        .team-name { font-size: 5vw; color: #fff; }
+        .main-score { font-size: 10vw; color: #fff; text-shadow: 0 0 40px var(--gold); }
+
+        .board-frame { 
+            width: 80vw; margin: 0 auto; background: #000; border: 8px solid #222; 
+            border-radius: 40px; padding: 30px; box-shadow: inset 0 0 50px #111;
+        }
+        .row { 
+            display: flex; height: 10vh; margin-bottom: 10px; background: #050505; 
+            font-size: 8vh; border-bottom: 2px solid #111; position: relative; 
+        }
+        .row-num { width: 80px; color: #222; border-right: 4px solid #000; text-align: center; }
         .row-txt { flex-grow: 1; text-align: left; padding-left: 40px; color: white; display: none; }
-        .row-pts { width: 150px; color: gold; display: none; }
-        .dots { position: absolute; left: 140px; color: #111; letter-spacing: 15px; }
-        
+        .row-pts { width: 120px; color: var(--gold); display: none; }
+        .dots { position: absolute; left: 120px; color: #0a0a0a; letter-spacing: 15px; }
         .revealed .row-txt, .revealed .row-pts { display: block; }
         .revealed .dots { display: none; }
 
-        /* MULTIMEDIA */
-        #strike-ov { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; z-index: 5000; background: rgba(0,0,0,0.5); }
-        .big-x { font-size: 60vh; color: red; text-shadow: 0 0 50px red; font-weight: bold; }
+        /* GIGANTYCZNE X */
+        #strike-overlay { 
+            position: fixed; inset: 0; display: none; 
+            align-items: center; justify-content: center; z-index: 5000; 
+        }
+        .big-x { font-size: 70vh; font-weight: bold; animation: pop 0.4s ease-out; }
+        @keyframes pop { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+
         #vid-layer { position: fixed; inset: 0; display: none; z-index: 4000; background: #000; }
         video { width: 100%; height: 100%; }
     </style>
@@ -40,25 +67,21 @@
 <body>
 
     <div id="setup-screen">
-        <div class="id-box">
-            <div class="id-label">TWOJE ID DO PANELU:</div>
-            <div id="display-id">ŁĄCZENIE...</div>
-        </div>
-        <button class="start-btn" onclick="startApp()">URUCHOM TABLICĘ</button>
-        <p style="color: gray;">(Kliknij przycisk, aby odblokować dźwięki)</p>
+        <h1 style="color:white">ID TWOJEJ TABLICY:</h1>
+        <div id="display-id">ŁADOWANIE...</div>
+        <button class="start-btn" onclick="startApp()">OTWÓRZ TABLICĘ</button>
     </div>
 
     <div id="vid-layer"><video id="player"></video></div>
-    <div id="strike-ov"><div class="big-x" id="x-txt">X</div></div>
+    <div id="strike-overlay"><div class="big-x" id="x-txt">X</div></div>
 
-    <div class="container" id="game-ui">
-        <div class="header">
-            <div style="font-size: 40px;" id="t1-name">DRUŻYNA 1</div>
-            <div class="main-sum" id="sum-val">0</div>
-            <div style="font-size: 40px;" id="t2-name">DRUŻYNA 2</div>
-        </div>
-        <div class="board-frame" id="rows-cont"></div>
+    <div class="header">
+        <div class="team-name" id="t1-n" style="color: #00a2ff;">NIEBIESCY</div>
+        <div class="main-score" id="sum-val">0</div>
+        <div class="team-name" id="t2-n" style="color: #ff3333;">CZERWONI</div>
     </div>
+
+    <div class="board-frame" id="rows-cont"></div>
 
     <audio id="s-ok" src="ok.mp3"></audio>
     <audio id="s-bad" src="zla.mp3"></audio>
@@ -71,7 +94,6 @@
 
         function startApp() {
             document.getElementById('setup-screen').style.display = 'none';
-            document.getElementById('game-ui').style.display = 'flex';
         }
 
         peer.on('connection', conn => {
@@ -89,9 +111,15 @@
                 }
                 if(data.type === 'STRIKE') {
                     document.getElementById('s-bad').play();
-                    const o = document.getElementById('strike-ov');
-                    document.getElementById('x-txt').innerText = "X".repeat(data.n);
-                    o.style.display = 'flex'; setTimeout(() => o.style.display='none', 1500);
+                    const o = document.getElementById('strike-overlay');
+                    const x = document.getElementById('x-txt');
+                    x.innerText = "X".repeat(data.n);
+                    // Zmiana koloru X zależnie od drużyny
+                    x.style.color = (data.team === 'blue') ? '#00a2ff' : '#ff3333';
+                    x.style.textShadow = (data.team === 'blue') ? '0 0 80px #00a2ff' : '0 0 80px #ff3333';
+                    
+                    o.style.display = 'flex';
+                    setTimeout(() => o.style.display='none', 1500);
                 }
                 if(data.type === 'SCORE') document.getElementById('sum-val').innerText = data.s;
                 if(data.type === 'INTRO') {
