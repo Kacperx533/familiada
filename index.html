@@ -6,210 +6,101 @@
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        :root { 
-            --led-gold: #ffcc00; 
-            --blue-glow: rgba(0, 85, 255, 0.45); 
-            --red-glow: rgba(255, 0, 68, 0.45); 
-        }
+        :root { --gold: #ffcc00; --blue-g: rgba(0, 85, 255, 0.4); --red-g: rgba(255, 0, 68, 0.4); }
+        body { background: #000; margin: 0; height: 100vh; display: flex; align-items: center; justify-content: center; font-family: 'VT323', monospace; color: var(--gold); text-transform: uppercase; overflow: hidden; }
         
-        body { 
-            background: #000; 
-            margin: 0; 
-            height: 100vh; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: center; 
-            font-family: 'VT323', monospace; 
-            color: var(--led-gold); 
-            text-transform: uppercase; 
-            overflow: hidden; 
-        }
-        
-        /* POŚWIATA NA BOKACH */
-        body::before { 
-            content: ''; position: absolute; top: 0; left: 0; bottom: 0; width: 40%; 
-            background: radial-gradient(circle at 0% 50%, var(--blue-glow), transparent 75%); 
-            z-index: 1; pointer-events: none;
-        }
-        body::after { 
-            content: ''; position: absolute; top: 0; right: 0; bottom: 0; width: 40%; 
-            background: radial-gradient(circle at 100% 50%, var(--red-glow), transparent 75%); 
-            z-index: 1; pointer-events: none;
-        }
+        body::before { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 0% 50%, var(--blue-g), transparent 70%); z-index: 1; pointer-events: none; }
+        body::after { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 100% 50%, var(--red-g), transparent 70%); z-index: 1; pointer-events: none; }
 
-        /* MULTIMEDIA */
         #media-overlay { position: fixed; inset: 0; background: #000; z-index: 10000; display: none; }
         video { width: 100%; height: 100%; object-fit: contain; }
 
-        /* NAPIS POWITALNY */
-        #welcome-screen { 
-            position: fixed; inset: 0; background: #000; display: none; 
-            flex-direction: column; align-items: center; justify-content: center; z-index: 5000; 
-        }
-        #welcome-text { 
-            font-size: 140px; text-align: center; filter: drop-shadow(0 0 30px gold); 
-            animation: glow 2s infinite alternate ease-in-out; 
-        }
-        .sub-text { font-size: 70px; color: white; display: block; margin-top: 10px; }
+        #welcome-screen { position: fixed; inset: 0; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 5000; }
+        #welcome-text { font-size: 140px; text-align: center; filter: drop-shadow(0 0 30px gold); animation: glow 2s infinite alternate ease-in-out; }
+        .sub-text { font-size: 70px; color: white; display: block; }
 
-        @keyframes glow { 
-            from { transform: scale(0.97); opacity: 0.8; } 
-            to { transform: scale(1.03); opacity: 1; } 
-        }
+        @keyframes glow { from { transform: scale(0.97); opacity: 0.8; } to { transform: scale(1.03); opacity: 1; } }
 
-        /* TABLICA */
         .game-board { display: none; width: 85vw; max-width: 1400px; z-index: 10; position: relative; }
+        .header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px; }
+        .round-label { font-size: 50px; color: #fff; }
+        .score-big { font-size: 140px; color: #fff; text-shadow: 0 0 20px rgba(255,255,255,0.5); }
         
-        .header-info { 
-            display: flex; justify-content: space-between; align-items: flex-end; 
-            margin-bottom: 20px; padding: 0 20px;
-        }
-        .round-info-box { font-size: 50px; color: #fff; line-height: 1; }
-        .main-score { font-size: 140px; color: #fff; text-shadow: 0 0 25px rgba(255,255,255,0.6); }
-        
-        .main-display { 
-            background: #000; border: 4px solid #1a1a1a; padding: 40px; 
-            border-radius: 15px; box-shadow: inset 0 0 100px #000; 
-        }
-        
-        .row { 
-            display: flex; align-items: center; font-size: 75px; height: 90px; margin: 12px 0; 
-            opacity: 0; transform: translateX(60px); transition: 0.6s all cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-            border-bottom: 2px solid #0d0d0d; 
-        }
+        .main-grid { background: #000; border: 4px solid #1a1a1a; padding: 40px; border-radius: 15px; }
+        .row { display: flex; align-items: center; font-size: 75px; height: 90px; margin: 10px 0; opacity: 0; transform: translateX(50px); transition: 0.6s all; border-bottom: 2px solid #0d0d0d; }
         .row.visible { opacity: 1; transform: translateX(0); }
-        .row-num { width: 80px; color: #1a1a1a; font-weight: bold; }
+        .row-num { width: 80px; color: #1a1a1a; }
         .row-content { flex-grow: 1; display: flex; justify-content: space-between; position: relative; }
-        
-        .ans-txt, .ans-pts { display: none; background: #000; z-index: 2; padding: 0 20px; }
+        .ans-txt, .ans-pts { display: none; background: #000; z-index: 2; padding: 0 15px; }
         .revealed .ans-txt, .revealed .ans-pts { display: block; }
-        .dots { position: absolute; width: 100%; color: #0a0a0a; letter-spacing: 12px; z-index: 1; overflow: hidden; }
+        .dots { position: absolute; width: 100%; color: #0a0a0a; letter-spacing: 12px; z-index: 1; }
 
-        /* BŁĘDY X */
-        .strike-zone { 
-            position: absolute; top: 50%; transform: translateY(-50%); 
-            width: 180px; display: flex; flex-direction: column; gap: 15px; 
-            font-size: 120px; color: red; text-align: center; text-shadow: 0 0 30px red; z-index: 20; 
-        }
-        #strikes-L { left: -200px; }
-        #strikes-R { right: -200px; }
+        .strike-zone { position: absolute; top: 50%; transform: translateY(-50%); width: 150px; font-size: 120px; color: red; text-align: center; text-shadow: 0 0 20px red; }
+        #strikes-L { left: -180px; } #strikes-R { right: -180px; }
 
-        #connect-screen { 
-            position: fixed; inset: 0; background: #000; z-index: 9999; 
-            display: flex; flex-direction: column; align-items: center; justify-content: center; 
-        }
+        #id-box { position: fixed; bottom: 10px; right: 10px; font-size: 20px; color: #333; z-index: 10001; }
     </style>
 </head>
 <body>
-
+    <div id="id-box">ID: ...</div>
     <div id="media-overlay"><video id="v-player"></video></div>
     
     <audio id="snd-repeat" src="powtorzenie.mp3"></audio>
     <audio id="snd-round" src="runda.mp3"></audio>
     <audio id="snd-final" src="final.mp3"></audio>
+    <audio id="snd-correct" src="poprawna.mp3"></audio>
+    <audio id="snd-wrong" src="blad.mp3"></audio>
+    <audio id="snd-bg" src="intro_audio.mp3" loop></audio>
 
     <div id="welcome-screen">
         <div id="welcome-text">FAMILIADA <span class="sub-text">EDYCJA SZKOLNA</span></div>
     </div>
 
-    <div id="connect-screen">
-        <div style="font-size:40px; border:2px solid gold; padding:20px; margin-bottom:20px;" id="my-id">ŁĄCZENIE...</div>
-        <button onclick="document.getElementById('connect-screen').style.display='none'; document.getElementById('welcome-screen').style.display='flex';" 
-            style="padding:15px 40px; font-size:24px; cursor:pointer; background:gold; border:none; border-radius:5px; font-family:'VT323';">OTWÓRZ SYSTEM TV</button>
-    </div>
-
     <div class="game-board" id="board">
         <div id="strikes-L" class="strike-zone"></div>
-        
-        <div class="header-info">
-            <div class="round-info-box" id="r-num-label">RUNDA 1</div>
-            <div class="main-score" id="round-score">0</div>
-            <div class="round-info-box" id="mult-label">x1</div>
+        <div class="header">
+            <div class="round-label" id="r-lab">RUNDA 1</div>
+            <div class="score-big" id="r-score">0</div>
+            <div class="round-label" id="m-lab">x1</div>
         </div>
-
-        <div class="main-display" id="rows-container"></div>
-        
+        <div class="main-grid" id="cont"></div>
         <div id="strikes-R" class="strike-zone"></div>
-        
-        <div style="display:flex; justify-content: space-between; margin-top: 50px; font-size: 70px; color: white; border-top: 2px solid #1a1a1a; padding-top: 10px;">
-            <span>SUMA GRY:</span> <span id="total-score">0</span>
-        </div>
     </div>
 
     <script>
         const peer = new Peer();
         const vPlayer = document.getElementById('v-player');
-        const vOverlay = document.getElementById('media-overlay');
-        const welcome = document.getElementById('welcome-screen');
+        const bgAudio = document.getElementById('snd-bg');
+        bgAudio.volume = 0.3; // Cichsze audio w tle
 
-        peer.on('open', id => document.getElementById('my-id').innerText = "ID: " + id);
-        
+        peer.on('open', id => document.getElementById('id-box').innerText = "ID: " + id);
         peer.on('connection', conn => {
             conn.on('data', data => {
                 if(data.type === 'INTRO') {
-                    vPlayer.src = 'czolowka.mp4'; 
-                    vOverlay.style.display='block'; 
-                    vPlayer.play();
-                    vPlayer.onended = () => { 
-                        vOverlay.style.display='none'; 
-                        welcome.style.display='flex'; 
-                    };
+                    vPlayer.src = 'czolowka.mp4'; document.getElementById('media-overlay').style.display='block'; vPlayer.play();
+                    vPlayer.onended = () => { document.getElementById('media-overlay').style.display='none'; };
                 }
-                
-                if(data.type === 'OUTRO') { 
-                    vPlayer.src = 'napisy.mp4'; 
-                    vOverlay.style.display='block'; 
-                    vPlayer.play(); 
-                }
-                
+                if(data.type === 'BG_MUSIC') { data.play ? bgAudio.play() : bgAudio.pause(); }
                 if(data.type === 'REPEAT') document.getElementById('snd-repeat').play();
-
                 if(data.type === 'SETUP_ROUND') {
-                    welcome.style.display = 'none';
+                    bgAudio.pause();
+                    document.getElementById('welcome-screen').style.display = 'none';
                     document.getElementById('board').style.display = 'block';
                     document.getElementById('snd-round').play();
-                    
-                    document.getElementById('r-num-label').innerText = "RUNDA " + data.rNum;
-                    document.getElementById('mult-label').innerText = "x" + data.mult;
-                    
-                    const cont = document.getElementById('rows-container');
-                    cont.innerHTML = '';
-                    document.getElementById('strikes-L').innerHTML = '';
-                    document.getElementById('strikes-R').innerHTML = '';
-                    
+                    document.getElementById('r-lab').innerText = "RUNDA " + data.rNum;
+                    document.getElementById('m-lab').innerText = "x" + data.mult;
+                    const c = document.getElementById('cont'); c.innerHTML = '';
+                    document.getElementById('strikes-L').innerHTML = ''; document.getElementById('strikes-R').innerHTML = '';
                     data.answers.forEach((a, i) => {
-                        const r = document.createElement('div');
-                        r.className = 'row'; r.id = 'r-' + i;
-                        r.innerHTML = `
-                            <div class="row-num">${i+1}</div>
-                            <div class="row-content">
-                                <div class="dots">...................................................</div>
-                                <div class="ans-txt">${a.text}</div>
-                                <div class="ans-pts">${a.points * data.mult}</div>
-                            </div>`;
-                        cont.appendChild(r);
-                        setTimeout(() => r.classList.add('visible'), i * 150);
+                        const r = document.createElement('div'); r.className = 'row'; r.id = 'r-'+i;
+                        r.innerHTML = `<div class="row-num">${i+1}</div><div class="row-content"><div class="dots">............</div><div class="ans-txt">${a.text}</div><div class="ans-pts">${a.points*data.mult}</div></div>`;
+                        c.appendChild(r); setTimeout(() => r.classList.add('visible'), i*150);
                     });
                 }
-
-                if(data.type === 'GO_FINAL') {
-                    welcome.style.display = 'none';
-                    document.getElementById('board').style.display = 'none';
-                    document.getElementById('snd-final').play();
-                }
-
-                if(data.type === 'REVEAL') document.getElementById('r-' + data.idx).classList.add('revealed');
-                
-                if(data.type === 'STRIKE') {
-                    const side = data.team === 'A' ? 'L' : 'R';
-                    document.getElementById('strikes-' + side).innerHTML += 'X<br>';
-                }
-
-                if(data.type === 'SCORE') {
-                    document.getElementById('round-score').innerText = data.r;
-                    document.getElementById('total-score').innerText = data.t;
-                }
+                if(data.type === 'REVEAL') { document.getElementById('snd-correct').play(); document.getElementById('r-'+data.idx).classList.add('revealed'); }
+                if(data.type === 'STRIKE') { document.getElementById('snd-wrong').play(); document.getElementById(data.team==='A'?'strikes-L':'strikes-R').innerHTML += 'X<br>'; }
+                if(data.type === 'SCORE') { document.getElementById('r-score').innerText = data.r; }
+                if(data.type === 'GO_FINAL') { document.getElementById('snd-final').play(); document.getElementById('board').style.display='none'; document.getElementById('welcome-screen').style.display='flex'; }
             });
         });
     </script>
