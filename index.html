@@ -2,116 +2,142 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA TV - EDYCJA SZKOLNA</title>
+    <title>FAMILIADA TV - MEGA TABLICA</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        :root { --gold: #ffcc00; --blue-g: rgba(0, 85, 255, 0.4); --red-g: rgba(255, 0, 68, 0.4); }
-        body { background: #000; margin: 0; height: 100vh; display: flex; align-items: center; justify-content: center; font-family: 'VT323', monospace; color: var(--gold); text-transform: uppercase; overflow: hidden; }
+        :root { --gold: #ffcc00; }
+        body { background: #000; margin: 0; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: 'VT323', monospace; color: var(--gold); text-transform: uppercase; overflow: hidden; }
         
-        body::before { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 0% 50%, var(--blue-g), transparent 70%); z-index: 1; pointer-events: none; }
-        body::after { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 100% 50%, var(--red-g), transparent 70%); z-index: 1; pointer-events: none; }
+        /* Aktywator dźwięku */
+        #unlocker { position: fixed; inset: 0; background: #000; z-index: 99999; display: flex; align-items: center; justify-content: center; }
+        #unlocker button { padding: 30px 60px; font-size: 40px; background: var(--gold); border: none; cursor: pointer; font-family: 'VT323'; }
 
         #media-overlay { position: fixed; inset: 0; background: #000; z-index: 10000; display: none; }
-        video { width: 100%; height: 100%; object-fit: contain; }
+        video { width: 100%; height: 100%; }
 
-        #welcome-screen { position: fixed; inset: 0; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 5000; }
-        #welcome-text { font-size: 140px; text-align: center; filter: drop-shadow(0 0 30px gold); animation: glow 2s infinite alternate ease-in-out; }
-        .sub-text { font-size: 70px; color: white; display: block; }
-
-        @keyframes glow { from { transform: scale(0.97); opacity: 0.8; } to { transform: scale(1.03); opacity: 1; } }
-
-        .game-board { display: none; width: 85vw; max-width: 1400px; z-index: 10; position: relative; }
-        .header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px; }
-        .round-label { font-size: 50px; color: #fff; }
-        .score-big { font-size: 140px; color: #fff; text-shadow: 0 0 20px rgba(255,255,255,0.5); }
+        /* Tablica - Powiększona */
+        .game-board { display: none; width: 95vw; height: 90vh; position: relative; }
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 0 50px; }
+        .round-info { font-size: 80px; }
+        .main-score { font-size: 200px; color: #fff; text-shadow: 0 0 30px gold; }
         
-        .main-grid { background: #000; border: 4px solid #1a1a1a; padding: 40px; border-radius: 15px; }
-        .row { display: flex; align-items: center; font-size: 75px; height: 90px; margin: 10px 0; opacity: 0; transform: translateX(50px); transition: 0.6s all; border-bottom: 2px solid #0d0d0d; }
-        .row.visible { opacity: 1; transform: translateX(0); }
-        .row-num { width: 80px; color: #1a1a1a; }
-        .row-content { flex-grow: 1; display: flex; justify-content: space-between; position: relative; }
-        .ans-txt, .ans-pts { display: none; background: #000; z-index: 2; padding: 0 15px; }
-        .revealed .ans-txt, .revealed .ans-pts { display: block; }
-        .dots { position: absolute; width: 100%; color: #0a0a0a; letter-spacing: 12px; z-index: 1; }
+        .grid { display: grid; grid-template-columns: 1fr; gap: 15px; background: #111; padding: 30px; border: 8px solid #333; border-radius: 20px; }
+        .row { display: flex; align-items: center; font-size: 90px; height: 110px; background: #000; padding: 0 20px; position: relative; border-bottom: 2px solid #222; }
+        .row-num { width: 100px; color: #333; }
+        .row-text { flex-grow: 1; display: none; color: #fff; }
+        .row-pts { display: none; color: var(--gold); margin-left: 20px; }
+        .revealed .row-text, .revealed .row-pts { display: block; }
+        .dots { position: absolute; left: 120px; color: #111; z-index: 0; }
 
-        .strike-zone { position: absolute; top: 50%; transform: translateY(-50%); width: 150px; font-size: 120px; color: red; text-align: center; text-shadow: 0 0 20px red; }
-        #strikes-L { left: -180px; } #strikes-R { right: -180px; }
+        /* Finał */
+        .final-grid { display: none; grid-template-columns: 1fr 1fr; gap: 40px; width: 100%; }
+        .final-col { display: flex; flex-direction: column; gap: 10px; }
 
-        #id-status { position: fixed; bottom: 20px; left: 20px; font-size: 30px; color: white; background: rgba(0,0,0,0.8); padding: 10px; border: 2px solid gold; z-index: 10001; }
+        .strike { position: absolute; top: 50%; transform: translateY(-50%); font-size: 200px; color: red; text-shadow: 0 0 40px red; }
+        #s-L { left: -100px; } #s-R { right: -100px; }
+
+        #status { position: fixed; bottom: 10px; left: 10px; font-size: 20px; opacity: 0.5; }
     </style>
 </head>
 <body>
-    <div id="id-status">ID: GENEROWANIE... (Wymagany Internet)</div>
+    <div id="unlocker"><button onclick="startSystem()">KLIKNIJ ABY AKTYWOWAĆ SYSTEM</button></div>
+    <div id="status">ID: Czekam...</div>
     <div id="media-overlay"><video id="v-player"></video></div>
     
-    <audio id="snd-repeat" src="powtorzenie.mp3"></audio>
-    <audio id="snd-round" src="runda.mp3"></audio>
-    <audio id="snd-final" src="final.mp3"></audio>
+    <audio id="snd-intro" src="intro_audio.mp3"></audio>
     <audio id="snd-correct" src="poprawna.mp3"></audio>
     <audio id="snd-wrong" src="blad.mp3"></audio>
-    <audio id="snd-bg" src="intro_audio.mp3" loop></audio>
-
-    <div id="welcome-screen">
-        <div id="welcome-text">FAMILIADA <span class="sub-text">EDYCJA SZKOLNA</span></div>
-    </div>
+    <audio id="snd-round" src="runda.mp3"></audio>
+    <audio id="snd-final" src="final.mp3"></audio>
 
     <div class="game-board" id="board">
-        <div id="strikes-L" class="strike-zone"></div>
+        <div id="s-L" class="strike"></div>
         <div class="header">
-            <div class="round-label" id="r-lab">RUNDA 1</div>
-            <div class="score-big" id="r-score">0</div>
-            <div class="round-label" id="m-lab">x1</div>
+            <div class="round-info" id="r-num">RUNDA 1</div>
+            <div class="main-score" id="r-sum">0</div>
+            <div class="round-info" id="r-mult">X1</div>
         </div>
-        <div class="main-grid" id="cont"></div>
-        <div id="strikes-R" class="strike-zone"></div>
+        
+        <div class="grid" id="normal-grid"></div>
+
+        <div class="final-grid" id="final-grid">
+            <div class="final-col" id="f-col-1"></div>
+            <div class="final-col" id="f-col-2"></div>
+        </div>
+        <div id="s-R" class="strike"></div>
     </div>
 
     <script>
-        const peer = new Peer();
-        const vPlayer = document.getElementById('v-player');
-        const bgAudio = document.getElementById('snd-bg');
-        bgAudio.volume = 0.3;
+        let peer = new Peer();
+        function startSystem() {
+            document.getElementById('unlocker').style.display = 'none';
+            document.getElementById('snd-intro').volume = 0.4;
+            console.log("System gotowy.");
+        }
 
-        peer.on('open', id => {
-            document.getElementById('id-status').innerText = "ID: " + id;
-            console.log("Twój ID to: " + id);
-        });
-
-        peer.on('error', err => {
-            document.getElementById('id-status').innerText = "BŁĄD: Brak internetu!";
-        });
-
+        peer.on('open', id => document.getElementById('status').innerText = "ID: " + id);
+        
         peer.on('connection', conn => {
-            document.getElementById('id-status').style.display = 'none';
             conn.on('data', data => {
                 if(data.type === 'INTRO') {
-                    vPlayer.src = 'czolowka.mp4'; 
-                    document.getElementById('media-overlay').style.display='block'; 
-                    vPlayer.play().catch(e => console.log("Zablokowano autoodtwarzanie. Kliknij na ekran."));
-                    vPlayer.onended = () => { document.getElementById('media-overlay').style.display='none'; };
+                    document.getElementById('snd-intro').play();
+                    const v = document.getElementById('v-player');
+                    v.src = 'czolowka.mp4';
+                    document.getElementById('media-overlay').style.display='block';
+                    v.play();
+                    v.onended = () => document.getElementById('media-overlay').style.display='none';
                 }
-                if(data.type === 'BG_MUSIC') { data.play ? bgAudio.play() : bgAudio.pause(); }
-                if(data.type === 'REPEAT') document.getElementById('snd-repeat').play();
+                
                 if(data.type === 'SETUP_ROUND') {
-                    bgAudio.pause();
-                    document.getElementById('welcome-screen').style.display = 'none';
-                    document.getElementById('board').style.display = 'block';
                     document.getElementById('snd-round').play();
-                    document.getElementById('r-lab').innerText = "RUNDA " + data.rNum;
-                    document.getElementById('m-lab').innerText = "x" + data.mult;
-                    const c = document.getElementById('cont'); c.innerHTML = '';
-                    document.getElementById('strikes-L').innerHTML = ''; document.getElementById('strikes-R').innerHTML = '';
+                    document.getElementById('normal-grid').style.display = 'grid';
+                    document.getElementById('final-grid').style.display = 'none';
+                    document.getElementById('board').style.display = 'block';
+                    document.getElementById('r-num').innerText = "RUNDA " + data.rNum;
+                    document.getElementById('r-mult').innerText = "X" + data.mult;
+                    
+                    const g = document.getElementById('normal-grid');
+                    g.innerHTML = '';
                     data.answers.forEach((a, i) => {
-                        const r = document.createElement('div'); r.className = 'row'; r.id = 'r-'+i;
-                        r.innerHTML = `<div class="row-num">${i+1}</div><div class="row-content"><div class="dots">...................................</div><div class="ans-txt">${a.text}</div><div class="ans-pts">${a.points*data.mult}</div></div>`;
-                        c.appendChild(r); setTimeout(() => r.classList.add('visible'), i*150);
+                        g.innerHTML += `<div class="row" id="ans-${i}"><div class="row-num">${i+1}</div><div class="dots">...................................</div><div class="row-text">${a.text}</div><div class="row-pts">${a.points*data.mult}</div></div>`;
                     });
                 }
-                if(data.type === 'REVEAL') { document.getElementById('snd-correct').play(); document.getElementById('r-'+data.idx).classList.add('revealed'); }
-                if(data.type === 'STRIKE') { document.getElementById('snd-wrong').play(); document.getElementById(data.team==='A'?'strikes-L':'strikes-R').innerHTML += 'X<br>'; }
-                if(data.type === 'SCORE') { document.getElementById('r-score').innerText = data.r; }
-                if(data.type === 'GO_FINAL') { document.getElementById('snd-final').play(); document.getElementById('board').style.display='none'; document.getElementById('welcome-screen').style.display='flex'; }
+
+                if(data.type === 'REVEAL') {
+                    document.getElementById('snd-correct').play();
+                    document.getElementById('ans-'+data.idx).classList.add('revealed');
+                }
+
+                if(data.type === 'STRIKE') {
+                    document.getElementById('snd-wrong').play();
+                    const side = data.team === 'A' ? 's-L' : 's-R';
+                    document.getElementById(side).innerHTML += 'X';
+                    setTimeout(() => { document.getElementById(side).innerHTML = ''; }, 2000);
+                }
+
+                if(data.type === 'SCORE') { document.getElementById('r-sum').innerText = data.val; }
+                
+                if(data.type === 'FINAL_MODE') {
+                    document.getElementById('snd-final').play();
+                    document.getElementById('normal-grid').style.display = 'none';
+                    document.getElementById('final-grid').style.display = 'grid';
+                    // Generowanie wierszy finałowych...
+                    const f1 = document.getElementById('f-col-1'); f1.innerHTML = '';
+                    const f2 = document.getElementById('f-col-2'); f2.innerHTML = '';
+                    for(let i=0; i<5; i++) {
+                        f1.innerHTML += `<div class="row" id="f1-${i}"><div class="row-text" id="f1t-${i}">---</div><div class="row-pts" id="f1p-${i}">0</div></div>`;
+                        f2.innerHTML += `<div class="row" id="f2-${i}"><div class="row-text" id="f2t-${i}">---</div><div class="row-pts" id="f2p-${i}">0</div></div>`;
+                    }
+                }
+                
+                if(data.type === 'FINAL_REV') {
+                    document.getElementById('snd-correct').play();
+                    const elT = document.getElementById(`f${data.player}t-${data.idx}`);
+                    const elP = document.getElementById(`f${data.player}p-${data.idx}`);
+                    elT.innerText = data.text; elT.style.display = 'block';
+                    elP.innerText = data.pts; elP.style.display = 'block';
+                }
             });
         });
     </script>
