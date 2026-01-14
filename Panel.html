@@ -2,65 +2,84 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>PANEL STEROWANIA PRO</title>
+    <title>PANEL STEROWANIA - FAMILIADA</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        body { font-family: sans-serif; background: #121212; color: white; padding: 20px; display: grid; grid-template-columns: 380px 1fr; gap: 20px; }
-        .card { background: #1e1e1e; padding: 15px; border-radius: 10px; border-top: 4px solid gold; margin-bottom: 15px; }
-        h3 { color: gold; margin-top: 0; font-size: 14px; }
-        button { width: 100%; padding: 12px; margin: 3px 0; cursor: pointer; border: none; border-radius: 5px; font-weight: bold; }
+        body { font-family: sans-serif; background: #1a1a1a; color: white; padding: 20px; display: grid; grid-template-columns: 400px 1fr; gap: 20px; }
+        .card { background: #2a2a2a; padding: 15px; border-radius: 10px; border-top: 4px solid gold; margin-bottom: 15px; }
+        button { width: 100%; padding: 10px; margin: 3px 0; cursor: pointer; border: none; border-radius: 5px; font-weight: bold; }
         .btn-blue { background: #0066ff; color: white; }
         .btn-red { background: #cc0000; color: white; }
         .btn-green { background: #28a745; color: white; }
         .btn-gold { background: gold; color: black; }
-        .btn-grey { background: #444; color: white; }
+        .btn-grey { background: #555; color: white; }
+        input { width: 100%; padding: 10px; box-sizing: border-box; background: #000; color: white; border: 1px solid #444; }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
-        input { width: 100%; padding: 10px; background: #000; color: white; border: 1px solid #333; box-sizing: border-box; }
     </style>
 </head>
 <body>
-
     <div>
         <div class="card">
             <h3>1. POŁĄCZENIE</h3>
-            <input type="text" id="tv-id" placeholder="Wpisz ID z ekranu TV">
-            <button class="btn-green" onclick="connect()">POŁĄCZ SYSTEMY</button>
+            <input type="text" id="tv-id" placeholder="Wpisz ID z TV">
+            <button class="btn-green" onclick="connect()">POŁĄCZ</button>
         </div>
 
         <div class="card">
-            <h3>2. MULTIMEDIA I RUNDY</h3>
-            <button class="btn-blue" onclick="send({type:'INTRO'})">🎬 ODTWÓRZ INTRO (WIDEO)</button>
-            <button class="btn-grey" onclick="send({type:'CREDITS'})">🎬 NAPISY KOŃCOWE</button>
-            <hr>
-            <button class="btn-gold" onclick="sendQ()">🚀 START NOWEJ RUNDY</button>
+            <h3>2. MULTIMEDIA</h3>
+            <button class="btn-blue" onclick="send({type:'VIDEO'})">🎬 ODTWÓRZ CZOŁÓWKĘ (WIDEO)</button>
+            <button class="btn-gold" onclick="send({type:'THEME'})">🎵 MUZYKA INTRA (SAM DZWIĘK)</button>
+            <button class="btn-red" onclick="send({type:'REPEAT'})">⚠️ DŹWIĘK POWTÓRZENIA</button>
         </div>
 
         <div class="card">
-            <h3>3. BŁĘDY (WYBIERZ DRUŻYNĘ)</h3>
+            <h3>3. BŁĘDY (X)</h3>
             <div class="grid-2">
-                <button class="btn-blue" onclick="send({type:'STRIKE', n:1, team:'blue'})">LEWA X</button>
-                <button class="btn-red" onclick="send({type:'STRIKE', n:1, team:'red'})">PRAWA X</button>
-                <button class="btn-blue" onclick="send({type:'STRIKE', n:2, team:'blue'})">LEWA XX</button>
-                <button class="btn-red" onclick="send({type:'STRIKE', n:2, team:'red'})">PRAWA XX</button>
-                <button class="btn-blue" onclick="send({type:'STRIKE', n:3, team:'blue'})">LEWA XXX</button>
-                <button class="btn-red" onclick="send({type:'STRIKE', n:3, team:'red'})">PRAWA XXX</button>
+                <button class="btn-blue" onclick="send({type:'STRIKE', n:1, team:'blue'})">NIEBIESKI X</button>
+                <button class="btn-red" onclick="send({type:'STRIKE', n:1, team:'red'})">CZERWONY X</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>4. FINAŁ - TIMER</h3>
+            <button class="btn-blue" onclick="send({type:'FINAL_START'})">AKTYWUJ TRYB FINAŁU</button>
+            <div class="grid-2">
+                <button class="btn-red" onclick="send({type:'TIMER', val:15})">START 15s (G1)</button>
+                <button class="btn-red" onclick="send({type:'TIMER', val:20})">START 20s (G2)</button>
             </div>
         </div>
     </div>
 
     <div>
         <div class="card">
-            <h3>4. PYTANIA I PUNKTACJA</h3>
-            <select id="q-sel" onchange="loadQ()" style="width:100%; padding:10px; margin-bottom:10px; background:black; color:white;"></select>
-            <div id="ans-box" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;"></div>
+            <h3>5. PYTANIA (10 ZESTAWÓW)</h3>
+            <select id="q-sel" onchange="loadQ()" style="width:100%; padding:10px;"></select>
+            <button class="btn-green" onclick="sendQ()">WYŚLIJ NA TABLICĘ</button>
+            <div id="ans-box" style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:10px;"></div>
         </div>
 
-        <div class="card" style="text-align: center;">
-            <h3 style="margin-bottom: 20px;">ZARZĄDZANIE PUNKAMI</h3>
-            <div style="font-size: 50px; color: gold; margin-bottom: 15px;" id="sum-disp">0</div>
+        <div class="card">
+            <h3>6. FINAŁ - WPROWADZANIE</h3>
             <div class="grid-2">
-                <button class="btn-blue" onclick="addScore('blue')">⬅️ DAJ NIEBIESKIM</button>
-                <button class="btn-red" onclick="addScore('red')">DAJ CZERWONYM ➡️</button>
+                <input type="text" id="ft" placeholder="Hasło">
+                <input type="number" id="fp" placeholder="Pkt">
+            </div>
+            <div class="grid-2">
+                <button class="btn-blue" onclick="sendF(1)">ODSŁOŃ G1</button>
+                <button class="btn-red" onclick="sendF(2)">ODSŁOŃ G2</button>
+            </div>
+            <select id="fi" style="width:100%; margin-top:5px;">
+                <option value="0">Pytanie 1</option><option value="1">Pytanie 2</option>
+                <option value="2">Pytanie 3</option><option value="3">Pytanie 4</option>
+                <option value="4">Pytanie 5</option>
+            </select>
+        </div>
+
+        <div class="card">
+            <h3>PUNKTY DRUŻYN</h3>
+            <div class="grid-2">
+                <button class="btn-blue" onclick="addScore('blue')">PUNKTY -> NIEBIESCY</button>
+                <button class="btn-red" onclick="addScore('red')">PUNKTY -> CZERWONI</button>
             </div>
             <button class="btn-grey" onclick="resetAll()">ZERUJ WSZYSTKO</button>
         </div>
@@ -68,15 +87,23 @@
 
     <script>
         const DB = [
-            {q: "Co robimy rano?", a: [["MYJEMY ZĘBY", 40], ["PIJEMY KAWĘ", 30], ["ŚPIEMY DALEJ", 20], ["IDZIEMY DO PRACY", 10]]},
-            {q: "Zwierzę na wieś?", a: [["KROWA", 50], ["KURA", 30], ["ŚWINIA", 20]]}
+            {q:"Zestaw 1", a:[["KOT",30],["PIES",20],["CHOMIK",10]]},
+            {q:"Zestaw 2", a:[["WODA",40],["SOK",20],["KAWA",10]]},
+            {q:"Zestaw 3", a:[["DOM",35],["BLOK",15],["WILLA",5]]},
+            {q:"Zestaw 4", a:[["LAS",25],["POLE",20],["ŁĄKA",10]]},
+            {q:"Zestaw 5", a:[["AUTO",30],["ROWER",20],["BUS",10]]},
+            {q:"Zestaw 6", a:[["LATO",50],["ZIMA",30],["JESIEŃ",10]]},
+            {q:"Zestaw 7", a:[["JABŁKO",40],["BANAN",20],["GRUSZKA",10]]},
+            {q:"Zestaw 8", a:[["GÓRY",30],["MORZE",30],["JEZIORO",10]]},
+            {q:"Zestaw 9", a:[["CHLEB",45],["BUŁKA",25],["ROGAL",10]]},
+            {q:"Zestaw 10", a:[["WF",30],["MATEMATYKA",20],["POLSKI",10]]}
         ];
-        
+
         let conn, peer = new Peer(), s1=0, s2=0, rSum=0;
 
         window.onload = () => {
             const s = document.getElementById('q-sel');
-            DB.forEach((x, i) => s.innerHTML += `<option value="${i}">${i+1}. ${x.q}</option>`);
+            DB.forEach((x, i) => s.innerHTML += `<option value="${i}">${x.q}</option>`);
             loadQ();
         };
 
@@ -89,10 +116,9 @@
             const q = DB[document.getElementById('q-sel').value];
             const box = document.getElementById('ans-box'); box.innerHTML = '';
             q.a.forEach((x, i) => {
-                const b = document.createElement('button');
-                b.className = 'btn-grey';
+                const b = document.createElement('button'); b.className = 'btn-grey';
                 b.innerText = `${x[0]} (${x[1]})`;
-                b.onclick = () => { rSum += x[1]; update(); send({type:'REV', idx:i}); b.style.background = '#28a745'; };
+                b.onclick = () => { rSum += x[1]; update(); send({type:'REV', idx:i}); b.style.background = 'green'; };
                 box.appendChild(b);
             });
         }
@@ -101,19 +127,15 @@
             rSum = 0; update();
             const q = DB[document.getElementById('q-sel').value];
             send({type:'SETUP', ans: q.a.map(x=>({t:x[0], p:x[1]}))});
-            loadQ();
         }
 
-        function addScore(team) {
-            if(team === 'blue') s1 += rSum; else s2 += rSum;
-            rSum = 0; update();
+        function sendF(p) {
+            send({type:'FINAL_REV', p:p, i:document.getElementById('fi').value, txt:document.getElementById('ft').value.toUpperCase(), pts:document.getElementById('fp').value});
         }
 
+        function addScore(team) { if(team === 'blue') s1 += rSum; else s2 += rSum; rSum = 0; update(); }
         function send(d) { if(conn) conn.send(d); }
-        function update() { 
-            document.getElementById('sum-disp').innerText = rSum; 
-            send({type:'SCORE', s1:s1, s2:s2, sum:rSum}); 
-        }
+        function update() { send({type:'SCORE', s1:s1, s2:s2, sum:rSum}); }
         function resetAll() { s1=0; s2=0; rSum=0; update(); }
     </script>
 </body>
