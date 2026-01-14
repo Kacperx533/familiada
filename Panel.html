@@ -2,15 +2,16 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA - PANEL</title>
+    <title>PANEL KONTROLNY - EDYCJA SZKOLNA</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         body { font-family: sans-serif; background: #1a1a1a; color: white; padding: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .card { background: #2d2d2d; padding: 15px; border-radius: 8px; margin-bottom: 10px; }
-        button { padding: 12px; margin: 4px 0; width: 100%; cursor: pointer; font-weight: bold; border-radius: 4px; border: none; }
+        .card { background: #2d2d2d; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 5px solid #ffcc00; }
+        button { padding: 12px; margin: 5px 0; width: 100%; cursor: pointer; font-weight: bold; border-radius: 4px; border: none; }
         .gold { background: #ffcc00; } .blue { background: #0055ff; color: white; } .red { background: #ff0044; color: white; }
-        .active { outline: 4px solid white; }
-        input, select { width: 100%; padding: 10px; margin: 5px 0; box-sizing: border-box; }
+        .active { outline: 4px solid white; box-shadow: 0 0 15px white; }
+        input, select { width: 100%; padding: 10px; margin: 5px 0; box-sizing: border-box; background: #000; color: #fff; border: 1px solid #444; }
+        h3 { margin-top: 0; color: #ffcc00; text-transform: uppercase; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -19,67 +20,45 @@
         <div class="card">
             <h3>1. POŁĄCZENIE</h3>
             <input type="text" id="tv-id" placeholder="Wklej ID z TV">
-            <button class="gold" onclick="connect()">POŁĄCZ Z EKRANEM</button>
+            <button class="gold" onclick="connect()">POŁĄCZ Z TABLICĄ</button>
         </div>
 
         <div class="card">
             <h3>2. MULTIMEDIA</h3>
-            <button onclick="send({type:'VIDEO', file:'czolowka.mp4'})">🎬 CZOŁÓWKA (.mp4)</button>
-            <button onclick="send({type:'VIDEO', file:'napisy.mp4'})">📝 NAPISY KOŃCOWE (.mp4)</button>
-            <button style="background: orange;" onclick="send({type:'REPEAT'})">🔔 POWTÓRZENIE (.mp3)</button>
-            <button class="red" onclick="send({type:'STRIKE'})">❌ BŁĄD (X)</button>
+            <button onclick="send({type:'INTRO'})">🎬 START (CZOŁÓWKA + NAPIS)</button>
+            <button onclick="send({type:'OUTRO'})">📝 NAPISY KOŃCOWE</button>
+            <button style="background: orange;" onclick="send({type:'REPEAT'})">🔔 POWTÓRZENIE</button>
         </div>
 
         <div class="card">
-            <h3>3. WYNIKI</h3>
+            <h3>3. PUNKTY I BŁĘDY</h3>
             <div style="display:flex; gap:10px;">
-                <button id="btn-a" class="blue" onclick="selTeam('A')">DRUŻYNA A: <span id="s-a">0</span></button>
-                <button id="btn-b" class="red" onclick="selTeam('B')">DRUŻYNA B: <span id="s-b">0</span></button>
+                <button id="btn-a" class="blue" onclick="selTeam('A')">DRUŻYNA A (LEWA): <span id="s-a">0</span></button>
+                <button id="btn-b" class="red" onclick="selTeam('B')">DRUŻYNA B (PRAWA): <span id="s-b">0</span></button>
             </div>
-            <div style="text-align:center; font-size:20px; margin:10px;">RUNDA: <span id="s-r">0</span></div>
-            <button class="gold" onclick="addPts()">PRZYPISZ PUNKTY DO AKTYWNEJ</button>
+            <button class="red" style="margin-top:10px; font-size: 20px;" onclick="sendStrike()">❌ BŁĄD DLA AKTYWNEJ</button>
+            <div style="text-align:center; font-size:24px; margin:15px; color: gold;">W TEJ RUNDZIE: <span id="s-r">0</span></div>
+            <button class="gold" onclick="addPts()">DODAJ PUNKTY DO AKTYWNEJ</button>
         </div>
     </div>
 
     <div class="right">
         <div class="card">
-            <h3>4. PYTANIA NORMALNE</h3>
+            <h3>4. BAZA PYTAŃ (EDYCJA SZKOLNA)</h3>
             <select id="q-sel" onchange="preview()"></select>
-            <button class="gold" onclick="sendSetup()">WYŚLIJ NA TABLICĘ</button>
+            <button class="gold" onclick="sendSetup()">WYŚLIJ PYTANIE NA TABLICĘ</button>
             <div id="ans-list"></div>
-        </div>
-
-        <div class="card">
-            <h3>5. FINAŁ</h3>
-            <select id="f-sel">
-                <option value="0">Finał 1: Kuchnia / Sport</option>
-                <option value="1">Finał 2: Zwierzęta / Miasta</option>
-                <option value="2">Finał 3: Szkoła / Dom</option>
-            </select>
-            <button onclick="send({type:'SETUP_FINAL'})">WŁĄCZ TABLICĘ FINAŁOWĄ</button>
-            <div id="final-inputs">
-                <h4>GRACZ 1 / GRACZ 2</h4>
-                <div id="f-rows-inputs"></div>
-            </div>
         </div>
     </div>
 
     <script>
         const db = [
-            {q:"Więcej niż jedno zwierzę?", a:[["OWCE",41],["LAMA",28],["STADO",16],["WATAHA",5],["PARA",3]]},
-            {q:"Przedmiot szkolny?", a:[["MATEMATYKA",45],["POLSKI",25],["WF",15],["HISTORIA",10],["GEOGRAFIA",5]]},
-            {q:"Co robimy w lesie?", a:[["SPACERUJEMY",42],["GRZYBY",30],["BIEGAMY",12],["ODPOCZYNEK",8]]},
-            {q:"Zwierzę na K?", a:[["KOT",40],["KOŃ",25],["KROWA",15],["KANGUR",10],["KROKODYL",5]]},
-            {q:"Coś co ma klucze?", a:[["WOŹNY",35],["FORTEPIAN",24],["BRAMA",18],["SAMOCHÓD",12],["MAPA",6]]},
-            {q:"Co kładziemy na kanapkę?", a:[["SER",35],["SZYNKA",30],["POMIDOR",15],["MASŁO",12],["SAŁATA",8]]},
-            {q:"Pojazd bez silnika?", a:[["ROWER",55],["HULAJNOGA",20],["WÓZEK",12],["SANKI",8]]},
-            {q:"Coś gorącego?", a:[["HERBATA",40],["SŁOŃCE",30],["PIEKARNIK",15],["OGIEŃ",10]]}
-        ];
-
-        const finals = [
-            ["Zwierzę na P", "Rzecz w kuchni", "Dyscyplina sportu", "Kolor kwiatów", "Marka auta"],
-            ["Państwo w Europie", "Instrument muzyczny", "Ptak domowy", "Imię na A", "Część garderoby"],
-            ["Rodzaj drzewa", "Słodki owoc", "Wyposażenie salonu", "Ryba słodkowodna", "Stolica państwa"]
+            {q:"Przedmiot szkolny?", a:[["MATEMATYKA",45],["POLSKI",25],["WF",15],["HISTORIA",10],["BIOLOGIA",5]]},
+            {q:"Co robimy na przerwie?", a:[["JEMY ŚNIADANIE",40],["ROZMAWIAMY",30],["BIEGAMY",15],["POWTARZAMY",10],["GRAMY NA TEL",5]]},
+            {q:"Wyposażenie piórnika?", a:[["DŁUGOPIS",50],["OŁÓWEK",20],["GUMKA",15],["LINIJKA",10],["KREDKI",5]]},
+            {q:"Co można dostać od nauczyciela?", a:[["OCENĘ",45],["POCHWAŁĘ",25],["UWAGĘ",15],["ZADANIE",10],["PYTANIE",5]]},
+            {q:"Gdzie jeździmy na wycieczki?", a:[["KINO",35],["MUZEUM",30],["GÓRY",20],["LAS",10],["BASEN",5]]},
+            {q:"Co jest w plecaku oprócz książek?", a:[["ZESZYT",40],["ŚNIADANIE",30],["WODA",15],["STRÓJ NA WF",10],["TELEFON",5]]}
         ];
 
         let peer = new Peer(), conn, scoreA=0, scoreB=0, scoreR=0, team='A';
@@ -87,21 +66,14 @@
         window.onload = () => {
             const sel = document.getElementById('q-sel');
             db.forEach((it, i) => sel.innerHTML += `<option value="${i}">${it.q}</option>`);
-            
-            const finDiv = document.getElementById('f-rows-inputs');
-            for(let i=0; i<5; i++) {
-                finDiv.innerHTML += `
-                    <div style="display:flex; gap:5px; margin-bottom:5px;">
-                        <input id="f-a-${i}" placeholder="Odp">
-                        <input id="f-p-${i}" type="number" placeholder="Pts" style="width:60px">
-                        <button onclick="revealFinal(1,${i})" style="width:40px">P1</button>
-                        <button onclick="revealFinal(2,${i})" style="width:40px">P2</button>
-                    </div>`;
-            }
             preview(); selTeam('A');
         };
 
-        function connect() { conn = peer.connect(document.getElementById('tv-id').value); alert("Łączenie..."); }
+        function connect() {
+            conn = peer.connect(document.getElementById('tv-id').value);
+            conn.on('open', () => alert("Połączono!"));
+        }
+
         function send(d) { if(conn) conn.send(d); }
 
         function preview() {
@@ -118,16 +90,32 @@
             send({type:'SETUP_ROUND', answers: data.a.map(x=>({text:x[0], points:x[1]}))});
         }
 
-        function reveal(idx, pts) { scoreR += pts; updateUI(); send({type:'REVEAL', idx:idx}); sync(); }
-        function selTeam(t) { team = t; document.getElementById('btn-a').classList.toggle('active', t==='A'); document.getElementById('btn-b').classList.toggle('active', t==='B'); }
-        function addPts() { if(team==='A') scoreA += scoreR; else scoreB += scoreR; scoreR = 0; updateUI(); sync(); }
-        function updateUI() { document.getElementById('s-a').innerText = scoreA; document.getElementById('s-b').innerText = scoreB; document.getElementById('s-r').innerText = scoreR; }
-        function sync() { send({type:'SCORE', r:scoreR, t:scoreA+scoreB}); }
-        function revealFinal(p, i) {
-            const ans = document.getElementById(`f-a-${i}`).value.toUpperCase();
-            const pts = document.getElementById(`f-p-${i}`).value || 0;
-            send({type:'FINAL_REVEAL', p:p, i:i, ans:ans, pts:pts});
+        function reveal(idx, pts) {
+            scoreR += pts; updateUI();
+            send({type:'REVEAL', idx:idx});
+            sync();
         }
+
+        function sendStrike() { send({type:'STRIKE', team: team}); }
+
+        function selTeam(t) {
+            team = t;
+            document.getElementById('btn-a').classList.toggle('active', t==='A');
+            document.getElementById('btn-b').classList.toggle('active', t==='B');
+        }
+
+        function addPts() {
+            if(team==='A') scoreA += scoreR; else scoreB += scoreR;
+            scoreR = 0; updateUI(); sync();
+        }
+
+        function updateUI() {
+            document.getElementById('s-a').innerText = scoreA;
+            document.getElementById('s-b').innerText = scoreB;
+            document.getElementById('s-r').innerText = scoreR;
+        }
+
+        function sync() { send({type:'SCORE', r:scoreR, t:scoreA+scoreB}); }
     </script>
 </body>
 </html>
