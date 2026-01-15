@@ -2,162 +2,168 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>PANEL STEROWANIA - FAMILIADA</title>
+    <title>PANEL STEROWANIA</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        body { font-family: sans-serif; background: #1a1a1a; color: white; padding: 20px; display: grid; grid-template-columns: 350px 1fr; gap: 20px; }
-        .card { background: #2a2a2a; padding: 15px; border-radius: 8px; border-top: 4px solid #dfff00; }
-        .btn-gold { background: #dfff00; color: black; font-weight: bold; padding: 10px; cursor: pointer; border: none; width: 100%; margin: 5px 0; }
-        .btn-blue { background: #0055ff; color: white; border: none; padding: 10px; cursor: pointer; }
-        .active-team { outline: 4px solid lime; }
-        input { width: 100%; padding: 8px; background: #000; color: #fff; border: 1px solid #444; box-sizing: border-box; }
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        body { font-family: 'Segoe UI', sans-serif; background: #121212; color: white; display: grid; grid-template-columns: 400px 1fr 350px; gap: 15px; padding: 15px; margin: 0; }
+        .card { background: #1e1e1e; padding: 15px; border-radius: 10px; border-bottom: 4px solid #dfff00; }
+        h3 { color: #dfff00; margin-top: 0; text-transform: uppercase; font-size: 14px; border-bottom: 1px solid #333; padding-bottom: 5px; }
+        button { background: #333; color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.2s; }
+        button:hover { background: #444; }
+        .btn-gold { background: #dfff00; color: black; }
+        .btn-gold:hover { background: #f0ff40; }
+        .btn-red { background: #aa0000; }
+        .btn-blue { background: #0055ff; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        input, select { width: 100%; padding: 10px; background: #000; color: #fff; border: 1px solid #444; border-radius: 5px; }
+        .score-box { font-size: 30px; color: #dfff00; text-align: center; margin: 10px 0; background: #000; padding: 10px; border-radius: 5px; }
+        .cheat-sheet { height: 600px; overflow-y: auto; background: #0a0a0a; padding: 10px; font-size: 13px; color: #ccc; }
+        .q-item { border-bottom: 1px solid #222; padding: 8px 0; }
     </style>
 </head>
 <body>
+
     <div>
         <div class="card">
-            <h3>1. POŁĄCZENIE</h3>
-            <input id="tv-id" placeholder="Wpisz ID z TV">
-            <button class="btn-gold" onclick="connect()">POŁĄCZ</button>
+            <h3>1. Połączenie</h3>
+            <input id="tv-id" placeholder="Wpisz ID z ekranu TV">
+            <button class="btn-gold" onclick="connect()" style="margin-top:5px">POŁĄCZ Z EKRANEM</button>
+            <div id="status" style="color:red; font-size:12px; margin-top:5px">Status: Rozłączony</div>
         </div>
 
-        <div class="card" style="margin-top:20px">
-            <h3>2. RUNDY (Z AUTOMATYKĄ DŹWIĘKU)</h3>
-            <div class="grid-2">
-                <button onclick="startRunda(1)">RUNDA 1</button>
-                <button onclick="startRunda(2)">RUNDA 2</button>
-                <button onclick="startRunda(3)">RUNDA 3</button>
-                <button class="btn-gold" onclick="startFinal()">FINAŁ (MUZYKA)</button>
+        <div class="card" style="margin-top:15px">
+            <h3>2. Multimedia</h3>
+            <div class="grid">
+                <button onclick="sendSound('runda')">🎵 DŹWIĘK RUNDY</button>
+                <button onclick="sendSound('final')">🎬 MUZYKA FINAŁ</button>
+                <button onclick="send({type:'X', side:'L', n:1})">❌ ZŁA ODP</button>
+                <button onclick="send({type:'X', side:'L', n:0})">🔄 CZYŚĆ X</button>
+            </div>
+            <div class="grid" style="margin-top:10px">
+                <button class="btn-blue" onclick="activeSide='L'">GRA LEWA</button>
+                <button class="btn-red" onclick="activeSide='R'">GRA PRAWA</button>
             </div>
         </div>
 
-        <div class="card" style="margin-top:20px">
-            <h3>3. BŁĘDY (X)</h3>
-            <div class="grid-2">
-                <button class="btn-blue" id="t-L" onclick="activeSide='L'">DRUŻYNA LEWA</button>
-                <button class="btn-blue" id="t-R" onclick="activeSide='R'">DRUŻYNA PRAWA</button>
-            </div>
-            <div style="display:flex; gap:5px; margin-top:10px">
-                <button style="flex:1" onclick="sendX(1)">X</button>
-                <button style="flex:1" onclick="sendX(2)">XX</button>
-                <button style="flex:1" onclick="sendX(3)">XXX</button>
+        <div class="card" style="margin-top:15px">
+            <h3>3. Punkty Drużyn</h3>
+            <div class="grid">
+                <div>NIEBIESCY<div class="score-box" id="pts-L">0</div><button onclick="addGlobal('L')">DODAJ</button></div>
+                <div>CZERWONI<div class="score-box" id="pts-R">0</div><button onclick="addGlobal('R')">DODAJ</button></div>
             </div>
         </div>
     </div>
 
     <div>
         <div class="card">
-            <h3>4. TABLICA GŁÓWNA / FINAŁOWA</h3>
-            <div id="setup-area">
-                <select id="q-select" style="width:100%; padding:10px" onchange="updatePreview()"></select>
-                <button class="btn-gold" onclick="sendQ()">WYŚLIJ PYTANIE NA TV</button>
-                <div id="ans-preview" style="margin-top:10px"></div>
-            </div>
-
-            <div id="final-area" style="display:none; margin-top:20px; border-top: 2px solid #555; padding-top:10px">
-                <div class="grid-2">
-                    <button onclick="runTimer(15)">STOPER 15s</button>
-                    <button onclick="runTimer(20)">STOPER 20s</button>
-                </div>
-                <div class="grid-2" style="margin-top:10px">
-                    <div id="f-p1"><h4>GRACZ 1</h4></div>
-                    <div id="f-p2"><h4>GRACZ 2</h4></div>
-                </div>
-            </div>
-            <div style="text-align:right; font-size:24px; color:gold; margin-top:10px">SUMA: <span id="local-sum">0</span></div>
+            <h3>4. Zarządzanie Rundą</h3>
+            <select id="q-select" onchange="previewQ()"></select>
+            <button class="btn-gold" onclick="sendQ()" style="margin-top:10px; height:50px">WYŚLIJ PYTANIE NA TV</button>
+            <div id="ans-preview" style="margin-top:15px"></div>
+            <div class="score-box" style="font-size:40px">SUMA: <span id="current-sum">0</span></div>
         </div>
+
+        <div class="card" style="margin-top:15px">
+            <h3>5. Finał - Akcje</h3>
+            <div class="grid">
+                <button class="btn-gold" onclick="runTimer(15)">TIMER 15s (G1)</button>
+                <button class="btn-gold" onclick="runTimer(20)">TIMER 20s (G2)</button>
+                <button onclick="send({type:'SETUP_FINAL'})">CZYSTA TABLICA FINAŁ</button>
+            </div>
+            <div class="grid" style="margin-top:15px">
+                <div id="f-p1"><b>GRACZ 1</b></div>
+                <div id="f-p2"><b>GRACZ 2</b></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>Ściągawka Finałowa (Pytania)</h3>
+        <div class="cheat-sheet" id="cheat"></div>
     </div>
 
     <script>
         const DB = [
-            {q:"Zwierzę na literę K", a:[["KOT",45],["KOŃ",25],["KROWA",15],["KANGUR",10]]},
-            {q:"Przedmiot szkolny", a:[["MATEMATYKA",40],["POLSKI",30],["WF",20]]}
+            {q:"Zwierzę na literę P", a:[["PIES",45],["PTAK",25],["PANDA",15],["PANTERA",10],["PCHŁA",5]]},
+            {q:"Przedmiot w piórniku", a:[["DŁUGOPIS",40],["OŁÓWEK",30],["GUMKA",20],["LINIJKA",10]]},
+            {q:"Coś do picia na gorąco", a:[["HERBATA",50],["KAWA",30],["KAKAO",15],["MLEKO",5]]},
+            {q:"Dyscyplina olimpijska", a:[["BIEGANIE",40],["PŁYWANIE",30],["SIATKÓWKA",20],["TENIS",10]]},
+            {q:"Marka samochodu", a:[["TOYOTA",35],["BMW",25],["AUDI",20],["MERCEDES",15],["FIAT",5]]},
+            {q:"Owoc egzotyczny", a:[["BANAN",45],["ANANAS",25],["MANGO",15],["KIWI",10],["KOKOS",5]]},
+            {q:"Część garderoby", a:[["SPODNIE",40],["KOSZULA",30],["BUTY",20],["CZAPKA",10]]},
+            {q:"Instrument muzyczny", a:[["PIANINO",35],["GITARA",30],["SKRZYPCE",20],["PERKUSJA",15]]},
+            {q:"Coś co lata", a:[["SAMOLOT",50],["PTAK",30],["MUCHA",15],["DRON",5]]},
+            {q:"Stolica w Europie", a:[["WARSZAWA",40],["PARYŻ",30],["LONDYN",20],["RZYM",10]]}
         ];
 
-        let peer = new Peer(), conn, activeSide = 'L', totalSum = 0;
+        const FINAL_SETS = [
+            "ZESTAW 1: 1. Coś co się klei? | 2. Część roweru? | 3. Ryba słodkowodna? | 4. Krajobraz Polski? | 5. Rodzaj kawy?",
+            "ZESTAW 2: 1. Coś słonego? | 2. Marka telefonu? | 3. Drzewo liściaste? | 4. Sport zimowy? | 5. Miesiąc letni?",
+            "ZESTAW 3: 1. Coś na baterie? | 2. Kwiat ogrodowy? | 3. Rodzaj spodni? | 4. Planeta? | 5. Rzeka w Polsce?",
+            "ZESTAW 4: 1. Coś okrągłego? | 2. Miasto nad morzem? | 3. Grzyb jadalny? | 4. Metal szlachetny? | 5. Ptak domowy?",
+            "ZESTAW 5: 1. Coś co parzy? | 2. Środek transportu? | 3. Owad pożyteczny? | 4. Kraj sąsiadujący z Polską? | 5. Imię męskie na A?"
+        ];
 
-        function connect() { conn = peer.connect(document.getElementById('tv-id').value); }
+        let peer = new Peer(), conn, activeSide = 'L', sum = 0;
+        let globals = {L:0, R:0};
+
+        function connect() { 
+            conn = peer.connect(document.getElementById('tv-id').value);
+            conn.on('open', () => { 
+                document.getElementById('status').innerText = "Status: POŁĄCZONO"; 
+                document.getElementById('status').style.color = "lime";
+            });
+        }
 
         window.onload = () => {
             const sel = document.getElementById('q-select');
-            DB.forEach((x, i) => sel.innerHTML += `<option value="${i}">${x.q}</option>`);
+            DB.forEach((x,i) => sel.innerHTML += `<option value="${i}">${x.q}</option>`);
+            const cheat = document.getElementById('cheat');
+            FINAL_SETS.forEach(s => cheat.innerHTML += `<div class="q-item">${s}</div>`);
             
-            // Generowanie pól finałowych
-            ['p1', 'p2'].forEach(p => {
-                const container = document.getElementById('f-' + p);
+            ['p1','p2'].forEach(p => {
+                const div = document.getElementById('f-'+p);
                 for(let i=0; i<5; i++) {
-                    container.innerHTML += `
-                        <div style="margin-bottom:5px">
-                            <input id="f-${p}-t-${i}" placeholder="Odp" style="width:70%">
-                            <input id="f-${p}-p-${i}" type="number" placeholder="Pkt" style="width:25%">
-                            <button onclick="revealFinal('${p}', ${i})" style="width:100%">ODKRYJ</button>
-                        </div>`;
+                    div.innerHTML += `<div style="margin:5px 0"><input id="f-${p}-t-${i}" placeholder="Odp" style="width:60%"> <input id="f-${p}-p-${i}" type="number" placeholder="Pkt" style="width:30%"> <button onclick="revealFinal('${p}',${i})" style="padding:2px">OK</button></div>`;
                 }
             });
-            updatePreview();
+            previewQ();
         };
 
-        function startRunda(n) {
-            send({type:'SOUND', file:'runda'});
-            send({type:'ROUND_START', num: n});
-            document.getElementById('setup-area').style.display = 'block';
-            document.getElementById('final-area').style.display = 'none';
-        }
-
-        function startFinal() {
-            send({type:'SOUND', file:'final'});
-            send({type:'SETUP_FINAL'});
-            document.getElementById('setup-area').style.display = 'none';
-            document.getElementById('final-area').style.display = 'block';
-            totalSum = 0; document.getElementById('local-sum').innerText = 0;
-        }
+        function sendSound(f){ send({type:'SOUND', file:f}); }
+        function sendX(n){ send({type:'X', side:activeSide, n:n}); }
+        function addGlobal(s){ globals[s]+=sum; document.getElementById('pts-'+s).innerText=globals[s]; sum=0; updateSum(); send({type:'SCORE', val:0}); }
+        function updateSum(){ document.getElementById('current-sum').innerText = sum; }
 
         function sendQ() {
-            totalSum = 0; document.getElementById('local-sum').innerText = 0;
+            sum = 0; updateSum();
             const q = DB[document.getElementById('q-select').value];
             send({type:'SETUP_NORMAL', ans: q.a.map(x=>({t:x[0], p:x[1]}))});
-            updatePreview();
+            previewQ();
         }
 
-        function updatePreview() {
+        function previewQ() {
             const q = DB[document.getElementById('q-select').value];
             const box = document.getElementById('ans-preview');
-            box.innerHTML = q.a.map((x, i) => `
-                <button onclick="revealNormal(${i}, ${x[1]})" style="width:100%; text-align:left; margin:2px">
-                    ${x[0]} (${x[1]})
-                </button>`).join('');
+            box.innerHTML = q.a.map((x,i) => `<button onclick="revNormal(${i},${x[1]})" style="margin:2px 0; text-align:left">${x[0]} (${x[1]})</button>`).join('');
         }
 
-        function revealNormal(idx, pts) {
-            totalSum += pts;
-            document.getElementById('local-sum').innerText = totalSum;
-            send({type:'REV_NORMAL', idx: idx});
-            send({type:'SCORE', val: totalSum});
-        }
-
-        function revealFinal(player, idx) {
-            const t = document.getElementById(`f-${player}-t-${idx}`).value.toUpperCase();
-            const p = parseInt(document.getElementById(`f-${player}-p-${idx}`).value) || 0;
-            totalSum += p;
-            document.getElementById('local-sum').innerText = totalSum;
-            send({type:'REV_FINAL', player: player, idx: idx, t: t, p: p});
-            send({type:'SCORE', val: totalSum});
-        }
-
-        function sendX(n) { send({type:'X', side: activeSide, n: n}); }
+        function revNormal(i,p){ sum+=p; updateSum(); send({type:'REV_NORMAL', idx:i}); send({type:'SCORE', val:sum}); }
         
-        function runTimer(sec) {
-            let c = sec;
-            send({type:'TIMER', action:'start', val:c});
-            let itv = setInterval(() => {
-                c--;
-                if(c <= 0) { clearInterval(itv); send({type:'TIMER', action:'stop'}); }
-                send({type:'TIMER', action:'tick', val:c});
-            }, 1000);
+        function revealFinal(p,i){
+            const t = document.getElementById(`f-${p}-t-${i}`).value.toUpperCase();
+            const pts = parseInt(document.getElementById(`f-${p}-p-${i}`).value) || 0;
+            sum += pts; updateSum();
+            send({type:'REV_FINAL', player:p, idx:i, t:t, p:pts});
+            send({type:'SCORE', val:sum});
         }
 
-        function send(d) { if(conn) conn.send(d); }
+        function runTimer(s){
+            let c = s; send({type:'TIMER', action:'start', val:c});
+            let itv = setInterval(() => { c--; if(c<=0){ clearInterval(itv); send({type:'TIMER', action:'stop'}); } send({type:'TIMER', action:'tick', val:c}); }, 1000);
+        }
+
+        function send(d){ if(conn) conn.send(d); }
     </script>
 </body>
 </html>
