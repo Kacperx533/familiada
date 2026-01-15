@@ -2,162 +2,84 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>PANEL FAMILIADA</title>
+    <title>FAMILIADA TV</title>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        body { font-family: sans-serif; background: #1a1a1a; color: white; padding: 20px; display: grid; grid-template-columns: 350px 1fr 350px; gap: 20px; }
-        .card { background: #2a2a2a; padding: 15px; border-radius: 8px; border-top: 4px solid #dfff00; }
-        button { width: 100%; padding: 12px; margin: 4px 0; cursor: pointer; font-weight: bold; border: none; border-radius: 4px; background: #444; color: white; }
-        .btn-gold { background: #dfff00; color: #000; }
-        .btn-blue { background: #0055ff; }
-        .btn-red { background: #aa0000; }
-        .active-team-blue { border: 4px solid #0055ff !important; box-shadow: 0 0 15px #0055ff; }
-        .active-team-red { border: 4px solid #aa0000 !important; box-shadow: 0 0 15px #aa0000; }
-        input, select { width: 100%; padding: 10px; background: #000; color: #fff; border: 1px solid #444; }
-        .score-val { font-size: 30px; text-align: center; margin: 10px 0; }
-        .cheat-sheet { height: 300px; overflow-y: scroll; font-size: 13px; background: #111; padding: 10px; }
+        :root { --led: #dfff00; --red: #ff3333; --bg: #050505; }
+        body { background: var(--bg); color: var(--led); font-family: 'VT323', monospace; margin: 0; overflow: hidden; height: 100vh; text-transform: uppercase; }
+        .led-overlay { position: fixed; inset: 0; background-image: radial-gradient(circle, transparent 30%, #000 80%); background-size: 5px 5px; pointer-events: none; z-index: 1000; opacity: 0.5; }
+        .grid-bg { position: fixed; inset: 0; background-image: linear-gradient(90deg, #000 2px, transparent 2px), linear-gradient(#000 2px, transparent 2px); background-size: 60px 60px; z-index: -1; }
+        .stage { display: grid; grid-template-columns: 200px 1fr 200px; width: 98vw; height: 90vh; margin: 5vh auto; gap: 10px; }
+        .side-x { display: flex; flex-direction: column; gap: 15px; justify-content: center; }
+        .x-box { width: 180px; height: 180px; border: 6px solid #1a1a1a; display: flex; justify-content: center; align-items: center; font-size: 150px; color: #151515; transition: 0.2s; }
+        .x-box.active { color: var(--red); text-shadow: 0 0 40px var(--red); border-color: #600; }
+        .board { display: flex; flex-direction: column; position: relative; border: 4px solid #111; background: rgba(10,10,10,0.8); }
+        .row { display: flex; align-items: center; height: 12vh; font-size: 8vh; border-bottom: 2px solid #000; padding-left: 60px; }
+        .row-num { width: 100px; color: var(--led); }
+        .row-txt { flex-grow: 1; letter-spacing: 3px; }
+        .row-pts { width: 150px; text-align: right; padding-right: 40px; }
+        .dots::after { content: "...................."; opacity: 0.15; }
+        .sum-box { position: absolute; bottom: 20px; right: 40px; font-size: 10vh; display: flex; gap: 30px; border-top: 2px solid #222; }
+        #timer-display { position: absolute; bottom: 20px; left: 40px; font-size: 12vh; color: var(--red); display: none; }
+        #msg-overlay { position: fixed; inset: 0; background: var(--bg); display: flex; justify-content: center; align-items: center; z-index: 2000; font-size: 8vh; text-align: center; padding: 20px; }
+        #vid-layer { position: fixed; inset: 0; background:black; z-index:5000; display:none; }
+        video { width:100%; height:100%; }
     </style>
 </head>
 <body>
-    <div>
-        <div class="card">
-            <h3>1. POŁĄCZENIE</h3>
-            <input id="tv-id" placeholder="Wpisz ID z ekranu TV">
-            <button class="btn-gold" onclick="connect()">POŁĄCZ Z EKRANEM</button>
-            <div id="status" style="color: red; margin-top: 5px;">Rozłączony</div>
-        </div>
-        <div class="card" style="margin-top:20px;">
-            <h3>2. WYBÓR DRUŻYNY</h3>
-            <p>Wybierz, kto teraz gra (punkty i błędy pójdą na ich konto):</p>
-            <button id="pick-blue" class="btn-blue" onclick="setTeam('L')">DRUŻYNA NIEBIESKA</button>
-            <button id="pick-red" class="btn-red" onclick="setTeam('R')">DRUŻYNA CZERWONA</button>
-            <div class="grid" style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
-                <div>Niebiescy: <div id="total-L" class="score-val">0</div></div>
-                <div>Czerwoni: <div id="total-R" class="score-val">0</div></div>
-            </div>
-        </div>
-        <div class="card" style="margin-top:20px;">
-            <h3>3. BŁĘDY (X)</h3>
-            <button class="btn-red" onclick="triggerX(1)">DODAJ 1 X</button>
-            <button class="btn-red" onclick="triggerX(2)">DODAJ 2 X</button>
-            <button class="btn-red" onclick="triggerX(3)">DODAJ 3 X</button>
-            <button onclick="send({type:'CLEAR_X'}); strikes={L:0, R:0};">WYCZYŚĆ IKSY</button>
-        </div>
+    <div class="led-overlay"></div>
+    <div class="grid-bg"></div>
+    <div id="msg-overlay">Ładowanie systemu...</div>
+    <div id="vid-layer"><video id="player"></video></div>
+    <div id="timer-display">00</div>
+    <div class="stage">
+        <div class="side-x"><div class="x-box" id="L1">X</div><div class="x-box" id="L2">X</div><div class="x-box" id="L3">X</div></div>
+        <div class="board"><div id="rows"></div><div class="sum-box"><span>SUMA</span><span id="total">0</span></div></div>
+        <div class="side-x"><div class="x-box" id="R1">X</div><div class="x-box" id="R2">X</div><div class="x-box" id="R3">X</div></div>
     </div>
-    <div>
-        <div class="card">
-            <h3>4. RUNDY I PYTANIA</h3>
-            <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:5px;">
-                <button onclick="startR(1)">R1</button><button onclick="startR(2)">R2</button>
-                <button onclick="startR(3)">R3</button><button onclick="startR('F')">FINAŁ</button>
-            </div>
-            <select id="q-sel" onchange="preview()" style="margin:10px 0;"></select>
-            <button class="btn-gold" onclick="loadQ()">WYŚLIJ PYTANIE NA TV</button>
-            <div id="ans-box" style="margin-top:15px;"></div>
-            <div style="text-align:right; font-size:24px;">SUMA RUNDY: <span id="s-sum" style="color:gold;">0</span></div>
-            <button class="btn-gold" onclick="bankScore()">PRZELEJ SUMĘ DO DRUŻYNY</button>
-        </div>
-        <div class="card" style="margin-top:20px;">
-            <h3>5. FINAŁ</h3>
-            <div class="grid" style="display:grid; grid-template-columns: 1fr 1fr; gap:5px;">
-                <button onclick="runTimer(15)">TIMER 15s</button><button onclick="runTimer(20)">TIMER 20s</button>
-            </div>
-            <button onclick="send({type:'SETUP', ans:[], isFinal:true})">CZYSTA TABLICA FINAŁOWA</button>
-            <div id="f-rows" style="margin-top:10px;"></div>
-        </div>
-    </div>
-    <div class="card">
-        <h3>ŚCIĄGAWKA DLA PROWADZĄCEGO</h3>
-        <div class="cheat-sheet" id="cheat"></div>
-    </div>
+    <audio id="snd-ok" src="ok.mp3"></audio>
+    <audio id="snd-bad" src="zla.mp3"></audio>
+    <audio id="snd-runda" src="runda.mp4"></audio>
+    <audio id="snd-timer" src="czas.mp3"></audio>
     <script>
-        const DB = [
-            {q:"Zwierzę na literę 'K'", a:[["KOT",45],["KOŃ",25],["KROWA",15],["KANGUR",10],["KROKODYL",5]]},
-            {q:"Przedmiot szkolny", a:[["MATEMATYKA",40],["POLSKI",30],["WF",20],["HISTORIA",10]]},
-            {q:"Coś do picia", a:[["WODA",50],["SOK",25],["KAWA",15],["HERBATA",10]]},
-            {q:"Więcej niż jedno zwierzę", a:[["STADO",50],["KLUCZ",30],["WATAHA",20]]},
-            {q:"Część roweru", a:[["KOŁO",45],["RAMA",25],["KIEROWNICA",15],["SIODEŁKO",10],["ŁAŃCUCH",5]]}
-        ];
-        const FINAŁ_DB = [
-            {q:"Owoc egzotyczny", a:"BANAN, ANANAS, MANGO"},
-            {q:"Zimny deser", a:"LODY, SORBET, GALARETKA"},
-            {q:"Sport z piłką", a:"PIŁKA NOŻNA, SIATKÓWKA, KOSZYKÓWKA"},
-            {q:"Coś co lata", a:"SAMOLOT, PTAK, MUCHA"}
-        ];
-
-        let peer = new Peer(), conn, activeTeam = 'L', sum = 0;
-        let scores = { L: 0, R: 0 }, strikes = { L: 0, R: 0 };
-
-        function connect() {
-            const id = document.getElementById('tv-id').value;
-            conn = peer.connect(id);
-            conn.on('open', () => {
-                document.getElementById('status').innerText = "Połączono!";
-                document.getElementById('status').style.color = "lime";
-            });
-        }
-
-        function setTeam(t) {
-            activeTeam = t;
-            document.getElementById('pick-blue').className = t === 'L' ? 'btn-blue active-team-blue' : 'btn-blue';
-            document.getElementById('pick-red').className = t === 'R' ? 'btn-red active-team-red' : 'btn-red';
-        }
-
-        function triggerX(n) {
-            strikes[activeTeam] = n;
-            send({type:'X', side: activeTeam, n: n});
-        }
-
-        function bankScore() {
-            scores[activeTeam] += sum;
-            document.getElementById('total-' + activeTeam).innerText = scores[activeTeam];
-            sum = 0;
-            document.getElementById('s-sum').innerText = 0;
-            send({type:'SCORE', val: 0});
-        }
-
-        window.onload = () => {
-            const sel = document.getElementById('q-sel');
-            DB.forEach((x,i) => sel.innerHTML += `<option value="${i}">${x.q}</option>`);
-            const cheat = document.getElementById('cheat');
-            DB.forEach(x => cheat.innerHTML += `<b>${x.q}</b>: ${x.a.map(y=>y[0]).join(', ')}<br><br>`);
-            cheat.innerHTML += "--- FINAŁ ---<br>";
-            FINAŁ_DB.forEach(x => cheat.innerHTML += `<b>${x.q}</b>: ${x.a}<br>`);
-            
-            let fr = document.getElementById('f-rows');
-            for(let i=0; i<5; i++) {
-                fr.innerHTML += `<div style="display:flex; gap:2px; margin-bottom:2px;"><input id="ft${i}" placeholder="Odp"><input id="fp${i}" type="number" placeholder="Pkt" style="width:50px"><button onclick="revF(${i})" style="width:60px">OK</button></div>`;
+        const peer = new Peer();
+        const msg = document.getElementById('msg-overlay');
+        let current = [];
+        peer.on('open', id => msg.innerText = "PODAJ TEN ID W PANELU: " + id);
+        function render(ans, isFinal = false) {
+            const container = document.getElementById('rows');
+            container.innerHTML = '';
+            const count = isFinal ? 5 : 6;
+            for(let i=0; i<count; i++) {
+                let txt = `<div class="row-txt dots"></div>`, pts = `<div class="row-pts"></div>`;
+                if(ans[i] && ans[i].rev) { txt = `<div class="row-txt">${ans[i].t}</div>`; pts = `<div class="row-pts">${ans[i].p}</div>`; }
+                const num = isFinal ? "?" : i+1;
+                container.innerHTML += `<div class="row"><div class="row-num">${num}</div>${txt}${pts}</div>`;
             }
-        };
-
-        function startR(n) { send({type:'ROUND_START', num: n === 'F' ? "FINAŁOWA" : n}); }
-        function runTimer(s) {
-            let c = s; send({type:'TIMER', action:'start', val:c});
-            let t = setInterval(() => { c--; if(c<=0){ clearInterval(t); send({type:'TIMER', action:'stop'}); } send({type:'TIMER', action:'tick', val:c}); }, 1000);
         }
-        function loadQ() {
-            sum = 0; document.getElementById('s-sum').innerText = 0;
-            const q = DB[document.getElementById('q-sel').value];
-            send({type:'SETUP', ans: q.a.map(x=>({t:x[0], p:x[1]})), isFinal:false});
-            preview();
-        }
-        function preview() {
-            const q = DB[document.getElementById('q-sel').value];
-            const box = document.getElementById('ans-box'); box.innerHTML = '';
-            q.a.forEach((x, i) => {
-                const b = document.createElement('button');
-                b.innerHTML = `<span>${x[0]}</span> <span style="float:right">${x[1]}</span>`;
-                b.onclick = () => { if(b.disabled) return; sum += x[1]; document.getElementById('s-sum').innerText = sum; send({type:'REV', idx:i}); send({type:'SCORE', val:sum}); b.style.background = 'green'; b.disabled = true; };
-                box.appendChild(b);
+        peer.on('connection', conn => {
+            msg.style.display = 'none';
+            conn.on('data', data => {
+                if(data.type === 'INTRO') { msg.style.display = 'flex'; msg.innerHTML = "FAMILIADA<br>EDYCJA SZKOLNA"; setTimeout(() => msg.style.display = 'none', 4000); }
+                if(data.type === 'ROUND_START') { document.getElementById('snd-runda').play(); msg.style.display = 'flex'; msg.innerText = "RUNDA " + data.num; setTimeout(() => msg.style.display = 'none', 3000); }
+                if(data.type === 'TIMER') {
+                    const disp = document.getElementById('timer-display');
+                    if(data.action === 'start') { disp.style.display = 'block'; disp.innerText = data.val; document.getElementById('snd-timer').play(); }
+                    else if(data.action === 'tick') { disp.innerText = data.val; }
+                    else { disp.style.display = 'none'; document.getElementById('snd-timer').pause(); }
+                }
+                if(data.type === 'SETUP') { current = data.ans.map(a => ({...a, rev: false})); render(current, data.isFinal); document.getElementById('total').innerText = "0"; }
+                if(data.type === 'REV') { document.getElementById('snd-ok').play(); if(current[data.idx]) { current[data.idx].rev = true; render(current, data.isFinal); } }
+                if(data.type === 'FINAL_REV') { document.getElementById('snd-ok').play(); current[data.idx] = { t: data.t, p: data.p, rev: true }; render(current, true); }
+                if(data.type === 'SCORE') document.getElementById('total').innerText = data.val;
+                if(data.type === 'X') {
+                    document.getElementById('snd-bad').play();
+                    for(let i=1; i<=3; i++) document.getElementById(data.side+i).classList.toggle('active', i<=data.n);
+                }
+                if(data.type === 'CLEAR_X') { ['L1','L2','L3','R1','R2','R3'].forEach(id => document.getElementById(id).classList.remove('active')); }
             });
-        }
-        function revF(i) {
-            const t = document.getElementById('ft'+i).value.toUpperCase();
-            const p = parseInt(document.getElementById('fp'+i).value) || 0;
-            sum += p; document.getElementById('s-sum').innerText = sum;
-            send({type:'FINAL_REV', idx:i, t:t, p:p}); send({type:'SCORE', val:sum});
-        }
-        function send(d) { if(conn && conn.open) conn.send(d); }
+        });
     </script>
 </body>
 </html>
