@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA TV - REALISTIC LED</title>
+    <title>FAMILIADA TV - LED YELLOW STYLE</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
@@ -23,20 +23,18 @@
             text-transform: uppercase;
         }
 
-        /* EFEKT STAREGO EKRANU (Siatka LED) */
+        /* EFEKT SIATKI LED */
         body::after {
             content: "";
             position: fixed;
             inset: 0;
-            /* Tworzy siatkę punktów 3px x 3px */
             background: radial-gradient(circle, transparent 20%, var(--bg-color) 70%);
             background-size: 4px 4px;
             z-index: 1000;
             pointer-events: none;
-            opacity: 0.5;
+            opacity: 0.4;
         }
 
-        /* Warstwa Wideo */
         #video-layer { position: fixed; inset: 0; background: black; z-index: 5000; display: none; }
         video { width: 100%; height: 100%; object-fit: contain; }
 
@@ -47,7 +45,6 @@
             height: 85vh; 
             margin: 7vh auto; 
             gap: 30px; 
-            filter: drop-shadow(0 0 10px rgba(226, 255, 0, 0.2));
         }
 
         /* Iksy */
@@ -57,38 +54,42 @@
             border: 6px solid #111; 
             display: flex; justify-content: center; align-items: center; 
             background: #080808;
-            box-shadow: inset 0 0 20px #000;
         }
-        .x-box::before { content: "X"; font-size: 130px; color: #151010; transition: 0.1s; }
+        .x-box::before { content: "X"; font-size: 130px; color: #151010; }
         .x-box.active::before { 
             color: var(--red-led); 
-            text-shadow: 0 0 25px var(--red-led), 0 0 50px var(--red-led); 
+            text-shadow: 0 0 25px var(--red-led); 
         }
 
-        /* Główna Tablica */
+        /* GŁÓWNA TABLICA */
         .board { 
             display: flex; 
             flex-direction: column; 
             position: relative; 
-            border: 15px solid #1a1a1a; 
+            border: 12px solid #1a1a1a; 
             background: #0a0a0a; 
-            padding: 100px 50px 40px 50px; /* Przesunięcie 1 2 3 4 5 w dół */
-            box-shadow: 0 0 50px #000, inset 0 0 100px #000;
+            /* ZWIĘKSZONY PADDING GÓRNY - PRZESUWA TREŚĆ W DÓŁ */
+            padding: 140px 60px 40px 60px; 
+            box-shadow: inset 0 0 100px #000;
         }
 
-        /* Wiersze */
         .row { 
             display: flex; 
             align-items: center; 
             height: 9vh; 
-            font-size: 8vh; 
-            margin-bottom: 20px; 
-            border-bottom: 2px solid #111;
-            letter-spacing: 4px;
+            font-size: 8.5vh; 
+            margin-bottom: 25px; 
+            border-bottom: 2px solid #151515;
             text-shadow: 0 0 15px var(--led-color);
         }
 
-        .row-num { width: 70px; color: #333; }
+        /* NUMERY 1 2 3 4 5 - TERAZ CAŁE ŻÓŁTE */
+        .row-num { 
+            width: 80px; 
+            color: var(--led-color); 
+            text-shadow: 0 0 15px var(--led-color);
+        }
+
         .row-txt { flex-grow: 1; padding-left: 30px; }
         .row-pts { width: 130px; text-align: right; }
         
@@ -96,17 +97,17 @@
             content: ".........................."; 
             color: var(--led-off); 
             text-shadow: none;
+            opacity: 0.3;
         }
 
-        /* Suma i Timer */
         .sum-box { 
-            position: absolute; bottom: 30px; right: 70px; 
+            position: absolute; bottom: 30px; right: 80px; 
             font-size: 11vh; display: flex; gap: 40px; 
             border-top: 5px solid #151515; padding-top: 10px;
         }
         
         #timer-display { 
-            position: absolute; bottom: 40px; left: 70px; 
+            position: absolute; bottom: 40px; left: 80px; 
             font-size: 15vh; color: var(--red-led); 
             display: none; 
             text-shadow: 0 0 30px var(--red-led);
@@ -121,15 +122,11 @@
 </head>
 <body>
     <div id="video-layer"><video id="vid-player"></video></div>
-    <div id="msg-overlay">CZEKAM NA PANEL...</div>
+    <div id="msg-overlay">ŁĄCZENIE...</div>
     <div id="timer-display">00</div>
 
     <div class="stage">
-        <div class="side-x">
-            <div class="x-box" id="L1"></div>
-            <div class="x-box" id="L2"></div>
-            <div class="x-box" id="L3"></div>
-        </div>
+        <div class="side-x"><div class="x-box" id="L1"></div><div class="x-box" id="L2"></div><div class="x-box" id="L3"></div></div>
         
         <div class="board">
             <div id="main-display" style="height: 100%;"></div>
@@ -139,11 +136,7 @@
             </div>
         </div>
 
-        <div class="side-x">
-            <div class="x-box" id="R1"></div>
-            <div class="x-box" id="R2"></div>
-            <div class="x-box" id="R3"></div>
-        </div>
+        <div class="side-x"><div class="x-box" id="R1"></div><div class="x-box" id="R2"></div><div class="x-box" id="R3"></div></div>
     </div>
 
     <audio id="snd-ok" src="ok.mp3"></audio>
