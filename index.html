@@ -2,13 +2,13 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA TV LED</title>
+    <title>FAMILIADA TV - LED CLASSIC</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root { 
             --led-yellow: #d4ff00; 
-            --led-bg: #121212;
+            --led-bg: #0a0a0a;
             --off-dim: #1a1a05;
         }
         
@@ -22,7 +22,7 @@
             text-transform: uppercase;
         }
 
-        /* NAKŁADKA GLOBALNA - TWORZY KAFELKI LED NA WSZYSTKIM */
+        /* SIATKA LED NA CAŁYM EKRANIE */
         body::after {
             content: "";
             position: fixed;
@@ -30,50 +30,60 @@
             background-image: 
                 linear-gradient(0deg, #000 2px, transparent 2px),
                 linear-gradient(90deg, #000 2px, transparent 2px);
-            background-size: 6px 6px; /* Rozmiar pojedynczej diody */
+            background-size: 5px 5px; /* Wielkość punktu LED */
             z-index: 10000;
             pointer-events: none;
         }
 
         .stage { 
             display: grid; 
-            grid-template-columns: 200px 1fr 200px; 
+            grid-template-columns: 220px 1fr 220px; 
             width: 98vw; 
             height: 90vh; 
             margin: 5vh auto; 
-            gap: 10px; 
+            gap: 15px; 
         }
 
-        /* STYLIZACJA X - DOKŁADNIE JAK NA OBRAZKU */
+        /* KONTENER NA X */
         .x-box { 
-            width: 160px; height: 200px; 
+            width: 180px; height: 180px; 
             display: flex; justify-content: center; align-items: center;
+            margin-bottom: 30px;
         }
 
-        .x-shape {
-            width: 100px; height: 140px;
-            background-color: var(--off-dim);
-            /* Kształt klepsydry z Twojego zdjęcia */
-            clip-path: polygon(
-                0% 0%, 40% 0%, 50% 30%, 60% 0%, 100% 0%, 
-                100% 15%, 70% 50%, 100% 85%, 100% 100%, 
-                60% 100%, 50% 70%, 40% 100%, 0% 100%, 
-                0% 85%, 30% 50%, 0% 15%
-            );
-            transition: background 0.1s;
+        /* BUDOWA X Z SEGMENTÓW (DOKŁADNIE JAK NA ZDJĘCIU) */
+        .x-container {
+            width: 110px; height: 150px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            opacity: 0.15; /* Przygaszone gdy nieaktywne */
         }
 
-        .x-box.active .x-shape {
-            background-color: var(--led-yellow);
-            box-shadow: 0 0 30px rgba(212, 255, 0, 0.5);
+        .x-box.active .x-container { opacity: 1; }
+
+        .segment { background-color: var(--led-yellow); }
+
+        /* GÓRNY I DOLNY SEGMENT (RAMIONA) */
+        .arm {
+            width: 100%; height: 45px;
+            clip-path: polygon(0 0, 40% 0, 50% 35%, 60% 0, 100% 0, 100% 100%, 75% 100%, 50% 65%, 25% 100%, 0 100%);
+        }
+        .arm.bottom { transform: rotate(180deg); }
+
+        /* ŚRODKOWY SEGMENT (KLEPSYDRA) */
+        .mid {
+            width: 50px; height: 45px;
+            clip-path: polygon(0 0, 100% 0, 50% 50%, 100% 100%, 0 100%, 50% 50%);
         }
 
-        /* TABLICA LED */
+        /* TABLICA */
         .board { 
             background: var(--led-bg); 
-            border: 4px solid #222;
+            border: 4px solid #1a1a1a;
             position: relative;
-            padding: 100px 40px 40px 40px;
+            padding: 120px 40px 40px 40px;
             display: flex;
             flex-direction: column;
         }
@@ -83,57 +93,53 @@
             display: flex; justify-content: center; align-items: center;
             background: var(--led-bg); z-index: 10;
         }
-        #welcome-screen h1 { font-size: 18vh; text-shadow: 0 0 20px var(--led-yellow); }
+        #welcome-screen h1 { font-size: 20vh; letter-spacing: 10px; }
 
         .row { 
             display: flex; 
             align-items: center; 
             height: 9vh; 
-            font-size: 10vh; 
-            margin-bottom: 10px;
-            border-bottom: 1px solid #1a1a1a;
+            font-size: 11vh; 
+            margin-bottom: 12px;
+            border-bottom: 1px solid #151515;
         }
-        .row-num { width: 70px; }
-        .row-txt { flex-grow: 1; padding-left: 15px; letter-spacing: 4px; }
-        .row-pts { width: 120px; text-align: right; }
+        .row-num { width: 80px; }
+        .row-txt { flex-grow: 1; padding-left: 20px; letter-spacing: 2px; }
+        .row-pts { width: 130px; text-align: right; }
 
         .dots::after { 
             content: " ...................................................."; 
-            letter-spacing: 8px;
-            opacity: 0.5;
+            letter-spacing: 10px;
+            opacity: 0.2;
         }
 
         .sum-box { 
             margin-top: auto;
             align-self: flex-end;
-            font-size: 12vh; 
-            display: flex; gap: 40px;
-            padding-right: 20px;
+            font-size: 13vh; 
+            display: flex; gap: 50px;
+            padding-right: 30px;
         }
 
-        #timer-display { 
-            position: absolute; bottom: 40px; left: 40px; 
-            font-size: 15vh; color: #ff0000; display: none; 
-        }
-
+        #timer-display { position: absolute; bottom: 40px; left: 40px; font-size: 16vh; color: #ff0000; display: none; }
         #msg-overlay { position: fixed; inset: 0; background: #000; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 20000; }
-        button#unlock-btn { font-size: 30px; padding: 20px 40px; background: var(--led-yellow); border: none; font-family: 'VT323'; cursor: pointer; }
+        button#unlock-btn { font-size: 35px; padding: 20px 50px; background: var(--led-yellow); border: none; font-family: 'VT323'; cursor: pointer; }
     </style>
 </head>
 <body>
 
     <div id="msg-overlay">
-        <div id="status-text" style="color:white; font-size: 40px; margin-bottom: 20px;">OCZEKIWANIE NA PANEL...</div>
-        <button id="unlock-btn" onclick="unlock()">WŁĄCZ SYSTEM LED</button>
+        <div id="status-text" style="color:white; font-size: 40px; margin-bottom: 20px;">ŁĄCZENIE...</div>
+        <button id="unlock-btn" onclick="unlock()">URUCHOM TABLICĘ LED</button>
     </div>
 
     <div id="timer-display">00</div>
 
     <div class="stage">
         <div class="side-x">
-            <div class="x-box" id="L1"><div class="x-shape"></div></div>
-            <div class="x-box" id="L2"><div class="x-shape"></div></div>
-            <div class="x-box" id="L3"><div class="x-shape"></div></div>
+            <div class="x-box" id="L1"><div class="x-container"><div class="segment arm"></div><div class="segment mid"></div><div class="segment arm bottom"></div></div></div>
+            <div class="x-box" id="L2"><div class="x-container"><div class="segment arm"></div><div class="segment mid"></div><div class="segment arm bottom"></div></div></div>
+            <div class="x-box" id="L3"><div class="x-container"><div class="segment arm"></div><div class="segment mid"></div><div class="segment arm bottom"></div></div></div>
         </div>
 
         <div class="board">
@@ -143,9 +149,9 @@
         </div>
 
         <div class="side-x">
-            <div class="x-box" id="R1"><div class="x-shape"></div></div>
-            <div class="x-box" id="R2"><div class="x-shape"></div></div>
-            <div class="x-box" id="R3"><div class="x-shape"></div></div>
+            <div class="x-box" id="R1"><div class="x-container"><div class="segment arm"></div><div class="segment mid"></div><div class="segment arm bottom"></div></div></div>
+            <div class="x-box" id="R2"><div class="x-container"><div class="segment arm"></div><div class="segment mid"></div><div class="segment arm bottom"></div></div></div>
+            <div class="x-box" id="R3"><div class="x-container"><div class="segment arm"></div><div class="segment mid"></div><div class="segment arm bottom"></div></div></div>
         </div>
     </div>
 
@@ -153,7 +159,6 @@
     <audio id="snd-runda" src="runda.mp3"></audio>
     <audio id="snd-ok" src="ok.mp3"></audio>
     <audio id="snd-bad" src="zle.mp3"></audio>
-    <audio id="snd-timer" src="czas.mp3"></audio>
 
     <script>
         const peer = new Peer();
@@ -198,7 +203,6 @@
                     r.querySelector('.row-pts').innerText = d.p;
                 }
                 if(d.type === 'SCORE') document.getElementById('total-val').innerText = d.val;
-                // ... pozostała obsługa TIMER/FINAL jak wcześniej
             });
         });
     </script>
