@@ -2,22 +2,18 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>PANEL STEROWANIA - FAMILIADA</title>
+    <title>PANEL STEROWANIA</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         body { font-family: sans-serif; background: #121212; color: white; display: grid; grid-template-columns: 350px 1fr 350px; gap: 20px; padding: 20px; }
         .card { background: #1e1e1e; padding: 15px; border-radius: 10px; border-top: 4px solid #e2ff00; margin-bottom: 15px; }
-        button { width: 100%; padding: 12px; margin: 5px 0; cursor: pointer; font-weight: bold; border-radius: 5px; border: none; background: #333; color: white; transition: 0.2s; }
-        button:hover { background: #444; }
+        button { width: 100%; padding: 12px; margin: 5px 0; cursor: pointer; font-weight: bold; border-radius: 5px; border: none; background: #333; color: white; }
         .btn-gold { background: #e2ff00; color: black; }
-        .btn-gold:hover { background: #cce600; }
         .btn-red { background: #ff3333; }
-        .score-box { font-size: 30px; text-align: center; background: #000; color: #e2ff00; padding: 10px; margin: 10px 0; border: 1px solid #333; }
+        .score-box { font-size: 30px; text-align: center; background: #000; color: #e2ff00; padding: 10px; margin: 10px 0; }
         input, select { width: 100%; padding: 10px; background: #000; color: white; border: 1px solid #444; margin-bottom: 10px; box-sizing: border-box; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
-        .ans-preview-btn { background: #222; text-align: left; font-size: 13px; }
-        h3 { margin-top: 0; color: #e2ff00; text-transform: uppercase; font-size: 16px; }
-        .final-q-list { font-size: 12px; color: #aaa; margin-bottom: 10px; background: #000; padding: 5px; }
+        h3 { color: #e2ff00; text-transform: uppercase; font-size: 14px; margin-top: 0; }
     </style>
 </head>
 <body>
@@ -25,14 +21,14 @@
         <div class="card">
             <h3>SYSTEM</h3>
             <input id="tv-id" placeholder="Wpisz ID z ekranu TV">
-            <button class="btn-gold" onclick="connect()">POŁĄCZ Z TV</button>
-            <div id="status" style="font-size: 12px; text-align: center; margin-top: 5px;">Status: Rozłączony</div>
+            <button class="btn-gold" onclick="connect()">POŁĄCZ</button>
         </div>
         <div class="card">
             <h3>MULTIMEDIA</h3>
-            <button class="btn-gold" onclick="send({type:'PLAY_MEDIA', video:'czolowka.mp4', audio:'intro'})">🎬 CZOŁÓWKA</button>
+            <button class="btn-gold" onclick="send({type:'PLAY_MEDIA', video:'czolowka.mp4', audio:'intro'})">🎬 CZOŁÓWKA (VID+AUD)</button>
+            <button style="background: #555;" onclick="send({type:'PLAY_MEDIA', audio:'intro'})">🎵 SAMA MUZYKA INTRO</button>
             <button onclick="send({type:'PLAY_MEDIA', video:'runda.mp4', audio:'runda'})">RUNDA START</button>
-            <button onclick="send({type:'PLAY_MEDIA', video:'final.mp4'})">🏆 FINAŁ START</button>
+            <button onclick="send({type:'PLAY_MEDIA', video:'final.mp4'})">🏆 FINAŁ WIDEO</button>
             <button onclick="send({type:'PLAY_MEDIA', video:'powtorka.mp4', audio:'powtorzenie'})">🔄 POWTÓRZENIE</button>
             <button class="btn-red" onclick="send({type:'STOP_VIDEO'})">STOP WIDEO</button>
         </div>
@@ -40,136 +36,74 @@
 
     <div>
         <div class="card">
-            <h3>RUNDY NORMALNE</h3>
+            <h3>TABLICA RUNDY</h3>
             <select id="q-select" onchange="previewQ()"></select>
-            <button class="btn-gold" onclick="sendQ()">ZAŁADUJ PYTANIE NA TV</button>
+            <button class="btn-gold" onclick="sendQ()">WYŚLIJ NA TV</button>
             <div id="ans-preview" style="margin: 10px 0;"></div>
             <div class="score-box">SUMA: <span id="current-sum">0</span></div>
             <div class="grid">
                 <button class="btn-red" onclick="sendX(1)">X</button>
                 <button class="btn-red" onclick="sendX(3)">XXX</button>
                 <button onclick="send({type:'X', side:'L', n:0}); send({type:'X', side:'R', n:0});">CZYŚĆ X</button>
-                <button id="side-btn" onclick="toggleSide()">STRONA: LEWA</button>
+                <button id="side-btn" onclick="activeSide=(activeSide=='L'?'R':'L'); this.innerText='STRONA: '+(activeSide=='L'?'L':'P')">STRONA: L</button>
             </div>
-            <button onclick="sum=0; updateS(); send({type:'SCORE', val:0});" style="margin-top:10px">RESETUJ SUMĘ</button>
+            <button onclick="sum=0; updateS(); send({type:'SCORE', val:0});" style="margin-top:10px">RESET SUMY</button>
         </div>
     </div>
 
     <div>
         <div class="card">
-            <h3>FINAŁ - STEROWANIE</h3>
-            <button class="btn-gold" onclick="send({type:'SETUP_FINAL'})">POKAŻ TABELĘ FINAŁOWĄ</button>
+            <h3>FINAŁ</h3>
+            <button class="btn-gold" onclick="send({type:'SETUP_FINAL'})">POKAŻ TABELĘ FINAŁU</button>
             <div class="grid">
                 <button onclick="runTimer(15)">TIMER 15s</button>
                 <button onclick="runTimer(20)">TIMER 20s</button>
             </div>
-            
-            <h3 style="margin-top:15px">ZESTAWY FINAŁOWE</h3>
-            <select id="f-set-select" onchange="showFinalHints()">
+            <select id="f-set-select" onchange="showFHints()" style="margin-top:10px">
                 <option value="0">ZESTAW 1</option>
                 <option value="1">ZESTAW 2</option>
-                <option value="2">ZESTAW 3</option>
             </select>
-            <div id="final-hints" class="final-q-list"></div>
-
+            <div id="f-hints" style="font-size:11px; color:#888; margin-bottom:10px"></div>
             <div id="f-inputs"></div>
         </div>
     </div>
 
     <script>
-        // BAZA PYTAŃ DO RUND
         const DB = [
-            {q:"Więcej niż jedno zwierzę", a:[["STADO",52],["KLUCZ",18],["WATAHA",12],["SFORA",7],["ŁAWICA",5]]},
-            {q:"Przedmiot w kuchni na literę T", a:[["TALERZ",48],["TARKA",22],["TEFEL",15],["TOSTER",8]]},
-            {q:"Co robimy rano?", a:[["MYJEMY SIĘ",35],["PIJEMY KAWĘ",25],["JEMY ŚNIADANIE",20],["UBIERAMY SIĘ",12],["ŚCIELEMY ŁÓŻKO",5]]},
-            {q:"Czym można pisać?", a:[["DŁUGOPIS",55],["OŁÓWEK",20],["PIÓRO",15],["FLAMASTER",6],["KREDA",4]]},
-            {q:"Co można otworzyć?", a:[["OKNO",40],["DRZWI",30],["BUTELKĘ",15],["OCZY",10],["KONTO",5]]},
-            {q:"Zwierzę na wiejskim podwórku", a:[["KURA",45],["KROWA",20],["ŚWINIA",15],["KACZKA",10],["KOŃ",7]]},
-            {q:"Dyscyplina lekkoatletyczna", a:[["BIEG",50],["SKOK W DAL",20],["RZUT OSZCZEPEM",10],["PCHNIĘCIE KULĄ",8],["SKOK WZWYŻ",5]]},
-            {q:"Składnik pizzy", a:[["SER",58],["SZYNKA",15],["PIECZARKI",12],["SOS",8],["CEBULA",4]]},
-            {q:"Co kojarzy się z Polską?", a:[["PIEROGI",38],["BOCIAN",22],["GODŁO/FLAGA",18],["WAWEL",12],["GÓRY",6]]},
-            {q:"Część garderoby na zimę", a:[["CZAPKA",42],["SZALIK",25],["REKAWICZKI",18],["KURTKA",12],["KOŻUCH",3]]}
+            {q:"Więcej niż jedno zwierzę", a:[["STADO",52],["KLUCZ",18],["WATAHA",12],["SFORA",7]]},
+            {q:"Co robimy rano?", a:[["MYJEMY SIĘ",35],["PIJEMY KAWĘ",25],["ŚNIADANIE",20],["UBIERANIE",12]]},
+            {q:"Przedmiot w kuchni na T", a:[["TALERZ",48],["TARKA",22],["TOSTER",10]]}
         ];
-
-        // ZESTAWY FINAŁOWE (PODPOWIEDZI DLA PROWADZĄCEGO)
-        const FINAL_SETS = [
-            ["1. Roślina kłująca", "2. Marka samochodu", "3. Część roweru", "4. Miasto w Polsce", "5. Imię męskie na A"],
-            ["1. Coś słodkiego", "2. Instrument muzyczny", "3. Drzewo liściaste", "4. Państwo w Europie", "5. Coś czerwonego"],
-            ["1. Sport zimowy", "2. Ptak drapieżny", "3. Mebel w salonie", "4. Płyn do picia", "5. Zawód medyczny"]
+        const F_SETS = [
+            ["1.Roślina kłująca", "2.Marka auta", "3.Część roweru", "4.Miasto w PL", "5.Imię na A"],
+            ["1.Coś słodkiego", "2.Instrument", "3.Drzewo", "4.Państwo", "5.Kolor"]
         ];
 
         let peer = new Peer(), conn, sum=0, activeSide='L';
 
-        function connect() { 
-            const id = document.getElementById('tv-id').value;
-            conn = peer.connect(id);
-            conn.on('open', () => { document.getElementById('status').innerText = "Status: Połączono!"; });
-        }
-
-        function toggleSide() { 
-            activeSide = activeSide === 'L' ? 'R' : 'L'; 
-            document.getElementById('side-btn').innerText = 'STRONA: ' + (activeSide === 'L' ? 'LEWA' : 'PRAWA');
-        }
+        function connect() { conn = peer.connect(document.getElementById('tv-id').value); }
 
         window.onload = () => {
             const s = document.getElementById('q-select');
             DB.forEach((x,i) => s.innerHTML += `<option value="${i}">${x.q}</option>`);
-            
+            showFHints();
             const fi = document.getElementById('f-inputs');
             ['p1','p2'].forEach(p => {
-                fi.innerHTML += `<h4 style="margin:10px 0 5px 0; color:#e2ff00">${p === 'p1' ? 'GRACZ 1' : 'GRACZ 2'}</h4>`;
+                fi.innerHTML += `<div style="color:#e2ff00; font-size:12px; margin-top:5px">${p.toUpperCase()}</div>`;
                 for(let i=0; i<5; i++) {
-                    fi.innerHTML += `
-                    <div style="display:flex; gap:2px; margin-bottom:2px">
-                        <input id="f-${p}-t-${i}" placeholder="Odp" style="font-size:11px">
-                        <input id="f-${p}-p-${i}" type="number" style="width:40px" placeholder="Pts">
-                        <button onclick="revF('${p}',${i})" style="width:35px; padding:2px; background: #e2ff00; color:black">OK</button>
-                    </div>`;
+                    fi.innerHTML += `<div style="display:flex;gap:2px"><input id="f-${p}-t-${i}" placeholder="Odp" style="font-size:10px"><input id="f-${p}-p-${i}" type="number" style="width:35px"><button onclick="revF('${p}',${i})" style="width:30px; background:#e2ff00; color:black">OK</button></div>`;
                 }
             });
-            showFinalHints();
-            previewQ();
         };
 
-        function showFinalHints() {
-            const idx = document.getElementById('f-set-select').value;
-            document.getElementById('final-hints').innerHTML = FINAL_SETS[idx].join("<br>");
-        }
-
-        function sendQ() { 
-            sum=0; updateS(); 
-            const q = DB[document.getElementById('q-select').value]; 
-            send({type:'SETUP_NORMAL', ans: q.a.map(x=>({t:x[0], p:x[1]}))}); 
-            previewQ(); 
-        }
-
-        function previewQ() { 
-            const q = DB[document.getElementById('q-select').value]; 
-            document.getElementById('ans-preview').innerHTML = q.a.map((x,i) => 
-                `<button class="ans-preview-btn" onclick="revN(${i},${x[1]})">${x[0]} (${x[1]})</button>`
-            ).join(''); 
-        }
-
+        function showFHints() { document.getElementById('f-hints').innerHTML = F_SETS[document.getElementById('f-set-select').value].join("<br>"); }
+        function sendQ() { sum=0; updateS(); const q=DB[document.getElementById('q-select').value]; send({type:'SETUP_NORMAL', ans: q.a.map(x=>({t:x[0], p:x[1]}))}); previewQ(); }
+        function previewQ() { const q=DB[document.getElementById('q-select').value]; document.getElementById('ans-preview').innerHTML = q.a.map((x,i) => `<button onclick="revN(${i},${x[1]})" style="font-size:12px; margin-bottom:2px">${x[0]} (${x[1]})</button>`).join(''); }
         function revN(i,p) { sum+=p; updateS(); send({type:'REV_NORMAL', idx:i}); send({type:'SCORE', val:sum}); }
-        
-        function revF(p,i) { 
-            const t = document.getElementById(`f-${p}-t-${i}`).value.toUpperCase();
-            const pts = parseInt(document.getElementById(`f-${p}-p-${i}`).value) || 0;
-            sum += pts; updateS(); 
-            send({type:'REV_FINAL', player:p, idx:i, t:t, p:pts}); 
-            send({type:'SCORE', val:sum}); 
-        }
-
+        function revF(p,i) { const t=document.getElementById(`f-${p}-t-${i}`).value.toUpperCase(), pts=parseInt(document.getElementById(`f-${p}-p-${i}`).value)||0; sum+=pts; updateS(); send({type:'REV_FINAL', player:p, idx:i, t:t, p:pts}); send({type:'SCORE', val:sum}); }
         function updateS() { document.getElementById('current-sum').innerText = sum; }
         function sendX(n) { send({type:'X', side:activeSide, n:n}); }
-        function runTimer(s) { 
-            let c = s; 
-            send({type:'TIMER', action:'start', val:c}); 
-            let itv = setInterval(() => { 
-                c--; send({type:'TIMER', action:'tick', val:c}); 
-                if(c <= 0){ clearInterval(itv); send({type:'TIMER', action:'stop'}); } 
-            }, 1000); 
-        }
+        function runTimer(s) { let c=s; send({type:'TIMER', action:'start', val:c}); let itv=setInterval(()=>{ c--; send({type:'TIMER', action:'tick', val:c}); if(c<=0){ clearInterval(itv); send({type:'TIMER', action:'stop'}); } }, 1000); }
         function send(d) { if(conn) conn.send(d); }
     </script>
 </body>
