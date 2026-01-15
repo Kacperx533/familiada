@@ -2,25 +2,30 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>PANEL STEROWANIA - LED</title>
+    <title>PANEL STEROWANIA - FAMILIADA PRO</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        body { font-family: sans-serif; background: #222; color: #eee; padding: 20px; display: grid; grid-template-columns: 350px 1fr; gap: 20px; }
-        .card { background: #333; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 5px solid #dfff00; }
-        h3 { margin: 0 0 10px 0; color: #dfff00; font-size: 14px; text-transform: uppercase; }
-        button { width: 100%; padding: 12px; margin: 4px 0; background: #555; border: none; color: white; cursor: pointer; border-radius: 4px; font-weight: bold; }
-        button:hover { background: #666; }
+        body { font-family: sans-serif; background: #1a1a1a; color: #ccc; padding: 20px; display: grid; grid-template-columns: 400px 1fr; gap: 20px; }
+        .card { background: #2a2a2a; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-top: 3px solid #dfff00; }
+        h3 { margin: 0 0 10px 0; color: #dfff00; font-size: 14px; text-transform: uppercase; border-bottom: 1px solid #444; padding-bottom: 5px; }
         
-        .btn-action { background: #dfff00; color: black; }
-        .btn-red { background: #ff4444; }
-        .btn-blue { background: #4444ff; }
+        button { width: 100%; padding: 10px; margin: 3px 0; border: none; cursor: pointer; border-radius: 4px; font-weight: bold; color:white; transition: 0.2s; }
+        button:hover { opacity: 0.9; }
         
-        .active-team { outline: 3px solid white; }
+        .btn-gold { background: #dfff00; color: black; }
+        .btn-blue { background: #0044cc; }
+        .btn-red { background: #cc0000; }
+        .btn-grey { background: #444; }
+        .btn-media { background: #555; border-left: 5px solid orange; text-align: left; }
+
+        input { background: #111; border: 1px solid #444; color: white; padding: 8px; width: 100%; box-sizing: border-box; }
         
-        input { width: 100%; padding: 10px; box-sizing: border-box; background: #111; border: 1px solid #555; color: white; margin-bottom: 5px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; }
+
+        .score-input { width: 60px; text-align: center; font-size: 16px; font-weight: bold; }
         
-        #ans-box { display: grid; grid-template-columns: 1fr; gap: 5px; }
-        .ans-btn { text-align: left; display: flex; justify-content: space-between; padding: 10px 20px; }
+        #ans-box button { text-align: left; display: flex; justify-content: space-between; }
     </style>
 </head>
 <body>
@@ -29,139 +34,184 @@
         <div class="card">
             <h3>1. Połączenie</h3>
             <input id="tv-id" placeholder="Wpisz ID z ekranu TV">
-            <button class="btn-action" onclick="connect()">POŁĄCZ Z TV</button>
+            <button class="btn-gold" onclick="connect()" style="margin-top:5px;">POŁĄCZ</button>
         </div>
 
         <div class="card">
-            <h3>2. Sterowanie Rundy</h3>
-            <div style="display:flex; gap:5px;">
-                <button class="btn-blue" id="btn-b" onclick="setTeam('blue')">NIEBIESCY</button>
-                <button class="btn-red" id="btn-r" onclick="setTeam('red')">CZERWONI</button>
+            <h3>2. Multimedia</h3>
+            <button class="btn-media" onclick="sendVideo()">🎬 WIDEO CZOŁÓWKA</button>
+            <div class="grid-2">
+                <button class="btn-grey" onclick="sendSound('intro')">🎵 INTRO</button>
+                <button class="btn-grey" onclick="sendSound('rep')">🤔 POWTÓRZENIE</button>
+                <button class="btn-grey" onclick="sendSound('ok')">✅ DOBRA ODP</button>
+                <button class="btn-grey" onclick="sendSound('bad')">❌ ZŁA ODP</button>
             </div>
-            <div style="margin-top:10px; display:flex; gap:5px;">
-                <button onclick="strike(1)">X</button>
-                <button onclick="strike(2)">XX</button>
-                <button onclick="strike(3)">XXX</button>
-            </div>
-            <button onclick="clearStrike()" style="margin-top:5px; background:#222; border:1px solid #555;">USUŃ X Z EKRANU</button>
         </div>
 
         <div class="card">
-            <h3>3. Multimedia</h3>
-            <button onclick="send({type:'VIDEO'})">🎬 CZOŁÓWKA</button>
+            <h3>3. Błędy (Wskaźniki Boczne)</h3>
+            <div class="grid-2">
+                <div style="text-align:center; color:#44f; font-weight:bold;">NIEBIESCY (Lewa)</div>
+                <div style="text-align:center; color:#f44; font-weight:bold;">CZERWONI (Prawa)</div>
+            </div>
+            <div class="grid-2">
+                <div>
+                    <button class="btn-blue" onclick="sideStrike('L', 1)">X</button>
+                    <button class="btn-blue" onclick="sideStrike('L', 2)">XX</button>
+                    <button class="btn-blue" onclick="sideStrike('L', 3)">XXX</button>
+                </div>
+                <div>
+                    <button class="btn-red" onclick="sideStrike('R', 1)">X</button>
+                    <button class="btn-red" onclick="sideStrike('R', 2)">XX</button>
+                    <button class="btn-red" onclick="sideStrike('R', 3)">XXX</button>
+                </div>
+            </div>
+            <button class="btn-grey" onclick="send({type:'CLEAR_STRIKES'})" style="margin-top:10px;">CZYŚĆ WSZYSTKIE IKSY</button>
+        </div>
+
+        <div class="card">
+            <h3>4. Ręczna Edycja Punktów</h3>
+            <p style="font-size:12px; color:#888;">Zmień tutaj, jeśli trzeba poprawić wynik.</p>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <span style="color:#44f">NIEBIESCY:</span>
+                <input type="number" id="manual-s1" class="score-input" value="0">
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <span style="color:#f44">CZERWONI:</span>
+                <input type="number" id="manual-s2" class="score-input" value="0">
+            </div>
+            <button class="btn-gold" onclick="manualUpdate()">ZAPISZ I WYŚLIJ NA TV</button>
         </div>
     </div>
 
     <div>
         <div class="card">
-            <h3>4. Pytania i Odpowiedzi</h3>
-            <select id="q-sel" style="width:100%; padding:10px; margin-bottom:10px; background:#111; color:white; border:1px solid #555;" onchange="loadQ()">
-                </select>
-            <button class="btn-action" onclick="sendQ()">ZAŁADUJ PYTANIE NA TABLICĘ (RESET)</button>
-            
-            <div style="margin-top: 20px; border-top: 1px solid #555; padding-top: 10px;">
-                <div id="ans-box"></div>
+            <h3>5. Rozgrywka - Wybór Pytania</h3>
+            <select id="q-sel" style="width:100%; padding:10px; background:#111; color:white; border:1px solid #444;" onchange="previewQ()"></select>
+            <div class="grid-2" style="margin-top:10px;">
+                <button class="btn-gold" onclick="loadRound()">ZAŁADUJ RUNDĘ NA TV</button>
+                <button class="btn-grey" onclick="nextRound()">CZYŚĆ PLANSZĘ</button>
             </div>
+        </div>
 
-            <div style="margin-top: 20px; font-size: 20px; text-align: right;">
-                SUMA: <span id="round-sum" style="color:#dfff00; font-weight:bold;">0</span>
+        <div class="card">
+            <h3>AKTYWNA RUNDA</h3>
+            <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                <span>Suma Rundy: <b id="round-sum" style="color:gold; font-size:20px;">0</b></span>
+                <div>
+                    <label>Dla kogo pkt?</label>
+                    <input type="radio" name="team" value="blue" checked onclick="activeTeam='blue'"> 🔵
+                    <input type="radio" name="team" value="red" onclick="activeTeam='red'"> 🔴
+                </div>
             </div>
+            
+            <div id="ans-box" class="grid-1" style="gap:5px;"></div>
         </div>
     </div>
 
     <script>
-        // BAZA PYTAŃ - możesz tu wkleić swoje 25 pytań
+        // BAZA PYTAŃ
         const DB = [
-            {q:"1. Region w Polsce?", a:[["ŚLĄSK",36],["KASZUBY",27],["PODHALE",17],["MAZURY",10],["WIELKOPOLSKA",5]]},
-            {q:"2. Co jemy łyżką?", a:[["ZUPĘ",40],["LODY",30],["PŁATKI",20],["KISIEL",10]]},
-            {q:"3. Zwierzę leśne?", a:[["DZIK",35],["SARNA",25],["LIS",20],["WILK",10],["ZAJĄC",5]]},
-            {q:"4. Marka samochodu?", a:[["FIAT",30],["OPEL",20],["TOYOTA",15],["FORD",10],["BMW",5]]},
-            {q:"5. Kolor flagi?", a:[["BIAŁY",40],["CZERWONY",40],["NIEBIESKI",10]]}
+            {q:"1. Coś do smarowania chleba", a:[["MASŁO",35],["MARGARYNA",25],["SMALEC",15],["SEREK",10],["DŻEM",5]]},
+            {q:"2. Zwierzę z rogami", a:[["BYK",40],["JELEŃ",30],["BARAN",20],["KOZA",10]]},
+            {q:"3. Pojazd uprzywilejowany", a:[["KARETKA",45],["POLICJA",35],["STRAŻ",20]]},
+            {q:"4. Kolor tęczy", a:[["CZERWONY",30],["ŻÓŁTY",20],["ZIELONY",15],["NIEBIESKI",10],["FIOLETOWY",5]]}
         ];
 
         let conn;
         const peer = new Peer();
-        let currentSum = 0;
+        let s1 = 0, s2 = 0, roundSum = 0;
         let activeTeam = 'blue';
 
         window.onload = () => {
             const s = document.getElementById('q-sel');
-            DB.forEach((item, index) => {
-                s.innerHTML += `<option value="${index}">${item.q}</option>`;
-            });
-            loadQ();
-            setTeam('blue');
+            DB.forEach((x, i) => s.innerHTML += `<option value="${i}">${i+1}. ${x.q}</option>`);
+            previewQ();
         };
 
         function connect() {
-            const id = document.getElementById('tv-id').value;
-            conn = peer.connect(id);
-            conn.on('open', () => alert("Połączono z ekranem TV!"));
+            conn = peer.connect(document.getElementById('tv-id').value);
+            conn.on('open', () => alert("POŁĄCZONO!"));
         }
 
-        function loadQ() {
+        // --- OBSŁUGA GRY ---
+
+        function previewQ() {
+            // Tylko podgląd w panelu, nie wysyła na TV
             const idx = document.getElementById('q-sel').value;
-            const data = DB[idx];
-            const container = document.getElementById('ans-box');
-            container.innerHTML = '';
+            const q = DB[idx];
+            const box = document.getElementById('ans-box'); box.innerHTML = '';
             
-            data.a.forEach((ans, i) => {
-                const b = document.createElement('button');
-                b.className = 'ans-btn';
-                b.innerHTML = `<span>${i+1}. ${ans[0]}</span> <span>${ans[1]}</span>`;
-                b.onclick = () => reveal(i, ans[1], b);
-                container.appendChild(b);
+            q.a.forEach((ans, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'btn-grey';
+                btn.innerHTML = `<span>${i+1}. ${ans[0]}</span> <b>${ans[1]}</b>`;
+                btn.onclick = () => revealAnswer(i, ans[1], btn);
+                box.appendChild(btn);
             });
         }
 
-        function sendQ() {
+        function loadRound() {
+            roundSum = 0; 
+            updateDisplay();
             const idx = document.getElementById('q-sel').value;
-            const data = DB[idx];
-            currentSum = 0;
-            updateSum();
-            // Wysyłamy strukturę odpowiedzi do TV
-            const payload = {
-                type: 'SETUP',
-                ans: data.a.map(item => ({t: item[0], p: item[1]}))
-            };
-            if(conn) conn.send(payload);
+            send({type: 'SETUP', ans: DB[idx].a.map(x => ({t: x[0], p: x[1]}))});
+            previewQ(); // Przeładowuje przyciski, żeby były aktywne
         }
 
-        function reveal(index, points, btnElement) {
-            if(btnElement.disabled) return;
-            btnElement.disabled = true;
-            btnElement.style.background = 'green';
+        function nextRound() {
+            roundSum = 0;
+            updateDisplay();
+            send({type:'SETUP', ans: []}); // Czyści TV
+        }
+
+        function revealAnswer(idx, points, btn) {
+            if(btn.style.background === 'green') return;
             
-            currentSum += points;
-            updateSum();
-
-            if(conn) {
-                conn.send({type: 'REV', idx: index});
-                conn.send({type: 'SCORE', sum: currentSum});
-            }
+            roundSum += points;
+            // Dodawanie punktów do globalnej puli drużyny (opcjonalne, tutaj dodaję tylko do rundy, a potem można przepisać)
+            // W Familiadzie punkty z rundy idą do drużyny DOPIERO na koniec. 
+            // Ale dla uproszczenia dodajemy od razu do aktywnej:
+            if(activeTeam === 'blue') s1 += points; else s2 += points;
+            
+            btn.style.background = 'green';
+            send({type: 'REV', idx: idx});
+            updateDisplay();
         }
 
-        function strike(n) {
-            if(conn) conn.send({type: 'STRIKE', n: n});
-        }
-        
-        function clearStrike() {
-            if(conn) conn.send({type: 'CLEAR_STRIKE'});
+        // --- OBSŁUGA MULTIMEDIÓW I BŁĘDÓW ---
+
+        function sideStrike(side, count) {
+            // side: 'L' (Blue) lub 'R' (Red)
+            // count: 1, 2, 3
+            send({type: 'SIDE_STRIKE', side: side, count: count});
         }
 
-        function setTeam(t) {
-            activeTeam = t;
-            document.getElementById('btn-b').classList.toggle('active-team', t === 'blue');
-            document.getElementById('btn-r').classList.toggle('active-team', t === 'red');
+        function sendSound(file) {
+            send({type: 'SOUND', file: file});
         }
 
-        function updateSum() {
-            document.getElementById('round-sum').innerText = currentSum;
+        function sendVideo() {
+            send({type: 'VIDEO'});
         }
 
-        function send(data) {
-            if(conn) conn.send(data);
+        // --- RĘCZNA EDYCJA ---
+
+        function updateDisplay() {
+            document.getElementById('round-sum').innerText = roundSum;
+            document.getElementById('manual-s1').value = s1;
+            document.getElementById('manual-s2').value = s2;
+            send({type: 'SCORE_UPDATE', s1: s1, s2: s2, sum: roundSum});
         }
+
+        function manualUpdate() {
+            // Pobiera wartości z inputów i nadpisuje zmienne
+            s1 = parseInt(document.getElementById('manual-s1').value);
+            s2 = parseInt(document.getElementById('manual-s2').value);
+            updateDisplay(); // Wysyła nowe wartości na TV
+        }
+
+        function send(data) { if(conn) conn.send(data); }
     </script>
 </body>
 </html>
