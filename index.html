@@ -32,9 +32,14 @@
     </style>
 </head>
 <body>
-    <div id="msg-overlay"><div id="status-text" style="color:white; margin-bottom:20px; font-size: 30px;">ŁĄCZENIE...</div><button id="unlock-btn" onclick="unlock()">AKTYWUJ MULTIMEDIA</button></div>
+    <div id="msg-overlay">
+        <div id="status-text" style="color:white; margin-bottom:20px; font-size: 30px;">ŁĄCZENIE...</div>
+        <button id="unlock-btn" onclick="unlock()">AKTYWUJ MULTIMEDIA</button>
+    </div>
+
     <div id="video-layer"><video id="vid-player"></video></div>
     <div id="timer-display">00</div>
+
     <div class="stage">
         <div class="side-x"><div class="x-box" id="L1"></div><div class="x-box" id="L2"></div><div class="x-box" id="L3"></div></div>
         <div class="board">
@@ -44,36 +49,83 @@
         </div>
         <div class="side-x"><div class="x-box" id="R1"></div><div class="x-box" id="R2"></div><div class="x-box" id="R3"></div></div>
     </div>
+
     <audio id="snd-intro" src="intro.mp3"></audio>
     <audio id="snd-runda" src="runda.mp3"></audio>
     <audio id="snd-ok" src="ok.mp3"></audio>
-    <audio id="snd-bad" src="zla.mp3"></audio>
+    <audio id="snd-bad" src="zle.mp3"></audio>
     <audio id="snd-timer" src="czas.mp3"></audio>
     <audio id="snd-powtorzenie" src="powtorzenie.mp3"></audio>
+
     <script>
         const peer = new Peer();
         const display = document.getElementById('main-display');
         const welcome = document.getElementById('welcome-screen');
         let currentData = { p1: [], p2: [] };
-        function unlock() { document.querySelectorAll('audio').forEach(a => { a.play().then(() => a.pause()); }); document.getElementById('unlock-btn').style.display = 'none'; }
+
+        function unlock() { 
+            document.querySelectorAll('audio').forEach(a => { a.play().then(() => a.pause()); }); 
+            document.getElementById('unlock-btn').style.display = 'none'; 
+        }
+
         peer.on('open', id => document.getElementById('status-text').innerText = "KOD PANELU: " + id);
+
         peer.on('connection', conn => {
             document.getElementById('msg-overlay').style.display = 'none';
             conn.on('data', d => {
                 if(d.type === 'PLAY_MEDIA') {
-                    if(d.video) { document.getElementById('video-layer').style.display='block'; let v=document.getElementById('vid-player'); v.src=d.video; v.play(); v.onended=()=>document.getElementById('video-layer').style.display='none'; }
-                    if(d.audio) { let s=document.getElementById('snd-'+d.audio); if(s){ s.currentTime=0; s.play(); } }
+                    if(d.video) { 
+                        document.getElementById('video-layer').style.display='block'; 
+                        let v=document.getElementById('vid-player'); v.src=d.video; v.play(); 
+                        v.onended=()=>document.getElementById('video-layer').style.display='none'; 
+                    }
+                    if(d.audio) { 
+                        let s=document.getElementById('snd-'+d.audio); 
+                        if(s){ s.currentTime=0; s.play(); } 
+                    }
                 }
-                if(d.type === 'RESET_BOARD') { welcome.style.display='none'; display.innerHTML=''; document.getElementById('total-val').innerText='0'; ['L','R'].forEach(s=>{for(let i=1;i<=3;i++)document.getElementById(s+i).classList.remove('active')}); }
-                if(d.type === 'X') { let s=document.getElementById('snd-bad'); s.currentTime=0; s.play(); for(let i=1;i<=3;i++)document.getElementById(d.side+i).classList.toggle('active', i<=d.n); }
+                if(d.type === 'RESET_BOARD') { 
+                    welcome.style.display='none'; 
+                    display.innerHTML=''; 
+                    document.getElementById('total-val').innerText='0'; 
+                    ['L','R'].forEach(s=>{for(let i=1;i<=3;i++)document.getElementById(s+i).classList.remove('active')}); 
+                }
+                if(d.type === 'X') { 
+                    let s=document.getElementById('snd-bad'); 
+                    s.currentTime=0; s.play(); 
+                    for(let i=1; i<=3; i++) document.getElementById(d.side+i).classList.toggle('active', i<=d.n); 
+                }
                 if(d.type === 'SCORE') document.getElementById('total-val').innerText = d.val;
-                if(d.type === 'TIMER') { let t=document.getElementById('timer-display'); t.innerText=d.val; t.style.display=d.action==='stop'?'none':'block'; if(d.action==='start')document.getElementById('snd-timer').play(); }
-                if(d.type === 'SETUP_NORMAL') { welcome.style.display='none'; display.innerHTML = d.ans.map((a,i)=>`<div class="row"><div class="row-num">${i+1}</div><div class="row-txt dots"></div><div class="row-pts"></div></div>`).join(''); }
-                if(d.type === 'REV_NORMAL') { document.getElementById('snd-ok').play(); let r=display.children[d.idx]; r.querySelector('.row-txt').classList.remove('dots'); r.querySelector('.row-txt').innerText=d.t; r.querySelector('.row-pts').innerText=d.p; }
-                if(d.type === 'SETUP_FINAL') { welcome.style.display='none'; currentData.p1=Array(5).fill({rev:false}); currentData.p2=Array(5).fill({rev:false}); renderFinal(); }
-                if(d.type === 'REV_FINAL') { document.getElementById('snd-ok').play(); currentData[d.player][d.idx]={t:d.t, p:d.p, rev:true}; renderFinal(); }
+                if(d.type === 'TIMER') { 
+                    let t=document.getElementById('timer-display'); 
+                    t.innerText=d.val; t.style.display=d.action==='stop'?'none':'block'; 
+                    if(d.action==='start')document.getElementById('snd-timer').play(); 
+                }
+                if(d.type === 'SETUP_NORMAL') { 
+                    welcome.style.display='none'; 
+                    display.innerHTML = d.ans.map((a,i)=>`<div class="row"><div class="row-num">${i+1}</div><div class="row-txt dots"></div><div class="row-pts"></div></div>`).join(''); 
+                }
+                if(d.type === 'REV_NORMAL') { 
+                    document.getElementById('snd-ok').play(); 
+                    let r=display.children[d.idx]; 
+                    r.querySelector('.row-txt').classList.remove('dots'); 
+                    r.querySelector('.row-txt').innerText=d.t; 
+                    r.querySelector('.row-pts').innerText=d.p; 
+                }
+                if(d.type === 'SETUP_FINAL') { 
+                    welcome.style.display='none'; 
+                    currentData.p1=Array(5).fill({rev:false}); 
+                    currentData.p2=Array(5).fill({rev:false}); 
+                    renderFinal(); 
+                }
+                if(d.type === 'REV_FINAL') { 
+                    document.getElementById('snd-ok').play(); 
+                    currentData[d.player][d.idx]={t:d.t, p:d.p, rev:true}; 
+                    renderFinal(); 
+                }
             });
         });
+
         function renderFinal() {
             let h = '<div style="display:grid; grid-template-columns:1fr 1fr; gap:30px;">';
             [currentData.p1, currentData.p2].forEach(p => {
