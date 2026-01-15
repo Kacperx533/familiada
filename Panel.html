@@ -59,8 +59,8 @@
             <div class="grid">
                 <button class="btn-red control" onclick="sendX(1)" disabled>BŁĄD X</button>
                 <button class="btn-red control" onclick="sendX(3)" disabled>BŁĄD XXX</button>
-                <button onclick="send({type:'PLAY_MEDIA', audio:'bad'})" style="background:#a00">TYLKO DŹWIĘK BŁĘDU</button>
-                <button onclick="send({type:'PLAY_MEDIA', audio:'powtorzenie'})" style="background:#555">DŹWIĘK POWTÓRZENIA</button>
+                <button onclick="send({type:'PLAY_MEDIA', audio:'bad'})" style="background:#a00">🔊 TYLKO DŹWIĘK (ZLE)</button>
+                <button onclick="send({type:'PLAY_MEDIA', audio:'powtorzenie'})" style="background:#555">🔄 POWTÓRZENIE</button>
             </div>
         </div>
     </div>
@@ -143,17 +143,41 @@
         ];
 
         let peer=new Peer(), conn, sum=0, team=null, side='L', t1=0, t2=0;
+
         function connect() { conn=peer.connect(document.getElementById('tv-id').value); }
+        
         function selectTeam(n, s) { 
             team=n; side=s; 
             document.querySelectorAll('.control').forEach(b=>b.disabled=false);
             document.getElementById('team1-btn').className = (n===1?'btn-active-team':'');
             document.getElementById('team2-btn').className = (n===2?'btn-active-team':'');
         }
-        function addPts(n) { if(n===1) t1+=sum; else t2+=sum; sum=0; updS(); updT(); send({type:'SCORE',val:0}); resetSel(); }
-        function resetSel() { team=null; document.querySelectorAll('.control').forEach(b=>b.disabled=true); document.getElementById('team1-btn').className=''; document.getElementById('team2-btn').className=''; }
-        function updT() { document.getElementById('t1-pts').innerText="D1: "+t1+" pkt"; document.getElementById('t2-pts').innerText="D2: "+t2+" pkt"; }
-        function startR(n) { sum=0; updS(); resetSel(); send({type:'RESET_BOARD'}); send({type:'PLAY_MEDIA',audio:'runda'}); }
+
+        function addPts(n) { 
+            if(n===1) t1+=sum; else t2+=sum; 
+            sum=0; updS(); updT(); 
+            send({type:'SCORE',val:0}); 
+            resetSel(); 
+        }
+
+        function resetSel() { 
+            team=null; 
+            document.querySelectorAll('.control').forEach(b=>b.disabled=true); 
+            document.getElementById('team1-btn').className=''; 
+            document.getElementById('team2-btn').className=''; 
+        }
+
+        function updT() { 
+            document.getElementById('t1-pts').innerText="D1: "+t1+" pkt"; 
+            document.getElementById('t2-pts').innerText="D2: "+t2+" pkt"; 
+        }
+
+        function startR(n) { 
+            sum=0; updS(); resetSel(); 
+            send({type:'RESET_BOARD'}); 
+            send({type:'PLAY_MEDIA',audio:'runda'}); 
+        }
+
         window.onload=()=>{
             const s=document.getElementById('q-sel'); DB.forEach((x,i)=>s.innerHTML+=`<option value="${i}">${i+1}. ${x.q}</option>`);
             const fs=document.getElementById('f-sel'); for(let i=0;i<10;i++) fs.innerHTML+=`<option value="${i}">ZESTAW ${i+1}</option>`;
@@ -163,8 +187,14 @@
             });
             preQ(); showFH();
         };
+
         function sendQ() { sum=0; updS(); const q=DB[document.getElementById('q-sel').value]; send({type:'SETUP_NORMAL',ans:q.a}); preQ(); }
-        function preQ() { const q=DB[document.getElementById('q-sel').value]; document.getElementById('ans-pre').innerHTML=q.a.map((x,i)=>`<button class="control" onclick="revN(${i},'${x[0]}',${x[1]})" disabled style="text-align:left">${x[0]} (${x[1]})</button>`).join(''); }
+        
+        function preQ() { 
+            const q=DB[document.getElementById('q-sel').value]; 
+            document.getElementById('ans-pre').innerHTML=q.a.map((x,i)=>`<button class="control" onclick="revN(${i},'${x[0]}',${x[1]})" disabled style="text-align:left">${x[0]} (${x[1]})</button>`).join(''); 
+        }
+
         function revN(i,t,p) { sum+=p; updS(); send({type:'REV_NORMAL',idx:i,t:t,p:p}); send({type:'SCORE',val:sum}); }
         function revF(p,i) { const t=document.getElementById(`f-${p}-t-${i}`).value.toUpperCase(), pts=parseInt(document.getElementById(`f-${p}-p-${i}`).value)||0; sum+=pts; updS(); send({type:'REV_FINAL',player:p,idx:i,t:t,p:pts}); send({type:'SCORE',val:sum}); }
         function showFH() { document.getElementById('f-h').innerHTML=FS[document.getElementById('f-sel').value].join("<br>"); }
