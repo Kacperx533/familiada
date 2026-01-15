@@ -2,36 +2,33 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA - EKRAN TV</title>
+    <title>FAMILIADA TV</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root { --led: #dfff00; --red: #ff3333; --bg: #050505; }
         body { background: var(--bg); color: var(--led); font-family: 'VT323', monospace; margin: 0; overflow: hidden; height: 100vh; text-transform: uppercase; }
-        
-        /* Warstwa Wideo */
         #video-layer { position: fixed; inset: 0; background: black; z-index: 5000; display: none; }
         video { width: 100%; height: 100%; object-fit: contain; }
-
         .led-overlay { position: fixed; inset: 0; background: radial-gradient(circle, transparent 30%, #000 80%) 0 0 / 5px 5px; pointer-events: none; z-index: 1000; opacity: 0.4; }
-        .stage { display: grid; grid-template-columns: 180px 1fr 180px; width: 98vw; height: 90vh; margin: 5vh auto; gap: 20px; }
         
-        /* Iksy */
+        .stage { display: grid; grid-template-columns: 180px 1fr 180px; width: 98vw; height: 90vh; margin: 5vh auto; gap: 20px; }
         .side-x { display: flex; flex-direction: column; gap: 15px; justify-content: center; }
         .x-box { width: 160px; height: 160px; border: 4px solid #1a1a1a; display: flex; justify-content: center; align-items: center; }
         .x-box::before { content: "X"; font-size: 140px; color: #151515; }
         .x-box.active::before { color: var(--red); text-shadow: 0 0 30px var(--red); }
 
-        /* Tablica */
-        .board { display: flex; flex-direction: column; position: relative; border: 4px solid #111; background: rgba(10,10,10,0.9); padding: 20px; }
+        .board { display: flex; flex-direction: column; position: relative; border: 4px solid #111; background: rgba(10,10,10,0.9); padding: 40px 20px 20px 20px; }
         .final-container { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; height: 100%; }
-        .row { display: flex; align-items: center; height: 11vh; font-size: 7vh; border-bottom: 2px solid #222; margin-bottom: 5px; }
+        
+        /* Poprawione wiersze - obniżone i wycentrowane */
+        .row { display: flex; align-items: center; height: 11vh; font-size: 7.5vh; border-bottom: 2px solid #222; margin-bottom: 10px; padding-top: 15px; }
         .row-txt { flex-grow: 1; padding-left: 20px; letter-spacing: 2px; white-space: nowrap; overflow: hidden; }
-        .row-pts { width: 100px; text-align: right; padding-right: 20px; }
-        .dots::after { content: "...................."; opacity: 0.1; }
+        .row-pts { width: 120px; text-align: right; padding-right: 20px; }
+        .dots::after { content: "...................."; opacity: 0.15; }
 
-        .sum-box { position: absolute; bottom: 10px; right: 40px; font-size: 9vh; display: flex; gap: 20px; border-top: 3px solid #333; }
-        #timer-display { position: absolute; bottom: 20px; left: 40px; font-size: 12vh; color: var(--red); display: none; }
+        .sum-box { position: absolute; bottom: 20px; right: 60px; font-size: 10vh; display: flex; gap: 30px; border-top: 4px solid #333; padding-top: 10px; }
+        #timer-display { position: absolute; bottom: 30px; left: 60px; font-size: 14vh; color: var(--red); display: none; text-shadow: 0 0 20px var(--red); }
         #msg-overlay { position: fixed; inset: 0; background: var(--bg); display: flex; justify-content: center; align-items: center; z-index: 6000; font-size: 8vh; }
     </style>
 </head>
@@ -62,18 +59,13 @@
         const vidPlayer = document.getElementById('vid-player');
         let currentData = { p1: [], p2: [], normal: [] };
 
-        peer.on('open', id => document.getElementById('msg-overlay').innerText = "KOD PANELU: " + id);
+        peer.on('open', id => document.getElementById('msg-overlay').innerText = "KOD: " + id);
 
         peer.on('connection', conn => {
             document.getElementById('msg-overlay').style.display = 'none';
             conn.on('data', d => {
                 if(d.type === 'PLAY_MEDIA') {
-                    if(d.video) {
-                        vidLayer.style.display = 'block';
-                        vidPlayer.src = d.video;
-                        vidPlayer.play();
-                        vidPlayer.onended = () => vidLayer.style.display = 'none';
-                    }
+                    if(d.video) { vidLayer.style.display = 'block'; vidPlayer.src = d.video; vidPlayer.play(); vidPlayer.onended = () => vidLayer.style.display = 'none'; }
                     if(d.audio) document.getElementById('snd-' + d.audio).play();
                 }
                 if(d.type === 'STOP_VIDEO') { vidLayer.style.display = 'none'; vidPlayer.pause(); }
@@ -84,32 +76,19 @@
                 }
                 if(d.type === 'SETUP_NORMAL') {
                     currentData.normal = d.ans.map(a => ({...a, rev: false}));
-                    display.innerHTML = currentData.normal.map((a, i) => `
-                        <div class="row">
-                            <div style="width:50px">${i+1}</div>
-                            <div class="row-txt dots"></div>
-                            <div class="row-pts"></div>
-                        </div>`).join('');
+                    display.innerHTML = currentData.normal.map((a, i) => `<div class="row"><div style="width:60px">${i+1}</div><div class="row-txt dots"></div><div class="row-pts"></div></div>`).join('');
                 }
                 if(d.type === 'SETUP_FINAL') {
-                    currentData.p1 = Array(5).fill({rev: false});
-                    currentData.p2 = Array(5).fill({rev: false});
-                    renderFinal();
+                    currentData.p1 = Array(5).fill({rev: false}); currentData.p2 = Array(5).fill({rev: false}); renderFinal();
                 }
                 if(d.type === 'REV_NORMAL') {
                     document.getElementById('snd-ok').play();
                     currentData.normal[d.idx].rev = true;
-                    display.innerHTML = currentData.normal.map((a, i) => `
-                        <div class="row">
-                            <div style="width:50px">${i+1}</div>
-                            <div class="row-txt ${a.rev ? '' : 'dots'}">${a.rev ? a.t : ''}</div>
-                            <div class="row-pts">${a.rev ? a.p : ''}</div>
-                        </div>`).join('');
+                    display.innerHTML = currentData.normal.map((a, i) => `<div class="row"><div style="width:60px">${i+1}</div><div class="row-txt ${a.rev ? '' : 'dots'}">${a.rev ? a.t : ''}</div><div class="row-pts">${a.rev ? a.p : ''}</div></div>`).join('');
                 }
                 if(d.type === 'REV_FINAL') {
                     document.getElementById('snd-ok').play();
-                    currentData[d.player][d.idx] = { t: d.t, p: d.p, rev: true };
-                    renderFinal();
+                    currentData[d.player][d.idx] = { t: d.t, p: d.p, rev: true }; renderFinal();
                 }
                 if(d.type === 'SCORE') document.getElementById('total-val').innerText = d.val;
                 if(d.type === 'X') {
