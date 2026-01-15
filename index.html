@@ -2,15 +2,15 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA TV - LED DOT MATRIX</title>
+    <title>FAMILIADA TV - FULL LED</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root { 
-            --led-on: #dfff00; /* Żółto-zielony kolor LED */
-            --led-off: #2a2a2a; 
+            --led-on: #dfff00; 
+            --led-red: #ff3333;
+            --led-off: #222;
             --bg-dark: #101010;
-            --grid-line: #000;
         }
         
         body { 
@@ -20,98 +20,103 @@
             margin: 0; 
             overflow: hidden; 
             height: 100vh; 
-            text-transform: uppercase;
-            /* Tło imitujące moduły tablicy (kratka konstrukcyjna) */
+            /* Tło imitujące moduły tablicy */
             background-image: 
                 linear-gradient(90deg, #000 2px, transparent 2px), 
                 linear-gradient(#000 2px, transparent 2px);
             background-size: 50px 50px; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
-        /* WARSTWA "KROPEK" - To robi efekt LED na tekście */
+        /* WARSTWA "KROPEK" - Efekt LED */
         .led-overlay {
             position: fixed;
             inset: 0;
             background-image: radial-gradient(circle, transparent 30%, #000 90%);
-            background-size: 6px 6px; /* Rozmiar pojedynczej diody */
+            background-size: 6px 6px; 
             pointer-events: none;
             z-index: 1000;
-            opacity: 0.6;
+            opacity: 0.5;
         }
 
-        /* POŚWIATA BOCZNA (fioletowo-niebieska jak na zdjęciu) */
-        .glow-side {
-            position: fixed;
-            top: 0; bottom: 0;
-            width: 150px;
-            z-index: -1;
+        /* GŁÓWNY UKŁAD */
+        .main-stage {
+            display: grid;
+            grid-template-columns: 100px 1fr 100px; /* Lewo - Tablica - Prawo */
+            width: 95vw;
+            height: 85vh;
+            gap: 20px;
+            align-items: start;
         }
-        .glow-left { left: 0; background: linear-gradient(90deg, rgba(80,0,255,0.2), transparent); }
-        .glow-right { right: 0; background: linear-gradient(-90deg, rgba(80,0,255,0.2), transparent); }
 
-        /* GŁÓWNY KONTENER */
-        .board-wrapper {
-            width: 90vw;
-            height: 80vh;
-            margin: 10vh auto;
+        /* WSKAŹNIKI BOCZNE (X) */
+        .side-panel {
             display: flex;
             flex-direction: column;
-            justify-content: flex-start;
-            position: relative;
+            gap: 20px;
+            padding-top: 50px;
+        }
+        
+        .indicator-box {
+            width: 80px;
+            height: 80px;
+            border: 4px solid #333;
+            background: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 60px;
+            color: var(--led-off); /* Domyślnie wygaszone */
+            transition: 0.2s;
         }
 
-        /* WIERSZ TABLICY */
+        .indicator-box.active {
+            color: var(--led-red);
+            text-shadow: 0 0 20px var(--led-red);
+            border-color: #500;
+        }
+
+        /* TABLICA CENTRALNA */
+        .board-wrapper {
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            height: 100%;
+        }
+
         .row { 
             display: flex; 
             align-items: center; 
-            height: 12vh; /* Wysokie wiersze */
-            font-size: 8vh; 
-            letter-spacing: 5px; /* Odstępy jak w LED */
-            text-shadow: 0 0 10px var(--led-on); /* Świecenie */
-            border-bottom: 2px solid #000; /* Linia oddzielająca wiersze */
+            height: 12vh; 
+            font-size: 7vh; 
+            letter-spacing: 5px; 
+            text-shadow: 0 0 10px var(--led-on); 
+            border-bottom: 2px solid #000;
+            background: rgba(20, 20, 20, 0.5);
         }
 
-        .row-num { 
-            width: 80px; 
-            text-align: center; 
-            color: var(--led-on);
-        }
+        .row-num { width: 80px; text-align: center; color: var(--led-on); }
+        .row-txt { flex-grow: 1; padding-left: 20px; white-space: nowrap; overflow: hidden; }
+        .row-pts { width: 120px; text-align: right; padding-right: 20px; }
+        .dots-placeholder::after { content: "......................"; opacity: 0.3; letter-spacing: 2px; }
 
-        .row-txt { 
-            flex-grow: 1; 
-            padding-left: 20px; 
-            white-space: nowrap;
-            overflow: hidden;
-        }
-
-        .row-pts { 
-            width: 120px; 
-            text-align: right; 
-            padding-right: 20px;
-        }
-
-        /* IKONA PO PRAWEJ (Ozdobnik ze zdjęcia) */
-        .row-deco {
-            width: 80px;
-            font-size: 5vh;
-            text-align: center;
-            opacity: 0.7;
-            color: #adff2f;
-        }
-
-        /* SUMA NA DOLE */
-        .footer {
-            position: absolute;
-            bottom: 0;
-            right: 100px;
+        /* SUMA i WYNIKI DRUŻYN NA DOLE */
+        .footer-info {
+            margin-top: auto;
             display: flex;
-            gap: 40px;
-            font-size: 9vh;
-            text-shadow: 0 0 15px var(--led-on);
-            letter-spacing: 5px;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: #000;
+            border: 2px solid #333;
         }
+        
+        .team-score { font-size: 5vh; color: #fff; }
+        .total-sum { font-size: 8vh; color: var(--led-on); text-shadow: 0 0 15px var(--led-on); }
 
-        /* IKSY */
+        /* DUŻY X NA ŚRODEK (przy błędzie) */
         .strike-overlay {
             position: fixed;
             inset: 0;
@@ -121,104 +126,96 @@
             pointer-events: none;
             z-index: 2000;
         }
-        .strike {
+        .strike-center {
             font-size: 60vh;
-            color: var(--led-on);
-            text-shadow: 5px 5px 0 #000, 0 0 30px var(--led-on);
+            color: var(--led-red);
+            text-shadow: 5px 5px 0 #000, 0 0 40px var(--led-red);
             display: none;
         }
 
-        /* UKRYWANIE ELEMENTÓW */
-        .hidden-txt { display: none; }
-        .dots-placeholder::after { content: "......................"; opacity: 0.5; letter-spacing: 2px; }
-
-        /* MULTIMEDIA */
+        /* ID i START */
+        #start-screen { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; justify-content: center; align-items: center; flex-direction: column; color:white;}
+        
+        /* WIDEO */
         #vid-layer { position: fixed; inset: 0; background:black; z-index:5000; display:none; }
         video { width:100%; height:100%; }
-        #start-screen { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; justify-content: center; align-items: center; flex-direction: column;}
+
     </style>
 </head>
 <body>
 
     <div class="led-overlay"></div>
-    <div class="glow-side glow-left"></div>
-    <div class="glow-side glow-right"></div>
-
+    
     <div id="start-screen">
-        <div style="color: #dfff00; font-size: 40px; margin-bottom: 20px;">SYSTEM GOTOWY</div>
-        <div id="my-id" style="color: white; font-size: 20px; font-family: sans-serif;">Generowanie ID...</div>
-        <button onclick="document.getElementById('start-screen').style.display='none'" style="margin-top:20px; padding:10px 30px; font-size:20px; cursor:pointer;">URUCHOM TABLICĘ</button>
+        <h1 style="color:var(--led-on)">SYSTEM FAMILIADA LED</h1>
+        <div id="my-id" style="font-family:sans-serif; margin-bottom:20px;">Generowanie ID...</div>
+        <button onclick="startSystem()" style="padding:15px 40px; font-size:20px; font-weight:bold; cursor:pointer;">URUCHOM EKRAN</button>
     </div>
 
     <div id="vid-layer"><video id="player"></video></div>
 
-    <div class="strike-overlay">
-        <div id="big-strike" class="strike">X</div>
-    </div>
+    <div class="strike-overlay"><div id="big-strike" class="strike-center">X</div></div>
 
-    <div class="board-wrapper">
-        <div id="rows-container">
-            </div>
-
-        <div class="footer">
-            <div>SUMA</div>
-            <div id="total-sum">0</div>
+    <div class="main-stage">
+        
+        <div class="side-panel">
+            <div class="indicator-box" id="L1">X</div>
+            <div class="indicator-box" id="L2">X</div>
+            <div class="indicator-box" id="L3">X</div>
         </div>
+
+        <div class="board-wrapper">
+            <div id="rows-container"></div>
+            
+            <div class="footer-info">
+                <div class="team-score" style="color: #44f;">NIEB: <span id="s1-display">0</span></div>
+                <div class="total-sum">SUMA: <span id="total-sum">0</span></div>
+                <div class="team-score" style="color: #f44;">CZER: <span id="s2-display">0</span></div>
+            </div>
+        </div>
+
+        <div class="side-panel">
+            <div class="indicator-box" id="R1">X</div>
+            <div class="indicator-box" id="R2">X</div>
+            <div class="indicator-box" id="R3">X</div>
+        </div>
+
     </div>
 
+    <audio id="snd-intro" src="intro.mp3"></audio>
     <audio id="snd-ok" src="ok.mp3"></audio>
     <audio id="snd-bad" src="zla.mp3"></audio>
-
-    <script>
+    <audio id="snd-rep" src="rep.mp3"></audio> <script>
         const peer = new Peer();
-        peer.on('open', id => document.getElementById('my-id').innerText = "Twój kod ID: " + id);
+        peer.on('open', id => document.getElementById('my-id').innerText = "TWÓJ KOD ID: " + id);
 
-        // Funkcja generująca puste kropki, jeśli hasło jest ukryte
+        function startSystem() {
+            document.getElementById('start-screen').style.display = 'none';
+        }
+
+        // Rysowanie pustej tablicy
         function renderBoard(data) {
             const container = document.getElementById('rows-container');
             container.innerHTML = '';
-
-            // Generujemy zawsze 5-6 wierszy, żeby tablica wyglądała na pełną (jak na zdjęciu)
             for(let i=0; i<6; i++) {
-                let contentHTML = '';
-                let ptsHTML = '';
-                let numHTML = `<div class="row-num">${i+1}</div>`;
-
-                // Jeśli mamy dane dla tego wiersza
+                let contentHTML = `<div class="row-txt dots-placeholder"></div>`;
+                let ptsHTML = `<div class="row-pts"></div>`;
+                
                 if (data.ans && data.ans[i]) {
-                    const item = data.ans[i];
-                    
-                    if (item.revealed) {
-                        // Odkryte hasło
-                        contentHTML = `<div class="row-txt">${item.t}</div>`;
-                        ptsHTML = `<div class="row-pts">${item.p}</div>`;
-                    } else {
-                        // Zakryte hasło (kropki)
-                        contentHTML = `<div class="row-txt dots-placeholder"></div>`;
-                        ptsHTML = `<div class="row-pts"></div>`; // Puste miejsce na punkty
+                    if (data.ans[i].revealed) {
+                        contentHTML = `<div class="row-txt">${data.ans[i].t}</div>`;
+                        ptsHTML = `<div class="row-pts">${data.ans[i].p}</div>`;
                     }
-                } else {
-                    // Pusty wiersz (np. wiersz 5 i 6 jeśli brak pytań) - same kropki
-                    numHTML = `<div class="row-num">${i+1}</div>`;
-                    contentHTML = `<div class="row-txt dots-placeholder"></div>`;
-                    ptsHTML = `<div class="row-pts"></div>`;
                 }
-
-                // Ozdobnik po prawej (ikona z kropek)
-                const decoHTML = `<div class="row-deco">:::</div>`;
-
                 container.innerHTML += `
                     <div class="row">
-                        ${numHTML}
+                        <div class="row-num">${i+1}</div>
                         ${contentHTML}
                         ${ptsHTML}
-                        ${decoHTML}
                     </div>
                 `;
             }
         }
-
-        // Domyślny stan (puste kropki)
         renderBoard({ans: []});
 
         let currentAns = [];
@@ -227,38 +224,49 @@
             conn.on('data', data => {
                 
                 if(data.type === 'SETUP') {
-                    // Reset tablicy, wszystkie zakryte
                     currentAns = data.ans.map(a => ({...a, revealed: false}));
                     renderBoard({ans: currentAns});
-                    // Reset X
-                    document.getElementById('big-strike').style.display = 'none';
-                    document.getElementById('total-sum').innerText = '0';
+                    // Reset bocznych wskaźników
+                    ['L1','L2','L3','R1','R2','R3'].forEach(id => document.getElementById(id).classList.remove('active'));
                 }
 
                 if(data.type === 'REV') {
                     document.getElementById('snd-ok').play();
-                    // Odkrywamy konkretny wiersz
                     if(currentAns[data.idx]) {
                         currentAns[data.idx].revealed = true;
                         renderBoard({ans: currentAns});
                     }
                 }
 
-                if(data.type === 'SCORE') {
+                if(data.type === 'SCORE_UPDATE') {
+                    document.getElementById('s1-display').innerText = data.s1;
+                    document.getElementById('s2-display').innerText = data.s2;
                     document.getElementById('total-sum').innerText = data.sum;
                 }
 
-                if(data.type === 'STRIKE') {
+                // Obsługa bocznych X
+                if(data.type === 'SIDE_STRIKE') {
                     document.getElementById('snd-bad').play();
-                    const el = document.getElementById('big-strike');
-                    el.innerText = "X".repeat(data.n);
-                    el.style.display = 'block';
-                    // X znika po 2 sekundach (lub zostaje, jeśli wolisz usuń setTimeout)
-                    // setTimeout(() => el.style.display = 'none', 2000); 
+                    // data.side = 'L' lub 'R', data.count = 1, 2 lub 3
+                    // Reset strony
+                    for(let i=1; i<=3; i++) document.getElementById(data.side+i).classList.remove('active');
+                    // Zapalanie odpowiedniej ilości
+                    for(let i=1; i<=data.count; i++) document.getElementById(data.side+i).classList.add('active');
+                    
+                    // Pokazanie dużego X na chwilę
+                    const bigX = document.getElementById('big-strike');
+                    bigX.style.display = 'block';
+                    setTimeout(() => bigX.style.display = 'none', 1500);
                 }
                 
-                if(data.type === 'CLEAR_STRIKE') {
-                    document.getElementById('big-strike').style.display = 'none';
+                // Czysty reset X
+                if(data.type === 'CLEAR_STRIKES') {
+                     ['L1','L2','L3','R1','R2','R3'].forEach(id => document.getElementById(id).classList.remove('active'));
+                }
+
+                if(data.type === 'SOUND') {
+                    const audio = document.getElementById('snd-' + data.file);
+                    if(audio) { audio.currentTime = 0; audio.play(); }
                 }
 
                 if(data.type === 'VIDEO') {
