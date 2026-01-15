@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA TV - EDYCJA SZKOLNA</title>
+    <title>FAMILIADA TV - PRO</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
@@ -12,26 +12,26 @@
         .led-overlay { position: fixed; inset: 0; background-image: radial-gradient(circle, transparent 30%, #000 80%); background-size: 5px 5px; pointer-events: none; z-index: 1000; opacity: 0.5; }
         .grid-bg { position: fixed; inset: 0; background-image: linear-gradient(90deg, #000 2px, transparent 2px), linear-gradient(#000 2px, transparent 2px); background-size: 60px 60px; z-index: -1; }
 
-        /* UKŁAD */
         .stage { display: grid; grid-template-columns: 200px 1fr 200px; width: 98vw; height: 90vh; margin: 5vh auto; gap: 10px; }
 
-        /* BOCZNE IKSY - POWIĘKSZONE */
+        /* IKSY */
         .side-x { display: flex; flex-direction: column; gap: 15px; justify-content: center; }
         .x-box { width: 180px; height: 180px; border: 6px solid #1a1a1a; display: flex; justify-content: center; align-items: center; font-size: 150px; color: #151515; transition: 0.2s; }
         .x-box.active { color: var(--red); text-shadow: 0 0 40px var(--red); border-color: #600; }
 
         /* TABLICA */
         .board { display: flex; flex-direction: column; position: relative; border: 4px solid #111; background: rgba(10,10,10,0.8); }
-        .row { display: flex; align-items: center; height: 13vh; font-size: 8vh; border-bottom: 2px solid #000; padding-left: 60px; }
+        .row { display: flex; align-items: center; height: 12vh; font-size: 8vh; border-bottom: 2px solid #000; padding-left: 60px; }
         .row-num { width: 100px; color: var(--led); }
         .row-txt { flex-grow: 1; letter-spacing: 3px; }
         .row-pts { width: 150px; text-align: right; padding-right: 40px; }
         .dots::after { content: "...................."; opacity: 0.15; }
 
-        /* SPECJALNE */
-        #msg-overlay { position: fixed; inset: 0; background: var(--bg); display: flex; justify-content: center; align-items: center; z-index: 2000; font-size: 12vh; text-align: center; color: var(--led); }
-        .sum-box { position: absolute; bottom: 20px; right: 40px; font-size: 10vh; display: flex; gap: 30px; border-top: 2px solid #222; padding-top: 10px; }
+        /* STOPER I SUMA */
+        .sum-box { position: absolute; bottom: 20px; right: 40px; font-size: 10vh; display: flex; gap: 30px; border-top: 2px solid #222; }
+        #timer-display { position: absolute; bottom: 20px; left: 40px; font-size: 12vh; color: var(--red); display: none; }
 
+        #msg-overlay { position: fixed; inset: 0; background: var(--bg); display: flex; justify-content: center; align-items: center; z-index: 2000; font-size: 12vh; text-align: center; }
         #vid-layer { position: fixed; inset: 0; background:black; z-index:5000; display:none; }
         video { width:100%; height:100%; }
     </style>
@@ -39,8 +39,10 @@
 <body>
     <div class="led-overlay"></div>
     <div class="grid-bg"></div>
-    <div id="msg-overlay">OCZEKIWANIE NA PANEL...</div>
+    <div id="msg-overlay">ŁĄCZENIE...</div>
     <div id="vid-layer"><video id="player"></video></div>
+
+    <div id="timer-display">00</div>
 
     <div class="stage">
         <div class="side-x">
@@ -58,13 +60,14 @@
     <audio id="snd-ok" src="ok.mp3"></audio>
     <audio id="snd-bad" src="zla.mp3"></audio>
     <audio id="snd-runda" src="runda.mp4"></audio>
+    <audio id="snd-timer" src="czas.mp3"></audio>
 
     <script>
         const peer = new Peer();
         const msg = document.getElementById('msg-overlay');
         let current = [];
 
-        peer.on('open', id => msg.innerText = "ID: " + id);
+        peer.on('open', id => msg.innerText = "KOD: " + id);
 
         function render(ans, isFinal = false) {
             const container = document.getElementById('rows');
@@ -86,7 +89,7 @@
             conn.on('data', data => {
                 if(data.type === 'INTRO') {
                     msg.style.display = 'flex';
-                    msg.innerHTML = "FAMILIADA<br><span style='font-size:0.6em'>EDYCJA SZKOLNA</span>";
+                    msg.innerHTML = "FAMILIADA<br><span style='font-size:0.5em'>EDYCJA SZKOLNA</span>";
                     setTimeout(() => msg.style.display = 'none', 4000);
                 }
                 if(data.type === 'ROUND_START') {
@@ -94,6 +97,18 @@
                     msg.style.display = 'flex';
                     msg.innerText = "RUNDA " + data.num;
                     setTimeout(() => msg.style.display = 'none', 3000);
+                }
+                if(data.type === 'TIMER') {
+                    const disp = document.getElementById('timer-display');
+                    if(data.action === 'start') {
+                        disp.style.display = 'block';
+                        disp.innerText = data.val;
+                        document.getElementById('snd-timer').play();
+                    } else if(data.action === 'tick') {
+                        disp.innerText = data.val;
+                    } else {
+                        disp.style.display = 'none';
+                    }
                 }
                 if(data.type === 'SETUP') {
                     current = data.ans.map(a => ({...a, rev: false}));
