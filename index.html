@@ -2,56 +2,126 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA TV</title>
+    <title>FAMILIADA TV - REALISTIC LED</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        :root { --led: #dfff00; --red: #ff3333; --bg: #050505; }
-        body { background: var(--bg); color: var(--led); font-family: 'VT323', monospace; margin: 0; overflow: hidden; height: 100vh; text-transform: uppercase; }
-        
+        :root { 
+            --led-color: #e2ff00; 
+            --led-off: #1a1a00;
+            --red-led: #ff0000;
+            --bg-color: #050505;
+        }
+
+        body { 
+            background: var(--bg-color); 
+            color: var(--led-color); 
+            font-family: 'VT323', monospace; 
+            margin: 0; 
+            overflow: hidden; 
+            height: 100vh; 
+            text-transform: uppercase;
+        }
+
+        /* EFEKT STAREGO EKRANU (Siatka LED) */
+        body::after {
+            content: "";
+            position: fixed;
+            inset: 0;
+            /* Tworzy siatkę punktów 3px x 3px */
+            background: radial-gradient(circle, transparent 20%, var(--bg-color) 70%);
+            background-size: 4px 4px;
+            z-index: 1000;
+            pointer-events: none;
+            opacity: 0.5;
+        }
+
+        /* Warstwa Wideo */
         #video-layer { position: fixed; inset: 0; background: black; z-index: 5000; display: none; }
         video { width: 100%; height: 100%; object-fit: contain; }
 
-        .stage { display: grid; grid-template-columns: 180px 1fr 180px; width: 98vw; height: 90vh; margin: 5vh auto; gap: 20px; }
-        .side-x { display: flex; flex-direction: column; gap: 15px; justify-content: center; }
-        .x-box { width: 160px; height: 160px; border: 4px solid #1a1a1a; display: flex; justify-content: center; align-items: center; }
-        .x-box::before { content: "X"; font-size: 140px; color: #151515; }
-        .x-box.active::before { color: var(--red); text-shadow: 0 0 30px var(--red); }
+        .stage { 
+            display: grid; 
+            grid-template-columns: 200px 1fr 200px; 
+            width: 95vw; 
+            height: 85vh; 
+            margin: 7vh auto; 
+            gap: 30px; 
+            filter: drop-shadow(0 0 10px rgba(226, 255, 0, 0.2));
+        }
 
-        /* TABLICA - Dodałem padding-top, żeby wszystko poszło w dół */
+        /* Iksy */
+        .side-x { display: flex; flex-direction: column; gap: 20px; justify-content: center; }
+        .x-box { 
+            width: 150px; height: 150px; 
+            border: 6px solid #111; 
+            display: flex; justify-content: center; align-items: center; 
+            background: #080808;
+            box-shadow: inset 0 0 20px #000;
+        }
+        .x-box::before { content: "X"; font-size: 130px; color: #151010; transition: 0.1s; }
+        .x-box.active::before { 
+            color: var(--red-led); 
+            text-shadow: 0 0 25px var(--red-led), 0 0 50px var(--red-led); 
+        }
+
+        /* Główna Tablica */
         .board { 
             display: flex; 
             flex-direction: column; 
             position: relative; 
-            border: 4px solid #111; 
-            background: rgba(10,10,10,0.9); 
-            padding: 80px 40px 20px 40px; /* 80px od góry przesuwa treść w dół */
+            border: 15px solid #1a1a1a; 
+            background: #0a0a0a; 
+            padding: 100px 50px 40px 50px; /* Przesunięcie 1 2 3 4 5 w dół */
+            box-shadow: 0 0 50px #000, inset 0 0 100px #000;
         }
 
-        .final-container { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; height: 100%; }
-        
-        /* WIERSZE - Zwiększone marginesy dla lepszego wyglądu */
+        /* Wiersze */
         .row { 
             display: flex; 
             align-items: center; 
-            height: 10vh; 
-            font-size: 7.5vh; 
-            border-bottom: 2px solid #222; 
-            margin-bottom: 15px; 
+            height: 9vh; 
+            font-size: 8vh; 
+            margin-bottom: 20px; 
+            border-bottom: 2px solid #111;
+            letter-spacing: 4px;
+            text-shadow: 0 0 15px var(--led-color);
+        }
+
+        .row-num { width: 70px; color: #333; }
+        .row-txt { flex-grow: 1; padding-left: 30px; }
+        .row-pts { width: 130px; text-align: right; }
+        
+        .dots::after { 
+            content: ".........................."; 
+            color: var(--led-off); 
+            text-shadow: none;
+        }
+
+        /* Suma i Timer */
+        .sum-box { 
+            position: absolute; bottom: 30px; right: 70px; 
+            font-size: 11vh; display: flex; gap: 40px; 
+            border-top: 5px solid #151515; padding-top: 10px;
         }
         
-        .row-txt { flex-grow: 1; padding-left: 20px; letter-spacing: 2px; }
-        .row-pts { width: 120px; text-align: right; padding-right: 20px; }
-        .dots::after { content: "...................."; opacity: 0.15; }
+        #timer-display { 
+            position: absolute; bottom: 40px; left: 70px; 
+            font-size: 15vh; color: var(--red-led); 
+            display: none; 
+            text-shadow: 0 0 30px var(--red-led);
+        }
 
-        .sum-box { position: absolute; bottom: 20px; right: 60px; font-size: 10vh; display: flex; gap: 30px; border-top: 4px solid #333; }
-        #timer-display { position: absolute; bottom: 30px; left: 60px; font-size: 14vh; color: var(--red); display: none; }
-        #msg-overlay { position: fixed; inset: 0; background: var(--bg); display: flex; justify-content: center; align-items: center; z-index: 6000; font-size: 8vh; }
+        #msg-overlay { 
+            position: fixed; inset: 0; background: #000; 
+            display: flex; justify-content: center; align-items: center; 
+            z-index: 6000; font-size: 10vh; color: var(--led-color);
+        }
     </style>
 </head>
 <body>
     <div id="video-layer"><video id="vid-player"></video></div>
-    <div id="msg-overlay">ŁADOWANIE...</div>
+    <div id="msg-overlay">CZEKAM NA PANEL...</div>
     <div id="timer-display">00</div>
 
     <div class="stage">
@@ -60,10 +130,15 @@
             <div class="x-box" id="L2"></div>
             <div class="x-box" id="L3"></div>
         </div>
+        
         <div class="board">
             <div id="main-display" style="height: 100%;"></div>
-            <div class="sum-box"><span>SUMA</span><span id="total-val">0</span></div>
+            <div class="sum-box">
+                <span style="color: #222;">SUMA</span>
+                <span id="total-val">0</span>
+            </div>
         </div>
+
         <div class="side-x">
             <div class="x-box" id="R1"></div>
             <div class="x-box" id="R2"></div>
@@ -83,7 +158,7 @@
         const vidPlayer = document.getElementById('vid-player');
         let currentData = { p1: [], p2: [], normal: [] };
 
-        peer.on('open', id => document.getElementById('msg-overlay').innerText = "KOD: " + id);
+        peer.on('open', id => document.getElementById('msg-overlay').innerText = "ID: " + id);
 
         peer.on('connection', conn => {
             document.getElementById('msg-overlay').style.display = 'none';
@@ -106,12 +181,7 @@
                 }
                 if(d.type === 'SETUP_NORMAL') {
                     currentData.normal = d.ans.map(a => ({...a, rev: false}));
-                    display.innerHTML = currentData.normal.map((a, i) => `
-                        <div class="row">
-                            <div style="width:60px">${i+1}</div>
-                            <div class="row-txt dots"></div>
-                            <div class="row-pts"></div>
-                        </div>`).join('');
+                    renderNormal();
                 }
                 if(d.type === 'SETUP_FINAL') {
                     currentData.p1 = Array(5).fill({rev: false});
@@ -121,12 +191,7 @@
                 if(d.type === 'REV_NORMAL') {
                     document.getElementById('snd-ok').play();
                     currentData.normal[d.idx].rev = true;
-                    display.innerHTML = currentData.normal.map((a, i) => `
-                        <div class="row">
-                            <div style="width:60px">${i+1}</div>
-                            <div class="row-txt ${a.rev ? '' : 'dots'}">${a.rev ? a.t : ''}</div>
-                            <div class="row-pts">${a.rev ? a.p : ''}</div>
-                        </div>`).join('');
+                    renderNormal();
                 }
                 if(d.type === 'REV_FINAL') {
                     document.getElementById('snd-ok').play();
@@ -140,6 +205,15 @@
                 }
             });
         });
+
+        function renderNormal() {
+            display.innerHTML = currentData.normal.map((a, i) => `
+                <div class="row">
+                    <div class="row-num">${i+1}</div>
+                    <div class="row-txt ${a.rev ? '' : 'dots'}">${a.rev ? a.t : ''}</div>
+                    <div class="row-pts">${a.rev ? a.p : ''}</div>
+                </div>`).join('');
+        }
 
         function renderFinal() {
             let html = '<div class="final-container"><div>';
