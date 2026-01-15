@@ -2,162 +2,162 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>PANEL FAMILIADA</title>
+    <title>PANEL STEROWANIA - FAMILIADA</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        body { font-family: sans-serif; background: #1a1a1a; color: white; padding: 20px; display: grid; grid-template-columns: 350px 1fr 350px; gap: 20px; }
+        body { font-family: sans-serif; background: #1a1a1a; color: white; padding: 20px; display: grid; grid-template-columns: 350px 1fr; gap: 20px; }
         .card { background: #2a2a2a; padding: 15px; border-radius: 8px; border-top: 4px solid #dfff00; }
-        button { width: 100%; padding: 12px; margin: 4px 0; cursor: pointer; font-weight: bold; border: none; border-radius: 4px; background: #444; color: white; }
-        .btn-gold { background: #dfff00; color: #000; }
-        .btn-blue { background: #0055ff; }
-        .btn-red { background: #aa0000; }
-        .active-team-blue { border: 4px solid #0055ff !important; box-shadow: 0 0 15px #0055ff; }
-        .active-team-red { border: 4px solid #aa0000 !important; box-shadow: 0 0 15px #aa0000; }
-        input, select { width: 100%; padding: 10px; background: #000; color: #fff; border: 1px solid #444; }
-        .score-val { font-size: 30px; text-align: center; margin: 10px 0; }
-        .cheat-sheet { height: 300px; overflow-y: scroll; font-size: 13px; background: #111; padding: 10px; }
+        .btn-gold { background: #dfff00; color: black; font-weight: bold; padding: 10px; cursor: pointer; border: none; width: 100%; margin: 5px 0; }
+        .btn-blue { background: #0055ff; color: white; border: none; padding: 10px; cursor: pointer; }
+        .active-team { outline: 4px solid lime; }
+        input { width: 100%; padding: 8px; background: #000; color: #fff; border: 1px solid #444; box-sizing: border-box; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     </style>
 </head>
 <body>
     <div>
         <div class="card">
             <h3>1. POŁĄCZENIE</h3>
-            <input id="tv-id" placeholder="Wpisz ID z ekranu TV">
-            <button class="btn-gold" onclick="connect()">POŁĄCZ Z EKRANEM</button>
-            <div id="status" style="color: red; margin-top: 5px;">Rozłączony</div>
+            <input id="tv-id" placeholder="Wpisz ID z TV">
+            <button class="btn-gold" onclick="connect()">POŁĄCZ</button>
         </div>
-        <div class="card" style="margin-top:20px;">
-            <h3>2. WYBÓR DRUŻYNY</h3>
-            <p>Wybierz, kto teraz gra (punkty i błędy pójdą na ich konto):</p>
-            <button id="pick-blue" class="btn-blue" onclick="setTeam('L')">DRUŻYNA NIEBIESKA</button>
-            <button id="pick-red" class="btn-red" onclick="setTeam('R')">DRUŻYNA CZERWONA</button>
-            <div class="grid" style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
-                <div>Niebiescy: <div id="total-L" class="score-val">0</div></div>
-                <div>Czerwoni: <div id="total-R" class="score-val">0</div></div>
+
+        <div class="card" style="margin-top:20px">
+            <h3>2. RUNDY (Z AUTOMATYKĄ DŹWIĘKU)</h3>
+            <div class="grid-2">
+                <button onclick="startRunda(1)">RUNDA 1</button>
+                <button onclick="startRunda(2)">RUNDA 2</button>
+                <button onclick="startRunda(3)">RUNDA 3</button>
+                <button class="btn-gold" onclick="startFinal()">FINAŁ (MUZYKA)</button>
             </div>
         </div>
-        <div class="card" style="margin-top:20px;">
+
+        <div class="card" style="margin-top:20px">
             <h3>3. BŁĘDY (X)</h3>
-            <button class="btn-red" onclick="triggerX(1)">DODAJ 1 X</button>
-            <button class="btn-red" onclick="triggerX(2)">DODAJ 2 X</button>
-            <button class="btn-red" onclick="triggerX(3)">DODAJ 3 X</button>
-            <button onclick="send({type:'CLEAR_X'}); strikes={L:0, R:0};">WYCZYŚĆ IKSY</button>
+            <div class="grid-2">
+                <button class="btn-blue" id="t-L" onclick="activeSide='L'">DRUŻYNA LEWA</button>
+                <button class="btn-blue" id="t-R" onclick="activeSide='R'">DRUŻYNA PRAWA</button>
+            </div>
+            <div style="display:flex; gap:5px; margin-top:10px">
+                <button style="flex:1" onclick="sendX(1)">X</button>
+                <button style="flex:1" onclick="sendX(2)">XX</button>
+                <button style="flex:1" onclick="sendX(3)">XXX</button>
+            </div>
         </div>
     </div>
+
     <div>
         <div class="card">
-            <h3>4. RUNDY I PYTANIA</h3>
-            <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:5px;">
-                <button onclick="startR(1)">R1</button><button onclick="startR(2)">R2</button>
-                <button onclick="startR(3)">R3</button><button onclick="startR('F')">FINAŁ</button>
+            <h3>4. TABLICA GŁÓWNA / FINAŁOWA</h3>
+            <div id="setup-area">
+                <select id="q-select" style="width:100%; padding:10px" onchange="updatePreview()"></select>
+                <button class="btn-gold" onclick="sendQ()">WYŚLIJ PYTANIE NA TV</button>
+                <div id="ans-preview" style="margin-top:10px"></div>
             </div>
-            <select id="q-sel" onchange="preview()" style="margin:10px 0;"></select>
-            <button class="btn-gold" onclick="loadQ()">WYŚLIJ PYTANIE NA TV</button>
-            <div id="ans-box" style="margin-top:15px;"></div>
-            <div style="text-align:right; font-size:24px;">SUMA RUNDY: <span id="s-sum" style="color:gold;">0</span></div>
-            <button class="btn-gold" onclick="bankScore()">PRZELEJ SUMĘ DO DRUŻYNY</button>
-        </div>
-        <div class="card" style="margin-top:20px;">
-            <h3>5. FINAŁ</h3>
-            <div class="grid" style="display:grid; grid-template-columns: 1fr 1fr; gap:5px;">
-                <button onclick="runTimer(15)">TIMER 15s</button><button onclick="runTimer(20)">TIMER 20s</button>
+
+            <div id="final-area" style="display:none; margin-top:20px; border-top: 2px solid #555; padding-top:10px">
+                <div class="grid-2">
+                    <button onclick="runTimer(15)">STOPER 15s</button>
+                    <button onclick="runTimer(20)">STOPER 20s</button>
+                </div>
+                <div class="grid-2" style="margin-top:10px">
+                    <div id="f-p1"><h4>GRACZ 1</h4></div>
+                    <div id="f-p2"><h4>GRACZ 2</h4></div>
+                </div>
             </div>
-            <button onclick="send({type:'SETUP', ans:[], isFinal:true})">CZYSTA TABLICA FINAŁOWA</button>
-            <div id="f-rows" style="margin-top:10px;"></div>
+            <div style="text-align:right; font-size:24px; color:gold; margin-top:10px">SUMA: <span id="local-sum">0</span></div>
         </div>
     </div>
-    <div class="card">
-        <h3>ŚCIĄGAWKA DLA PROWADZĄCEGO</h3>
-        <div class="cheat-sheet" id="cheat"></div>
-    </div>
+
     <script>
         const DB = [
-            {q:"Zwierzę na literę 'K'", a:[["KOT",45],["KOŃ",25],["KROWA",15],["KANGUR",10],["KROKODYL",5]]},
-            {q:"Przedmiot szkolny", a:[["MATEMATYKA",40],["POLSKI",30],["WF",20],["HISTORIA",10]]},
-            {q:"Coś do picia", a:[["WODA",50],["SOK",25],["KAWA",15],["HERBATA",10]]},
-            {q:"Więcej niż jedno zwierzę", a:[["STADO",50],["KLUCZ",30],["WATAHA",20]]},
-            {q:"Część roweru", a:[["KOŁO",45],["RAMA",25],["KIEROWNICA",15],["SIODEŁKO",10],["ŁAŃCUCH",5]]}
-        ];
-        const FINAŁ_DB = [
-            {q:"Owoc egzotyczny", a:"BANAN, ANANAS, MANGO"},
-            {q:"Zimny deser", a:"LODY, SORBET, GALARETKA"},
-            {q:"Sport z piłką", a:"PIŁKA NOŻNA, SIATKÓWKA, KOSZYKÓWKA"},
-            {q:"Coś co lata", a:"SAMOLOT, PTAK, MUCHA"}
+            {q:"Zwierzę na literę K", a:[["KOT",45],["KOŃ",25],["KROWA",15],["KANGUR",10]]},
+            {q:"Przedmiot szkolny", a:[["MATEMATYKA",40],["POLSKI",30],["WF",20]]}
         ];
 
-        let peer = new Peer(), conn, activeTeam = 'L', sum = 0;
-        let scores = { L: 0, R: 0 }, strikes = { L: 0, R: 0 };
+        let peer = new Peer(), conn, activeSide = 'L', totalSum = 0;
 
-        function connect() {
-            const id = document.getElementById('tv-id').value;
-            conn = peer.connect(id);
-            conn.on('open', () => {
-                document.getElementById('status').innerText = "Połączono!";
-                document.getElementById('status').style.color = "lime";
-            });
-        }
-
-        function setTeam(t) {
-            activeTeam = t;
-            document.getElementById('pick-blue').className = t === 'L' ? 'btn-blue active-team-blue' : 'btn-blue';
-            document.getElementById('pick-red').className = t === 'R' ? 'btn-red active-team-red' : 'btn-red';
-        }
-
-        function triggerX(n) {
-            strikes[activeTeam] = n;
-            send({type:'X', side: activeTeam, n: n});
-        }
-
-        function bankScore() {
-            scores[activeTeam] += sum;
-            document.getElementById('total-' + activeTeam).innerText = scores[activeTeam];
-            sum = 0;
-            document.getElementById('s-sum').innerText = 0;
-            send({type:'SCORE', val: 0});
-        }
+        function connect() { conn = peer.connect(document.getElementById('tv-id').value); }
 
         window.onload = () => {
-            const sel = document.getElementById('q-sel');
-            DB.forEach((x,i) => sel.innerHTML += `<option value="${i}">${x.q}</option>`);
-            const cheat = document.getElementById('cheat');
-            DB.forEach(x => cheat.innerHTML += `<b>${x.q}</b>: ${x.a.map(y=>y[0]).join(', ')}<br><br>`);
-            cheat.innerHTML += "--- FINAŁ ---<br>";
-            FINAŁ_DB.forEach(x => cheat.innerHTML += `<b>${x.q}</b>: ${x.a}<br>`);
+            const sel = document.getElementById('q-select');
+            DB.forEach((x, i) => sel.innerHTML += `<option value="${i}">${x.q}</option>`);
             
-            let fr = document.getElementById('f-rows');
-            for(let i=0; i<5; i++) {
-                fr.innerHTML += `<div style="display:flex; gap:2px; margin-bottom:2px;"><input id="ft${i}" placeholder="Odp"><input id="fp${i}" type="number" placeholder="Pkt" style="width:50px"><button onclick="revF(${i})" style="width:60px">OK</button></div>`;
-            }
+            // Generowanie pól finałowych
+            ['p1', 'p2'].forEach(p => {
+                const container = document.getElementById('f-' + p);
+                for(let i=0; i<5; i++) {
+                    container.innerHTML += `
+                        <div style="margin-bottom:5px">
+                            <input id="f-${p}-t-${i}" placeholder="Odp" style="width:70%">
+                            <input id="f-${p}-p-${i}" type="number" placeholder="Pkt" style="width:25%">
+                            <button onclick="revealFinal('${p}', ${i})" style="width:100%">ODKRYJ</button>
+                        </div>`;
+                }
+            });
+            updatePreview();
         };
 
-        function startR(n) { send({type:'ROUND_START', num: n === 'F' ? "FINAŁOWA" : n}); }
-        function runTimer(s) {
-            let c = s; send({type:'TIMER', action:'start', val:c});
-            let t = setInterval(() => { c--; if(c<=0){ clearInterval(t); send({type:'TIMER', action:'stop'}); } send({type:'TIMER', action:'tick', val:c}); }, 1000);
+        function startRunda(n) {
+            send({type:'SOUND', file:'runda'});
+            send({type:'ROUND_START', num: n});
+            document.getElementById('setup-area').style.display = 'block';
+            document.getElementById('final-area').style.display = 'none';
         }
-        function loadQ() {
-            sum = 0; document.getElementById('s-sum').innerText = 0;
-            const q = DB[document.getElementById('q-sel').value];
-            send({type:'SETUP', ans: q.a.map(x=>({t:x[0], p:x[1]})), isFinal:false});
-            preview();
+
+        function startFinal() {
+            send({type:'SOUND', file:'final'});
+            send({type:'SETUP_FINAL'});
+            document.getElementById('setup-area').style.display = 'none';
+            document.getElementById('final-area').style.display = 'block';
+            totalSum = 0; document.getElementById('local-sum').innerText = 0;
         }
-        function preview() {
-            const q = DB[document.getElementById('q-sel').value];
-            const box = document.getElementById('ans-box'); box.innerHTML = '';
-            q.a.forEach((x, i) => {
-                const b = document.createElement('button');
-                b.innerHTML = `<span>${x[0]}</span> <span style="float:right">${x[1]}</span>`;
-                b.onclick = () => { if(b.disabled) return; sum += x[1]; document.getElementById('s-sum').innerText = sum; send({type:'REV', idx:i}); send({type:'SCORE', val:sum}); b.style.background = 'green'; b.disabled = true; };
-                box.appendChild(b);
-            });
+
+        function sendQ() {
+            totalSum = 0; document.getElementById('local-sum').innerText = 0;
+            const q = DB[document.getElementById('q-select').value];
+            send({type:'SETUP_NORMAL', ans: q.a.map(x=>({t:x[0], p:x[1]}))});
+            updatePreview();
         }
-        function revF(i) {
-            const t = document.getElementById('ft'+i).value.toUpperCase();
-            const p = parseInt(document.getElementById('fp'+i).value) || 0;
-            sum += p; document.getElementById('s-sum').innerText = sum;
-            send({type:'FINAL_REV', idx:i, t:t, p:p}); send({type:'SCORE', val:sum});
+
+        function updatePreview() {
+            const q = DB[document.getElementById('q-select').value];
+            const box = document.getElementById('ans-preview');
+            box.innerHTML = q.a.map((x, i) => `
+                <button onclick="revealNormal(${i}, ${x[1]})" style="width:100%; text-align:left; margin:2px">
+                    ${x[0]} (${x[1]})
+                </button>`).join('');
         }
-        function send(d) { if(conn && conn.open) conn.send(d); }
+
+        function revealNormal(idx, pts) {
+            totalSum += pts;
+            document.getElementById('local-sum').innerText = totalSum;
+            send({type:'REV_NORMAL', idx: idx});
+            send({type:'SCORE', val: totalSum});
+        }
+
+        function revealFinal(player, idx) {
+            const t = document.getElementById(`f-${player}-t-${idx}`).value.toUpperCase();
+            const p = parseInt(document.getElementById(`f-${player}-p-${idx}`).value) || 0;
+            totalSum += p;
+            document.getElementById('local-sum').innerText = totalSum;
+            send({type:'REV_FINAL', player: player, idx: idx, t: t, p: p});
+            send({type:'SCORE', val: totalSum});
+        }
+
+        function sendX(n) { send({type:'X', side: activeSide, n: n}); }
+        
+        function runTimer(sec) {
+            let c = sec;
+            send({type:'TIMER', action:'start', val:c});
+            let itv = setInterval(() => {
+                c--;
+                if(c <= 0) { clearInterval(itv); send({type:'TIMER', action:'stop'}); }
+                send({type:'TIMER', action:'tick', val:c});
+            }, 1000);
+        }
+
+        function send(d) { if(conn) conn.send(d); }
     </script>
 </body>
 </html>
