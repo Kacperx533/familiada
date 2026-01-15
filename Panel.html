@@ -2,44 +2,37 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>PANEL STEROWANIA - FAMILIADA</title>
+    <title>PANEL STEROWANIA</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         body { font-family: sans-serif; background: #121212; color: white; display: grid; grid-template-columns: 320px 1fr 320px; gap: 15px; padding: 15px; }
         .card { background: #1e1e1e; padding: 12px; border-radius: 8px; border-top: 4px solid #e2ff00; margin-bottom: 10px; }
-        button { width: 100%; padding: 10px; margin: 3px 0; cursor: pointer; font-weight: bold; border-radius: 4px; border: none; background: #333; color: white; transition: 0.3s; }
+        button { width: 100%; padding: 10px; margin: 3px 0; cursor: pointer; font-weight: bold; border-radius: 4px; border: none; background: #333; color: white; }
         button:disabled { opacity: 0.2; cursor: not-allowed; }
         .btn-gold { background: #e2ff00; color: black; }
         .btn-red { background: #ff3333; }
         .btn-blue { background: #2196F3; }
-        .btn-active-team { background: #4CAF50 !important; color: white; box-shadow: 0 0 15px #4CAF50; }
+        .btn-active-team { background: #4CAF50 !important; color: white; box-shadow: 0 0 10px #4CAF50; }
         .score-box { font-size: 24px; text-align: center; background: #000; color: #e2ff00; padding: 8px; margin: 5px 0; border: 1px solid #333; }
         input, select { width: 100%; padding: 8px; background: #000; color: white; border: 1px solid #444; margin-bottom: 8px; box-sizing: border-box; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
         .scroll { height: 280px; overflow-y: auto; border: 1px solid #333; padding: 5px; background: #000; }
-        h3 { color: #e2ff00; text-transform: uppercase; font-size: 13px; margin: 0 0 10px 0; }
-        .team-indicator { font-size: 12px; text-align: center; margin-bottom: 10px; padding: 5px; background: #000; border-radius: 4px; }
+        h3 { color: #e2ff00; font-size: 13px; margin: 0 0 10px 0; text-transform: uppercase; }
     </style>
 </head>
 <body>
     <div>
+        <div class="card"><h3>SYSTEM</h3><input id="tv-id" placeholder="ID z TV"><button class="btn-gold" onclick="connect()">POŁĄCZ</button></div>
         <div class="card">
-            <h3>SYSTEM</h3>
-            <input id="tv-id" placeholder="ID z ekranu TV">
-            <button class="btn-gold" onclick="connect()">POŁĄCZ Z TV</button>
-        </div>
-        <div class="card">
-            <h3>WYBÓR AKTYWNEJ DRUŻYNY</h3>
-            <div class="team-indicator" id="status-team">NAJPIERW WYBIERZ DRUŻYNĘ!</div>
+            <h3>PUNKTY DRUŻYN (PANEL)</h3>
             <div class="grid">
-                <button id="team1-btn" onclick="selectTeam(1, 'L')">DRUŻYNA 1 (LEWA)</button>
-                <button id="team2-btn" onclick="selectTeam(2, 'R')">DRUŻYNA 2 (PRAWA)</button>
+                <button id="team1-btn" onclick="selectTeam(1, 'L')">DRUŻYNA 1 (L)</button>
+                <button id="team2-btn" onclick="selectTeam(2, 'R')">DRUŻYNA 2 (P)</button>
             </div>
-            <hr style="border:0; border-top:1px solid #333; margin:10px 0">
-            <div id="t1-pts" style="font-size:18px">D1: 0 pkt</div>
-            <button class="btn-blue control" onclick="addPts(1)" disabled>PRZYPISZ SUMĘ DO D1</button>
+            <div id="t1-pts" style="font-size:18px; margin-top:10px">D1: 0 pkt</div>
+            <button class="btn-blue control" onclick="addPts(1)" disabled>DODAJ SUMĘ DO D1</button>
             <div id="t2-pts" style="font-size:18px; margin-top:10px">D2: 0 pkt</div>
-            <button class="btn-blue control" onclick="addPts(2)" disabled>PRZYPISZ SUMĘ DO D2</button>
+            <button class="btn-blue control" onclick="addPts(2)" disabled>DODAJ SUMĘ DO D2</button>
         </div>
         <div class="card">
             <h3>MEDIA</h3>
@@ -51,25 +44,23 @@
 
     <div>
         <div class="card">
-            <h3>KONTROLA RUNDY</h3>
+            <h3>RUNDY</h3>
             <div class="grid">
-                <button onclick="startR(1)">RUNDA 1</button>
-                <button onclick="startR(2)">RUNDA 2</button>
-                <button onclick="startR(3)">RUNDA 3</button>
-                <button onclick="startR(4)">RUNDA 4</button>
+                <button onclick="startR(1)">RUNDA 1</button><button onclick="startR(2)">RUNDA 2</button>
+                <button onclick="startR(3)">RUNDA 3</button><button onclick="startR(4)">RUNDA 4</button>
             </div>
         </div>
         <div class="card">
-            <h3>PYTANIA</h3>
+            <h3>PYTANIA RUNDY</h3>
             <select id="q-sel" onchange="preQ()"></select>
-            <button class="btn-gold" onclick="sendQ()">ZAŁADUJ PYTANIE</button>
+            <button class="btn-gold" onclick="sendQ()">ZAŁADUJ NA TV</button>
             <div id="ans-pre" class="scroll"></div>
             <div class="score-box">SUMA RUNDY: <span id="cur-sum">0</span></div>
             <div class="grid">
-                <button class="btn-red control" onclick="sendX(1)" disabled>X</button>
-                <button class="btn-red control" onclick="sendX(3)" disabled>XXX</button>
-                <button onclick="send({type:'X',side:'L',n:0});send({type:'X',side:'R',n:0})">CZYŚĆ X</button>
-                <button id="side-display" style="background:#555">AKTYWNA: BRAK</button>
+                <button class="btn-red control" onclick="sendX(1)" disabled>BŁĄD X</button>
+                <button class="btn-red control" onclick="sendX(3)" disabled>BŁĄD XXX</button>
+                <button onclick="send({type:'PLAY_MEDIA', audio:'bad'})" style="background:#a00">TYLKO DŹWIĘK BŁĘDU</button>
+                <button onclick="send({type:'PLAY_MEDIA', audio:'powtorzenie'})" style="background:#555">DŹWIĘK POWTÓRZENIA</button>
             </div>
         </div>
     </div>
@@ -77,7 +68,7 @@
     <div>
         <div class="card">
             <h3>FINAŁ</h3>
-            <button class="btn-gold" onclick="send({type:'SETUP_FINAL'});send({type:'PLAY_MEDIA',video:'final.mp4'})">🏆 START FINAŁU</button>
+            <button class="btn-gold" onclick="send({type:'SETUP_FINAL'});send({type:'PLAY_MEDIA',video:'final.mp4'})">START FINAŁU</button>
             <div class="grid"><button onclick="runT(15)">15s</button><button onclick="runT(20)">20s</button></div>
             <select id="f-sel" onchange="showFH()"></select>
             <div id="f-h" style="font-size:11px; color:#888; margin:10px 0"></div>
@@ -88,77 +79,98 @@
     <script>
         const DB = [
             {q:"Więcej niż jedno zwierzę", a:[["STADO",52],["KLUCZ",17],["WATAHA",11],["ŁAWICA",8],["SFORA",5]]},
-            {q:"Coś co parzy", a:[["POKRZYWA",38],["OGIEŃ",31],["WRZĄTEK",19],["SŁOŃCE",7]]},
-            {q:"Zwierzę na P", a:[["PIES",45],["PTAK",18],["PANDA",12],["PCHŁA",6]]}
-            // ... dopisz resztę tutaj
+            {q:"Coś co parzy", a:[["POKRZYWA",38],["OGIEŃ",31],["WRZĄTEK",19],["SŁOŃCE",7],["MEDUZA",3]]},
+            {q:"Zwierzę na literę P", a:[["PIES",44],["PTAK",18],["PANDA",12],["PCHŁA",6],["PAW",4]]},
+            {q:"Przedmiot w kuchni na T", a:[["TALERZ",45],["TARKA",21],["TOSTER",11],["TEFLON",6]]},
+            {q:"Co robimy rano?", a:[["MYJEMY SIĘ",35],["PIJEMY KAWĘ",24],["ŚNIADANIE",19],["UBIERANIE",12],["ŚCIELENIE",5]]},
+            {q:"Część garderoby na zimę", a:[["CZAPKA",40],["SZALIK",22],["RĘKAWICZKI",17],["KURTKA",13],["KOŻUCH",4]]},
+            {q:"Składnik pizzy", a:[["SER",55],["SZYNKA",15],["PIECZARKI",12],["SOS",9],["CEBULA",4]]},
+            {q:"Dyscyplina lekkoatletyczna", a:[["BIEG",48],["SKOK W DAL",19],["RZUT OSZCZEPEM",11],["PCHNIĘCIE KULĄ",7]]},
+            {q:"Co można otworzyć?", a:[["OKNO",39],["DRZWI",29],["BUTELKĘ",14],["OCZY",10],["KONTO",4]]},
+            {q:"Zwierzę wiejskie", a:[["KURA",43],["KROWA",21],["ŚWINIA",16],["KACZKA",9],["KOŃ",6]]},
+            {q:"Co kojarzy się z Polską?", a:[["PIEROGI",35],["BOCIAN",21],["FLAGA",18],["WAWEL",12],["TATRY",7]]},
+            {q:"Przedmiot szkolny", a:[["ZESZYT",41],["PIÓRNIK",23],["PODRĘCZNIK",16],["TABLICA",11]]},
+            {q:"Kwiat cięty do wazonu", a:[["RÓŻA",52],["TULIPAN",20],["GOŹDZIK",12],["GERBERA",6]]},
+            {q:"Coś słodkiego do jedzenia", a:[["CZEKOLADA",39],["CIASTKO",26],["CUKIERKI",18],["LODY",11]]},
+            {q:"Marka samochodu", a:[["FIAT",30],["BMW",25],["MERCEDES",20],["AUDI",15]]},
+            {q:"Dzień tygodnia (oprócz pon.)", a:[["SOBOTA",35],["PIĄTEK",28],["NIEDZIELA",20],["ŚRODA",10]]},
+            {q:"Gdzie spędzamy urlop?", a:[["NAD MORZEM",50],["W GÓRACH",25],["ZA GRANICĄ",15],["W LESIE",5]]},
+            {q:"Czym piszemy?", a:[["DŁUGOPIS",58],["OŁÓWEK",18],["PIÓRO",14],["KREDA",5]]},
+            {q:"Coś czerwonego", a:[["POMIDOR",36],["KREW",24],["RÓŻA",18],["STRAŻ POŻARNA",10]]},
+            {q:"Ptak, który nie lata", a:[["STRUŚ",48],["PINGWIN",35],["KURA",12]]},
+            {q:"Mebel w salonie", a:[["KANAPA",42],["FOTEL",21],["STÓŁ",18],["REGAŁ",11]]},
+            {q:"Pojazd bez silnika", a:[["ROWER",55],["HULAJNOGA",20],["WÓZEK",15],["SANKI",6]]},
+            {q:"Owoc egzotyczny", a:[["BANAN",44],["ANANAS",22],["KIWI",15],["POMARAŃCZA",11]]},
+            {q:"Coś, co ma koła", a:[["SAMOCHÓD",50],["ROWER",25],["POCIĄG",15],["WÓZEK",6]]},
+            {q:"Instrument klawiszowy", a:[["PIANINO",49],["FORTEPIAN",26],["ORGAN",15],["AKORDEON",6]]},
+            {q:"Ryba na wigilię", a:[["KARP",75],["ŚLEDŹ",15],["PSTRĄG",5]]},
+            {q:"Gdzie szukamy grzybów?", a:[["W LESIE",85],["W MCHU",10],["NA TARGU",5]]},
+            {q:"Co ma liście?", a:[["DRZEWO",58],["KWIAT",22],["KSIĄŻKA",12],["KAPUSTA",6]]},
+            {q:"Płyn do picia", a:[["WODA",45],["SOK",25],["HERBATA",15],["KAWA",10]]},
+            {q:"Dyscyplina sportowa z piłką", a:[["PIŁKA NOŻNA",60],["SIATKÓWKA",20],["KOSZYKÓWKA",12]]},
+            {q:"Państwo sąsiadujące z Polską", a:[["NIEMCY",48],["CZECHY",20],["SŁOWACJA",15],["UKRAINA",10]]},
+            {q:"Coś co świeci", a:[["SŁOŃCE",46],["ŻARÓWKA",28],["KSIĘŻYC",15],["LATARKA",7]]},
+            {q:"Metal szlachetny", a:[["ZŁOTO",65],["SREBRO",25],["PLATYNA",8]]},
+            {q:"Co kładziemy na chleb?", a:[["MASŁO",44],["SZYNKA",26],["SER",18],["DŻEM",8]]},
+            {q:"Postać z bajki", a:[["MYSZKA MICKEY",30],["KOPCIUSZEK",22],["SHREK",18],["BOLEK I LOLEK",12]]},
+            {q:"W czym nosimy zakupy?", a:[["TORBA",52],["REKLAMÓWKA",24],["KOSZYK",18],["PLECAK",4]]},
+            {q:"Coś zimnego", a:[["LÓD",49],["ŚNIEG",26],["WODA",15],["PIWO",8]]},
+            {q:"Część twarzy", a:[["NOS",41],["OCZY",29],["USTA",18],["USZY",8]]},
+            {q:"Miesiąc letni", a:[["LIPIEC",45],["SIERPIEŃ",35],["CZERWIEC",20]]},
+            {q:"Coś co ma zęby", a:[["GRZEBIEŃ",38],["CZŁOWIEK",24],["PIŁA",18],["REKIN",12]]},
+            {q:"Zwierzę domowe (nie pies/kot)", a:[["CHOMIK",42],["KRÓLIK",28],["ŚWINKA MORSKA",18],["PAPUGA",8]]},
+            {q:"Coś, co tyka", a:[["ZEGAR",65],["BOMBA",25],["SERCE",8]]},
+            {q:"Gdzie trzymamy pieniądze?", a:[["W BANKU",48],["W PORTFELU",35],["W SKARPECIE",12]]},
+            {q:"Zawód w mundurze", a:[["POLICJANT",45],["STRAŻAK",30],["ŻOŁNIERZ",20],["PILOT",4]]},
+            {q:"Co rośnie w ogrodzie?", a:[["KWIATY",42],["WARZYWA",28],["TRAWA",18],["DRZEWA",8]]},
+            {q:"Środek transportu miejskiego", a:[["AUTOBUS",55],["TRAMWAJ",30],["METRO",12]]},
+            {q:"Coś co lata", a:[["SAMOLOT",48],["PTAK",32],["MUCHA",15]]},
+            {q:"Co ma klucze?", a:[["ZAMEK",44],["FORTEPIAN",26],["WOŹNY",18]]},
+            {q:"W co gramy?", a:[["W KARTY",40],["W PIŁKĘ",30],["W SZACHY",18],["W GRY",10]]},
+            {q:"Atrybut lekarza", a:[["STETOSKOP",52],["FARTUCH",24],["STRZYKAWKA",18]]}
+        ];
+        const FS = [
+            ["1.Roślina kłująca", "2.Marka auta", "3.Część roweru", "4.Miasto w PL", "5.Imię na A"],
+            ["1.Coś słodkiego", "2.Instrument", "3.Drzewo", "4.Państwo Europa", "5.Kolor"],
+            ["1.Sport zimowy", "2.Ptak drapieżny", "3.Mebel w salonie", "4.Płyn do picia", "5.Zawód medyczny"],
+            ["1.Coś co parzy", "2.Część twarzy", "3.Ryba słodkowodna", "4.Imię żeńskie na M", "5.Planeta"],
+            ["1.Coś okrągłego", "2.Stolica państwa", "3.Narzędzie warsztatowe", "4.Warzywo zielone", "5.Ptak domowy"],
+            ["1.Coś do pisania", "2.Marka opon", "3.Gra zespołowa", "4.Miasto nad morzem", "5.Przyprawa"],
+            ["1.Coś co świeci", "2.Król Polski", "3.Pasmo górskie", "4.Owoc cytrusowy", "5.Napój alkoholowy"],
+            ["1.Co ma koła", "2.Bohater bajki", "3.Waluta", "4.Sport walki", "5.Instrument dęty"],
+            ["1.Coś co tyka", "2.Gatunek muzyki", "3.Drzewo iglaste", "4.Rzeka w Polsce", "5.Owad"],
+            ["1.Coś zimnego", "2.Język obcy", "3.Element komputera", "4.Kwiat wiosenny", "5.Część nogi"]
         ];
 
-        let peer=new Peer(), conn, sum=0, activeTeam=null, side='L', t1=0, t2=0;
-
+        let peer=new Peer(), conn, sum=0, team=null, side='L', t1=0, t2=0;
         function connect() { conn=peer.connect(document.getElementById('tv-id').value); }
-
-        function selectTeam(num, s) {
-            activeTeam = num;
-            side = s;
-            
-            // UI Update
-            document.querySelectorAll('.control').forEach(b => b.disabled = false);
-            document.getElementById('team1-btn').className = (num===1 ? 'btn-active-team' : '');
-            document.getElementById('team2-btn').className = (num===2 ? 'btn-active-team' : '');
-            document.getElementById('status-team').innerText = "AKTYWNA: DRUŻYNA " + num;
-            document.getElementById('side-display').innerText = "STRONA: " + (s==='L'?'LEWA':'PRAWA');
+        function selectTeam(n, s) { 
+            team=n; side=s; 
+            document.querySelectorAll('.control').forEach(b=>b.disabled=false);
+            document.getElementById('team1-btn').className = (n===1?'btn-active-team':'');
+            document.getElementById('team2-btn').className = (n===2?'btn-active-team':'');
         }
-
-        function addPts(n) {
-            if(n===1) t1+=sum; else t2+=sum;
-            sum=0; updS(); updTeams();
-            send({type:'SCORE', val:0});
-            resetSelection();
-        }
-
-        function resetSelection() {
-            activeTeam = null;
-            document.querySelectorAll('.control').forEach(b => b.disabled = true);
-            document.getElementById('team1-btn').className = '';
-            document.getElementById('team2-btn').className = '';
-            document.getElementById('status-team').innerText = "WYBIERZ DRUŻYNĘ DO PUNKTÓW/BŁĘDÓW";
-            document.getElementById('side-display').innerText = "AKTYWNA: BRAK";
-        }
-
-        function startR(n) {
-            sum=0; updS(); resetSelection();
-            send({type:'RESET_BOARD'});
-            send({type:'PLAY_MEDIA', audio:'runda'});
-        }
-
-        function updTeams() {
-            document.getElementById('t1-pts').innerText="D1: "+t1+" pkt";
-            document.getElementById('t2-pts').innerText="D2: "+t2+" pkt";
-        }
-
+        function addPts(n) { if(n===1) t1+=sum; else t2+=sum; sum=0; updS(); updT(); send({type:'SCORE',val:0}); resetSel(); }
+        function resetSel() { team=null; document.querySelectorAll('.control').forEach(b=>b.disabled=true); document.getElementById('team1-btn').className=''; document.getElementById('team2-btn').className=''; }
+        function updT() { document.getElementById('t1-pts').innerText="D1: "+t1+" pkt"; document.getElementById('t2-pts').innerText="D2: "+t2+" pkt"; }
+        function startR(n) { sum=0; updS(); resetSel(); send({type:'RESET_BOARD'}); send({type:'PLAY_MEDIA',audio:'runda'}); }
         window.onload=()=>{
             const s=document.getElementById('q-sel'); DB.forEach((x,i)=>s.innerHTML+=`<option value="${i}">${i+1}. ${x.q}</option>`);
+            const fs=document.getElementById('f-sel'); for(let i=0;i<10;i++) fs.innerHTML+=`<option value="${i}">ZESTAW ${i+1}</option>`;
             const fi=document.getElementById('f-ins'); ['p1','p2'].forEach(p=>{
                 fi.innerHTML+=`<div style="color:#e2ff00;margin-top:10px">${p.toUpperCase()}</div>`;
                 for(let i=0;i<5;i++) fi.innerHTML+=`<div style="display:flex;gap:2px"><input id="f-${p}-t-${i}" style="width:100px"><input id="f-${p}-p-${i}" type="number" style="width:40px"><button onclick="revF('${p}',${i})" style="width:30px;background:#e2ff00;color:black">OK</button></div>`;
             });
-            preQ();
+            preQ(); showFH();
         };
-
-        function sendQ() { sum=0; updS(); const q=DB[document.getElementById('q-sel').value]; send({type:'SETUP_NORMAL', ans:q.a}); preQ(); }
-        function preQ() { 
-            const q=DB[document.getElementById('q-sel').value]; 
-            document.getElementById('ans-pre').innerHTML=q.a.map((x,i)=>`<button class="control" onclick="revN(${i},'${x[0]}',${x[1]})" disabled style="text-align:left">${x[0]} (${x[1]})</button>`).join(''); 
-        }
-
-        function revN(i,t,p) { 
-            sum+=p; updS(); 
-            send({type:'REV_NORMAL', idx:i, t:t, p:p}); 
-            send({type:'SCORE', val:sum}); 
-        }
-
-        function sendX(n) { send({type:'X', side:side, n:n}); }
+        function sendQ() { sum=0; updS(); const q=DB[document.getElementById('q-sel').value]; send({type:'SETUP_NORMAL',ans:q.a}); preQ(); }
+        function preQ() { const q=DB[document.getElementById('q-sel').value]; document.getElementById('ans-pre').innerHTML=q.a.map((x,i)=>`<button class="control" onclick="revN(${i},'${x[0]}',${x[1]})" disabled style="text-align:left">${x[0]} (${x[1]})</button>`).join(''); }
+        function revN(i,t,p) { sum+=p; updS(); send({type:'REV_NORMAL',idx:i,t:t,p:p}); send({type:'SCORE',val:sum}); }
+        function revF(p,i) { const t=document.getElementById(`f-${p}-t-${i}`).value.toUpperCase(), pts=parseInt(document.getElementById(`f-${p}-p-${i}`).value)||0; sum+=pts; updS(); send({type:'REV_FINAL',player:p,idx:i,t:t,p:pts}); send({type:'SCORE',val:sum}); }
+        function showFH() { document.getElementById('f-h').innerHTML=FS[document.getElementById('f-sel').value].join("<br>"); }
         function updS() { document.getElementById('cur-sum').innerText=sum; }
+        function sendX(n) { send({type:'X',side:side,n:n}); }
+        function runT(s) { let c=s; send({type:'TIMER',action:'start',val:c}); let i=setInterval(()=>{c--;send({type:'TIMER',action:'tick',val:c});if(c<=0){clearInterval(i);send({type:'TIMER',action:'stop'});}},1000); }
         function send(d) { if(conn) conn.send(d); }
     </script>
 </body>
