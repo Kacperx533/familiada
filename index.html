@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA TV - FINAL LED</title>
+    <title>FAMILIADA TV - ULTRA LED</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
@@ -21,22 +21,22 @@
             text-transform: uppercase;
         }
 
-        /* RZADSZA SIATKA LED - WIĘKSZE KROPKI */
+        /* BARDZO RZADKA SIATKA LED - DUŻE ODSTĘPY */
         body::after {
             content: "";
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             background-image: 
-                linear-gradient(0deg, #000 3px, transparent 3px),
-                linear-gradient(90deg, #000 3px, transparent 3px);
-            background-size: 12px 12px; /* Rzadsze kropki */
+                linear-gradient(0deg, #000 5px, transparent 5px),
+                linear-gradient(90deg, #000 5px, transparent 5px);
+            background-size: 18px 18px; /* Jeszcze mniej kropek, większe odstępy */
             z-index: 10000;
             pointer-events: none;
         }
 
         .stage { 
             display: grid; 
-            grid-template-columns: 300px 1fr 300px; 
+            grid-template-columns: 320px 1fr 320px; 
             width: 98vw; 
             height: 92vh; 
             margin: 4vh auto; 
@@ -44,49 +44,48 @@
         }
 
         .x-box { 
-            width: 280px; height: 240px; 
+            width: 300px; height: 240px; 
             display: flex; justify-content: center; align-items: center;
             margin-bottom: 20px;
         }
 
-        /* WIELKI X - ŁĄCZĄCE SIĘ SEGMENTY */
+        /* X - CAŁKOWICIE UKRYTE PRZED KLIKNIĘCIEM */
         .x-container {
-            width: 220px;
-            height: 220px;
-            display: flex;
+            width: 240px;
+            height: 240px;
+            display: none; 
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            display: none; /* Całkowicie ukryte przed kliknięciem */
         }
 
         .x-box.active .x-container { 
             display: flex; 
-            filter: drop-shadow(0 0 10px var(--led-yellow));
+            filter: drop-shadow(0 0 15px var(--led-yellow));
         }
 
         .segment { background-color: var(--led-yellow); }
 
-        /* KLASYCZNY KSZTAŁT ALE DUŻY I ZŁĄCZONY */
+        /* KLASYCZNY X NA CAŁĄ DŁUGOŚĆ */
         .arm {
-            width: 100%; height: 90px;
+            width: 100%; height: 100px;
             clip-path: polygon(0 0, 45% 0, 50% 30%, 55% 0, 100% 0, 100% 100%, 70% 100%, 50% 70%, 30% 100%, 0 100%);
         }
-        .arm.bottom { transform: rotate(180deg); margin-top: -15px; } /* Przymknięcie przerwy */
+        .arm.bottom { transform: rotate(180deg); margin-top: -20px; }
 
         .mid {
-            width: 80px; height: 50px;
+            width: 90px; height: 60px;
             clip-path: polygon(0 0, 100% 0, 50% 50%, 100% 100%, 0 100%, 50% 50%);
-            margin: -15px 0; /* Przymknięcie przerwy */
+            margin: -20px 0;
             z-index: 2;
         }
 
         /* TABLICA */
         .board { 
             background: #050505; 
-            border: 2px solid #111;
+            border: 1px solid #111;
             position: relative;
-            padding: 140px 40px 40px 40px;
+            padding: 140px 50px 40px 50px;
             display: flex;
             flex-direction: column;
         }
@@ -96,31 +95,34 @@
             display: flex; justify-content: center; align-items: center;
             background: #000; z-index: 10;
         }
-        #welcome-screen h1 { font-size: 24vh; }
+        #welcome-screen h1 { font-size: 26vh; }
 
+        /* POPRAWIONE WYŚWIETLANIE PUNKTÓW I TEKSTU */
         .row { 
             display: flex; 
             align-items: center; 
             height: 10vh; 
             font-size: 11vh; 
             margin-bottom: 10px;
-            border-bottom: 1px solid #080808;
+            border-bottom: 2px solid #0a0a0a;
         }
-        .row-num { width: 90px; color: var(--led-yellow); }
-        .row-txt { flex-grow: 1; padding-left: 20px; }
-        .row-pts { width: 140px; text-align: right; }
+        .row-num { width: 90px; color: var(--led-yellow); flex-shrink: 0; }
+        .row-txt { flex-grow: 1; padding-left: 20px; white-space: nowrap; overflow: hidden; }
+        .row-pts { width: 150px; text-align: right; flex-shrink: 0; color: var(--led-yellow); }
 
         .dots::after { 
             content: " ...................................................."; 
-            letter-spacing: 12px;
-            opacity: 0.1;
+            letter-spacing: 15px;
+            opacity: 0.05;
         }
 
         .sum-box { 
             margin-top: auto;
             align-self: flex-end;
             font-size: 14vh; 
-            display: flex; gap: 60px;
+            display: flex; 
+            gap: 50px;
+            color: var(--led-yellow);
         }
 
         #timer-display { position: absolute; bottom: 40px; left: 40px; font-size: 18vh; color: #ff0000; display: none; }
@@ -147,7 +149,7 @@
         <div class="board">
             <div id="welcome-screen"><h1>FAMILIADA</h1></div>
             <div id="main-display"></div>
-            <div class="sum-box"><span>SUMA</span><span id="total-val">00</span></div>
+            <div class="sum-box"><span>SUMA</span><span id="total-val">0</span></div>
         </div>
 
         <div class="side-x">
@@ -204,7 +206,9 @@
                     r.querySelector('.row-txt').innerText = d.t;
                     r.querySelector('.row-pts').innerText = d.p;
                 }
-                if(d.type === 'SCORE') document.getElementById('total-val').innerText = d.val;
+                if(d.type === 'SCORE') {
+                    document.getElementById('total-val').innerText = d.val;
+                }
             });
         });
     </script>
