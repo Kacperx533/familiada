@@ -5,93 +5,149 @@
     <title>PANEL STEROWANIA</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        body { font-family: sans-serif; background: #111; color: white; padding: 20px; display: grid; grid-template-columns: 380px 1fr; gap: 20px; }
-        .card { background: #222; padding: 15px; border-radius: 8px; margin-bottom: 10px; border-top: 3px solid #dfff00; }
-        button { width: 100%; padding: 10px; margin: 2px 0; cursor: pointer; font-weight: bold; border: none; border-radius: 4px; }
+        body { font-family: sans-serif; background: #111; color: white; padding: 15px; display: grid; grid-template-columns: 380px 1fr 300px; gap: 15px; }
+        .card { background: #222; padding: 12px; border-radius: 8px; border-top: 3px solid #dfff00; margin-bottom: 10px; }
+        button { width: 100%; padding: 8px; margin: 2px 0; cursor: pointer; font-weight: bold; border: none; border-radius: 4px; }
         .btn-gold { background: #dfff00; color: #000; }
         .btn-blue { background: #0055ff; color: #fff; }
         .btn-red { background: #aa0000; color: #fff; }
-        input { width: 100%; padding: 8px; background: #000; color: #fff; border: 1px solid #444; box-sizing: border-box; }
+        .btn-gray { background: #444; color: #fff; }
+        input, select { width: 100%; padding: 8px; background: #000; color: #fff; border: 1px solid #444; box-sizing: border-box; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
-        h3 { margin-top: 0; color: #dfff00; font-size: 14px; }
+        .score-box { font-size: 24px; text-align: center; padding: 10px; background: #000; border-radius: 5px; margin: 5px 0; }
+        .cheat-sheet { font-size: 12px; color: #aaa; height: 400px; overflow-y: auto; }
+        h3 { margin-top: 0; color: #dfff00; font-size: 13px; text-transform: uppercase; }
     </style>
 </head>
 <body>
+
     <div>
         <div class="card">
-            <h3>1. POŁĄCZENIE</h3>
-            <input id="tv-id" placeholder="Wpisz ID z TV">
-            <button class="btn-gold" onclick="connect()">POŁĄCZ</button>
-            <button onclick="send({type:'INTRO'})">POKAZ TYTUŁ (START)</button>
+            <h3>Konta Punktowe</h3>
+            <div class="grid">
+                <div><div class="score-box" style="color:#0055ff" id="p-blue">0</div><button class="btn-blue" onclick="addPoints('blue')">DODAJ SUMĘ</button></div>
+                <div><div class="score-box" style="color:#aa0000" id="p-red">0</div><button class="btn-red" onclick="addPoints('red')">DODAJ SUMĘ</button></div>
+            </div>
+            <button class="btn-gray" onclick="resetAllScores()" style="margin-top:5px">RESETUJ KONTA</button>
         </div>
 
         <div class="card">
-            <h3>2. RUNDY I MULTIMEDIA</h3>
-            <div class="grid">
-                <button onclick="startR(1)">RUNDA 1</button>
-                <button onclick="startR(2)">RUNDA 2</button>
-                <button onclick="startR(3)">RUNDA 3</button>
-                <button onclick="startR('FINAŁ')">FINAŁ</button>
+            <h3>Multimedia i Błędy</h3>
+            <button class="btn-gold" onclick="send({type:'INTRO'})">START: NAPIS FAMILIADA</button>
+            <button onclick="send({type:'VIDEO'})">🎬 CZOŁÓWKA WIDEO</button>
+            <div class="grid" style="margin-top:10px">
+                <button class="btn-blue" onclick="send({type:'X', side:'L', n:1})">X</button>
+                <button class="btn-red" onclick="send({type:'X', side:'R', n:1})">X</button>
+                <button class="btn-blue" onclick="send({type:'X', side:'L', n:3})">XXX</button>
+                <button class="btn-red" onclick="send({type:'X', side:'R', n:3})">XXX</button>
             </div>
-            <button onclick="send({type:'VIDEO'})" style="background:orange;">🎬 CZOŁÓWKA WIDEO</button>
+            <button class="btn-gray" onclick="send({type:'CLEAR_X'})">CZYŚĆ IKSY</button>
         </div>
 
         <div class="card">
-            <h3>3. BŁĘDY (X)</h3>
+            <h3>Stoper Finałowy</h3>
             <div class="grid">
-                <button class="btn-blue" onclick="send({type:'X', side:'L', n:1})">X (L)</button>
-                <button class="btn-red" onclick="send({type:'X', side:'R', n:1})">X (P)</button>
-                <button class="btn-blue" onclick="send({type:'X', side:'L', n:2})">XX (L)</button>
-                <button class="btn-red" onclick="send({type:'X', side:'R', n:2})">XX (P)</button>
-                <button class="btn-blue" onclick="send({type:'X', side:'L', n:3})">XXX (L)</button>
-                <button class="btn-red" onclick="send({type:'X', side:'R', n:3})">XXX (P)</button>
+                <button class="btn-gold" onclick="runTimer(15)">START 15s</button>
+                <button class="btn-gold" onclick="runTimer(20)">START 20s</button>
             </div>
-            <button onclick="send({type:'CLEAR_X'})" style="margin-top:5px;">CZYŚĆ WSZYSTKIE IKSY</button>
+            <button class="btn-red" onclick="stopTimer()">ZATRZYMAJ</button>
         </div>
     </div>
 
     <div>
-        <div class="card" id="normal-game">
-            <h3>4. STEROWANIE RUNDĄ</h3>
-            <select id="q-sel" onchange="preview()" style="width:100%; padding:10px; margin-bottom:10px;"></select>
-            <button class="btn-gold" onclick="loadQ()">WYŚLIJ PYTANIE NA TABLICĘ</button>
-            <div id="ans-box" style="margin:15px 0"></div>
-            <div style="text-align:right; font-size:30px; color:gold">SUMA: <span id="s-sum">0</span></div>
+        <div class="card">
+            <h3>Rundy Zwykłe</h3>
+            <div class="grid">
+                <button onclick="startR(1)">R1</button><button onclick="startR(2)">R2</button>
+                <button onclick="startR(3)">R3</button><button onclick="startR('FINAŁ')">FINAŁ</button>
+            </div>
+            <select id="q-sel" onchange="preview()" style="margin:10px 0"></select>
+            <button class="btn-gold" onclick="loadQ()">WYŚLIJ PYTANIE</button>
+            <div id="ans-box" style="margin-top:10px"></div>
+            <div style="text-align:right; font-size:30px; color:gold">SUMA RUNDY: <span id="s-sum">0</span></div>
         </div>
 
-        <div class="card" style="border-top-color: #ff00ff;">
-            <h3>5. TRYB FINAŁOWY</h3>
-            <button class="btn-blue" onclick="prepFinal()">PRZYGOTUJ TABLICĘ FINAŁOWĄ</button>
-            <div id="final-ui" style="margin-top:10px">
-                <div id="f-rows"></div>
-            </div>
+        <div class="card">
+            <h3>Finał - Tablica</h3>
+            <button class="btn-blue" onclick="prepFinal()">PRZYGOTUJ PUSTY FINAŁ</button>
+            <div id="f-rows" style="margin-top:10px"></div>
         </div>
+    </div>
+
+    <div class="card">
+        <h3>Ściągawka Pytań</h3>
+        <div class="cheat-sheet" id="cheat-box"></div>
     </div>
 
     <script>
         const DB = [
-            {q:"Przedmiot szkolny", a:[["MATEMATYKA",45],["POLSKI",30],["WF",15],["HISTORIA",10]]},
-            {q:"Zwierzę domowe", a:[["PIES",50],["KOT",40],["CHOMIK",10]]}
+            {q:"Zwierzę na literę P", a:[["PIES",45],["PTAK",25],["PANTERA",15],["PANDA",10],["PCHŁA",5]]},
+            {q:"Przedmiot w piórniku", a:[["DŁUGOPIS",40],["OŁÓWEK",30],["GUMKA",20],["LINIJKA",10]]},
+            {q:"Coś zimnego", a:[["LÓD",50],["ŚNIEG",30],["WODA",15],["COLA",5]]}
         ];
-        let peer = new Peer(), conn, sum = 0;
+        
+        const FINAL_SETS = [
+            {q:"1. Więcej niż jedno zwierzę?", a:"STADO, PARA, OWCE"},
+            {q:"2. Coś co się klei?", a:"KLEJ, TAŚMA, MIÓD"},
+            {q:"3. Stolica europejska?", a:"WARSZAWA, PARYŻ, RZYM"},
+            {q:"4. Część roweru?", a:"KOŁO, RAMA, KIEROWNICA"},
+            {q:"5. Rodzaj spodni?", a:"JEANSY, DRESY, RURKI"}
+        ];
 
-        function connect() { conn = peer.connect(document.getElementById('tv-id').value); }
+        let peer = new Peer(), conn, sum = 0;
+        let scores = { blue: 0, red: 0 };
+        let timerInt;
+
+        function connect() { 
+            const id = document.getElementById('tv-id').value;
+            conn = peer.connect(id); 
+        }
         
         window.onload = () => {
             const sel = document.getElementById('q-sel');
             DB.forEach((x,i) => sel.innerHTML += `<option value="${i}">${x.q}</option>`);
-            preview();
             
-            let fRows = document.getElementById('f-rows');
+            // Generuj finałowe pola
+            let fr = document.getElementById('f-rows');
             for(let i=0; i<5; i++) {
-                fRows.innerHTML += `
-                    <div class="grid" style="margin-bottom:5px">
-                        <input id="ft${i}" placeholder="Odp">
-                        <input id="fp${i}" type="number" placeholder="Pkt" style="width:60px">
-                        <button onclick="revF(${i})" style="grid-column: span 2; background:#444; color:white">ODKRYJ ${i+1}</button>
-                    </div>`;
+                fr.innerHTML += `<div class="grid" style="margin-bottom:5px"><input id="ft${i}" placeholder="Odp"><input id="fp${i}" type="number" placeholder="Pkt" style="width:50px"><button onclick="revF(${i})" class="btn-gray">OK</button></div>`;
             }
+
+            // Ściągawka
+            const cb = document.getElementById('cheat-box');
+            cb.innerHTML = "<b>PYTANIA ZWYKŁE:</b><br>";
+            DB.forEach(x => cb.innerHTML += `• ${x.q} (${x.a.map(y=>y[0]).join(', ')})<br><br>`);
+            cb.innerHTML += "<br><b>ZESTAW FINAŁOWY:</b><br>";
+            FINAL_SETS.forEach(x => cb.innerHTML += `• ${x.q}<br><i>${x.a}</i><br><br>`);
+            
+            preview();
         };
+
+        function addPoints(team) {
+            scores[team] += sum;
+            document.getElementById('p-'+team).innerText = scores[team];
+            sum = 0;
+            document.getElementById('s-sum').innerText = 0;
+            send({type:'SCORE', val:0});
+        }
+
+        function resetAllScores() {
+            scores = {blue:0, red:0};
+            document.getElementById('p-blue').innerText = 0;
+            document.getElementById('p-red').innerText = 0;
+        }
+
+        function runTimer(sec) {
+            clearInterval(timerInt);
+            let c = sec;
+            send({type:'TIMER', action:'start', val:c});
+            timerInt = setInterval(() => {
+                c--;
+                if(c <= 0) { clearInterval(timerInt); }
+                send({type:'TIMER', action:'tick', val:c});
+            }, 1000);
+        }
+        function stopTimer() { clearInterval(timerInt); send({type:'TIMER', action:'stop'}); }
 
         function startR(n) { send({type:'ROUND_START', num: n}); }
 
@@ -106,7 +162,7 @@
                     if(b.disabled) return;
                     sum += x[1];
                     document.getElementById('s-sum').innerText = sum;
-                    send({type:'REV', idx:i, isFinal:false});
+                    send({type:'REV', idx:i});
                     send({type:'SCORE', val:sum});
                     b.style.background = 'green'; b.disabled = true;
                 };
