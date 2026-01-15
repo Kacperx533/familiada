@@ -2,54 +2,38 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA TV - PRO SYSTEM</title>
+    <title>FAMILIADA TV</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        :root { --led: #e2ff00; --led-off: #1a1a00; --red: #ff0000; --bg: #050505; }
+        :root { --led: #e2ff00; --red: #ff0000; --bg: #050505; }
         body { background: var(--bg); color: var(--led); font-family: 'VT323', monospace; margin: 0; overflow: hidden; height: 100vh; text-transform: uppercase; }
-        
-        /* EFEKT LED */
         body::after { content: ""; position: fixed; inset: 0; background: radial-gradient(circle, transparent 20%, #000 70%); background-size: 4px 4px; z-index: 1000; pointer-events: none; opacity: 0.4; }
-        
         #video-layer { position: fixed; inset: 0; background: black; z-index: 5000; display: none; }
         video { width: 100%; height: 100%; object-fit: contain; }
-
         .stage { display: grid; grid-template-columns: 200px 1fr 200px; width: 95vw; height: 85vh; margin: 7vh auto; gap: 30px; }
-        .side-x { display: flex; flex-direction: column; gap: 20px; justify-content: center; }
-        .x-box { width: 150px; height: 150px; border: 6px solid #111; display: flex; justify-content: center; align-items: center; background: #080808; }
-        .x-box::before { content: "X"; font-size: 130px; color: #151010; transition: 0.1s; }
+        .x-box { width: 150px; height: 150px; border: 6px solid #111; display: flex; justify-content: center; align-items: center; background: #080808; margin-bottom: 20px; }
+        .x-box::before { content: "X"; font-size: 130px; color: #151010; }
         .x-box.active::before { color: var(--red); text-shadow: 0 0 25px var(--red); }
-
-        .board { 
-            display: flex; flex-direction: column; position: relative; 
-            border: 12px solid #1a1a1a; background: #0a0a0a; 
-            padding: 150px 60px 40px 60px; /* Przesunięte w dół */
-            box-shadow: inset 0 0 100px #000;
-        }
-
-        .row { display: flex; align-items: center; height: 9vh; font-size: 8.5vh; margin-bottom: 25px; border-bottom: 2px solid #151515; text-shadow: 0 0 15px var(--led); }
-        .row-num { width: 80px; color: var(--led); } /* Całe żółte numery */
+        .board { display: flex; flex-direction: column; position: relative; border: 12px solid #1a1a1a; background: #0a0a0a; padding: 180px 60px 40px 60px; box-shadow: inset 0 0 100px #000; }
+        .row { display: flex; align-items: center; height: 9vh; font-size: 8.5vh; margin-bottom: 20px; border-bottom: 2px solid #151515; }
+        .row-num { width: 80px; color: var(--led); text-shadow: 0 0 15px var(--led); }
         .row-txt { flex-grow: 1; padding-left: 30px; }
         .row-pts { width: 130px; text-align: right; }
-        .dots::after { content: ".........................."; color: var(--led-off); text-shadow: none; opacity: 0.3; }
-
-        .sum-box { position: absolute; bottom: 30px; right: 80px; font-size: 11vh; display: flex; gap: 40px; border-top: 5px solid #151515; padding-top: 10px; }
-        #timer-display { position: absolute; bottom: 40px; left: 80px; font-size: 15vh; color: var(--red); display: none; text-shadow: 0 0 30px var(--red); }
-        
-        #msg-overlay { position: fixed; inset: 0; background: #000; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 6000; font-size: 8vh; text-align: center; }
-        #unlock-btn { font-size: 30px; padding: 20px 40px; background: var(--led); color: black; border: none; cursor: pointer; margin-top: 30px; font-weight: bold; border-radius: 10px; }
+        .dots::after { content: ".........................."; color: #1a1a00; opacity: 0.3; }
+        .sum-box { position: absolute; bottom: 30px; right: 80px; font-size: 11vh; display: flex; gap: 40px; border-top: 5px solid #151515; }
+        #timer-display { position: absolute; bottom: 40px; left: 80px; font-size: 15vh; color: var(--red); display: none; }
+        #msg-overlay { position: fixed; inset: 0; background: #000; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 6000; }
+        #unlock-btn { font-size: 30px; padding: 20px; background: var(--led); border: none; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
     <div id="msg-overlay">
-        <div id="status-text">ŁADOWANIE...</div>
-        <button id="unlock-btn" onclick="unlock()">ODBLOKUJ DŹWIĘK I SYSTEM</button>
+        <div id="status-text" style="font-size: 5vh; color: white; margin-bottom: 20px;">POŁĄCZ PANEL</div>
+        <button id="unlock-btn" onclick="unlock()">AKTYWUJ DŹWIĘK</button>
     </div>
-
     <div id="video-layer"><video id="vid-player"></video></div>
     <div id="timer-display">00</div>
-
     <div class="stage">
         <div class="side-x"><div class="x-box" id="L1"></div><div class="x-box" id="L2"></div><div class="x-box" id="L3"></div></div>
         <div class="board">
@@ -58,11 +42,12 @@
         </div>
         <div class="side-x"><div class="x-box" id="R1"></div><div class="x-box" id="R2"></div><div class="x-box" id="R3"></div></div>
     </div>
-
+    <audio id="snd-intro" src="intro.mp3"></audio>
+    <audio id="snd-runda" src="runda.mp3"></audio>
     <audio id="snd-ok" src="ok.mp3"></audio>
     <audio id="snd-bad" src="zla.mp3"></audio>
-    <audio id="snd-runda" src="runda.mp3"></audio>
     <audio id="snd-timer" src="czas.mp3"></audio>
+    <audio id="snd-powtorzenie" src="powtorzenie.mp3"></audio>
 
     <script>
         const peer = new Peer();
@@ -72,40 +57,29 @@
         let currentData = { p1: [], p2: [], normal: [] };
 
         function unlock() {
-            document.getElementById('snd-ok').play().catch(()=>{});
+            document.querySelectorAll('audio').forEach(a => { a.play(); a.pause(); });
             document.getElementById('unlock-btn').style.display = 'none';
-            document.getElementById('status-text').innerText = "CZEKAM NA PANEL...";
         }
 
-        peer.on('open', id => document.getElementById('status-text').innerText = "KOD TV: " + id);
+        peer.on('open', id => document.getElementById('status-text').innerText = "ID: " + id);
 
         peer.on('connection', conn => {
             document.getElementById('msg-overlay').style.display = 'none';
             conn.on('data', d => {
                 if(d.type === 'PLAY_MEDIA') {
                     if(d.video) { vidLayer.style.display = 'block'; vidPlayer.src = d.video; vidPlayer.play(); vidPlayer.onended = () => vidLayer.style.display = 'none'; }
-                    if(d.audio) { let s = document.getElementById('snd-'+d.audio); s.currentTime=0; s.play(); }
+                    if(d.audio) { let s = document.getElementById('snd-'+d.audio); if(s){ s.currentTime=0; s.play(); } }
                 }
                 if(d.type === 'STOP_VIDEO') { vidLayer.style.display='none'; vidPlayer.pause(); }
+                if(d.type === 'X') { document.getElementById('snd-bad').play(); for(let i=1; i<=3; i++) document.getElementById(d.side+i).classList.toggle('active', i<=d.n); }
+                if(d.type === 'SCORE') document.getElementById('total-val').innerText = d.val;
                 if(d.type === 'TIMER') {
                     const t = document.getElementById('timer-display');
                     t.innerText = d.val; t.style.display = d.action === 'stop' ? 'none' : 'block';
                     if(d.action === 'start') document.getElementById('snd-timer').play();
                 }
-                if(d.type === 'SETUP_NORMAL') {
-                    currentData.normal = d.ans.map(a => ({...a, rev: false}));
-                    renderNormal();
-                }
-                if(d.type === 'REV_NORMAL') {
-                    document.getElementById('snd-ok').play();
-                    currentData.normal[d.idx].rev = true;
-                    renderNormal();
-                }
-                if(d.type === 'SCORE') document.getElementById('total-val').innerText = d.val;
-                if(d.type === 'X') {
-                    document.getElementById('snd-bad').play();
-                    for(let i=1; i<=3; i++) document.getElementById(d.side+i).classList.toggle('active', i<=d.n);
-                }
+                if(d.type === 'SETUP_NORMAL') { currentData.normal = d.ans.map(a => ({...a, rev: false})); renderNormal(); }
+                if(d.type === 'REV_NORMAL') { document.getElementById('snd-ok').play(); currentData.normal[d.idx].rev = true; renderNormal(); }
                 if(d.type === 'SETUP_FINAL') { currentData.p1=Array(5).fill({rev:false}); currentData.p2=Array(5).fill({rev:false}); renderFinal(); }
                 if(d.type === 'REV_FINAL') { document.getElementById('snd-ok').play(); currentData[d.player][d.idx] = {t:d.t, p:d.p, rev:true}; renderFinal(); }
             });
@@ -121,7 +95,7 @@
         }
 
         function renderFinal() {
-            let html = '<div class="final-container"><div>';
+            let html = '<div class="final-container" style="display:grid; grid-template-columns:1fr 1fr; gap:40px;"><div>';
             for(let i=0; i<5; i++) html += `<div class="row"><div class="row-txt ${currentData.p1[i]?.rev ? '' : 'dots'}">${currentData.p1[i]?.rev ? currentData.p1[i].t : ''}</div><div class="row-pts">${currentData.p1[i]?.rev ? currentData.p1[i].p : ''}</div></div>`;
             html += '</div><div>';
             for(let i=0; i<5; i++) html += `<div class="row"><div class="row-txt ${currentData.p2[i]?.rev ? '' : 'dots'}">${currentData.p2[i]?.rev ? currentData.p2[i].t : ''}</div><div class="row-pts">${currentData.p2[i]?.rev ? currentData.p2[i].p : ''}</div></div>`;
