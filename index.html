@@ -16,14 +16,13 @@
         .x-box::before { content: "X"; font-size: 130px; color: #151010; }
         .x-box.active::before { color: var(--red); text-shadow: 0 0 25px var(--red); }
         .board { display: flex; flex-direction: column; position: relative; border: 12px solid #1a1a1a; background: #0a0a0a; padding: 160px 50px 30px 50px; box-shadow: inset 0 0 100px #000; min-height: 450px; }
-        #welcome-screen { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #0a0a0a; z-index: 10; }
+        #welcome-screen { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #0a0a0a; z-index: 10; text-align: center;}
         #welcome-screen h1 { font-size: 14vh; margin: 0; text-shadow: 0 0 30px var(--led); }
         #welcome-screen p { font-size: 5vh; margin: 0; opacity: 0.7; }
         .row { display: flex; align-items: center; height: 8vh; font-size: 7.5vh; margin-bottom: 15px; border-bottom: 2px solid #151515; }
-        /* Styl dla mniejszego finału */
-        .final-row { height: 6.5vh; font-size: 6vh; margin-bottom: 10px; }
+        .final-row { height: 6.2vh; font-size: 5.5vh; margin-bottom: 8px; }
         .row-num { width: 60px; color: var(--led); }
-        .row-txt { flex-grow: 1; padding-left: 20px; }
+        .row-txt { flex-grow: 1; padding-left: 20px; overflow: hidden; white-space: nowrap; }
         .row-pts { width: 100px; text-align: right; }
         .dots::after { content: ".........................."; color: #1a1a00; opacity: 0.2; }
         .sum-box { position: absolute; bottom: 25px; right: 60px; font-size: 10vh; display: flex; gap: 30px; border-top: 5px solid #151515; }
@@ -33,7 +32,7 @@
     </style>
 </head>
 <body>
-    <div id="msg-overlay"><div id="status-text" style="color:white; margin-bottom:20px;">ŁĄCZENIE...</div><button id="unlock-btn" onclick="unlock()">AKTYWUJ MULTIMEDIA</button></div>
+    <div id="msg-overlay"><div id="status-text" style="color:white; margin-bottom:20px; font-size: 30px;">ŁĄCZENIE...</div><button id="unlock-btn" onclick="unlock()">AKTYWUJ MULTIMEDIA</button></div>
     <div id="video-layer"><video id="vid-player"></video></div>
     <div id="timer-display">00</div>
     <div class="stage">
