@@ -2,14 +2,14 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA TV - REPLIKA</title>
+    <title>FAMILIADA TV - FINAL REPLICA</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root { 
             --led: #eaff00; 
-            --bg: #1a1a1a; 
-            --glow: 0 0 10px rgba(234, 255, 0, 0.7);
+            --bg: #111; 
+            --glow: 0 0 15px rgba(234, 255, 0, 0.8), 0 0 5px rgba(255, 255, 255, 0.5);
         }
         
         body { 
@@ -22,36 +22,45 @@
             text-transform: uppercase; 
         }
 
-        /* SIATKA MODUŁÓW LED (KAFELKI ZE ZDJĘCIA) */
-        .stage::before {
+        /* SIATKA MODUŁOWA (KAFELKI) */
+        body::after {
             content: ""; position: fixed; inset: 0;
             background-image: 
-                linear-gradient(0deg, #000 4px, transparent 4px),
-                linear-gradient(90deg, #000 4px, transparent 4px);
-            background-size: 40px 60px; /* Rozmiar pojedynczego kafelka */
-            z-index: 5; opacity: 0.3; pointer-events: none;
+                linear-gradient(rgba(0,0,0,0.95) 2px, transparent 2px),
+                linear-gradient(90deg, rgba(0,0,0,0.95) 2px, transparent 2px);
+            background-size: 8px 8px; /* Gęsta, drobna siatka */
+            z-index: 10000; pointer-events: none;
         }
 
+        /* TŁO KAFELKOWE (WIDOCZNE STRUKTURY) */
         .stage { 
             display: grid; 
-            grid-template-columns: 250px 1100px 250px; 
+            grid-template-columns: 300px 1100px 300px; 
             justify-content: center;
             align-items: center;
             width: 100vw; height: 100vh;
-            background: radial-gradient(circle, #222 0%, #000 100%);
+            background: repeating-linear-gradient(0deg, #0a0a0a, #0a0a0a 58px, #000 60px),
+                        repeating-linear-gradient(90deg, #0a0a0a, #0a0a0a 38px, #000 40px);
         }
 
-        /* SEGMENTOWY X ZE ZDJĘCIA */
-        .x-box { width: 200px; height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; visibility: hidden; }
-        .x-box.active { visibility: visible; }
+        /* IKSY ZE ZDJĘCIA - TRZYCZĘŚCIOWE */
+        .x-box { 
+            width: 250px; height: 250px; 
+            display: none; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 6px; 
+        }
+        .x-box.active { display: flex; }
         
         .x-part { background: var(--led); box-shadow: var(--glow); }
         .x-top-bot { 
-            width: 160px; height: 50px; 
-            clip-path: polygon(0 0, 40% 0, 50% 40%, 60% 0, 100% 0, 80% 100%, 20% 100%);
+            width: 180px; height: 55px; 
+            clip-path: polygon(0 0, 100% 0, 85% 100%, 15% 100%);
         }
         .x-mid { 
-            width: 80px; height: 70px; 
+            width: 85px; height: 75px; 
             clip-path: polygon(0 0, 100% 0, 50% 50%, 100% 100%, 0 100%, 50% 50%);
         }
         .x-bot { transform: rotate(180deg); }
@@ -59,46 +68,66 @@
         /* TABLICA */
         .board { 
             position: relative; 
-            padding: 60px; 
+            padding: 80px 40px; 
             display: flex; flex-direction: column; 
-            height: 80vh;
+            height: 75vh;
         }
 
-        #welcome-screen { position: absolute; inset: 0; display: flex; justify-content: center; align-items: center; background: #000; z-index: 20; }
-        #welcome-screen h1 { font-size: 25vh; text-shadow: var(--glow); letter-spacing: 10px; }
+        #welcome-screen { 
+            position: absolute; inset: 0; 
+            display: flex; justify-content: center; align-items: center; 
+            background: #000; z-index: 20; 
+        }
+        #welcome-screen h1 { font-size: 24vh; text-shadow: var(--glow); letter-spacing: 12px; }
 
+        /* WIERSZE */
         .row { 
             display: flex; align-items: center; 
-            height: 10vh; font-size: 11vh; 
-            margin-bottom: 10px; 
+            height: 9vh; font-size: 11vh; 
+            margin-bottom: 12px; 
             text-shadow: var(--glow);
         }
-        .row-num { width: 80px; }
-        .row-txt { flex-grow: 1; padding-left: 20px; }
+        .row-num { width: 80px; flex-shrink: 0; }
+        .row-txt { flex-grow: 1; padding-left: 20px; overflow: hidden; white-space: nowrap; }
         
-        /* PUNKTY - WYRÓWNANE DO LEWEJ, PRZESUNIĘTE DO ŚRODKA */
-        .row-pts { width: 200px; padding-left: 50px; text-align: left; }
+        /* PUNKTY - PRZESUNIĘTE W LEWO (ODSUNIĘTE OD BRZEGU) */
+        .row-pts { 
+            width: 220px; 
+            padding-right: 120px; 
+            text-align: right; 
+            flex-shrink: 0; 
+        }
 
-        /* KROPKI JAK NA ZDJĘCIU (GRUPOWANE) */
+        /* KROPKI GRUPOWANE PO 3 */
         .dots::after { 
-            content: " ••• ••• ••• ••• ••• ••• ••• ••• •••"; 
-            font-size: 0.6em; opacity: 0.8; vertical-align: middle;
+            content: " ••• ••• ••• ••• ••• ••• ••• •••"; 
+            font-size: 0.5em; opacity: 0.8; vertical-align: middle; letter-spacing: 4px;
         }
         
         .sum-box { 
             margin-top: auto; align-self: flex-end; 
-            font-size: 14vh; display: flex; gap: 80px; 
-            padding-right: 150px; text-shadow: var(--glow);
+            font-size: 14vh; display: flex; gap: 60px; 
+            padding-right: 180px; text-shadow: var(--glow);
         }
 
-        #msg-overlay { position: fixed; inset: 0; background: #000; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100; }
-        button#unlock-btn { font-size: 40px; padding: 20px 60px; background: var(--led); border: none; font-family: 'VT323'; cursor: pointer; }
+        /* EKRAN POWITALNY / STATUS */
+        #msg-overlay { 
+            position: fixed; inset: 0; background: #000; 
+            display: flex; flex-direction: column; justify-content: center; align-items: center; 
+            z-index: 100000; 
+        }
+        #status-text { color: white; font-size: 32px; margin-bottom: 25px; letter-spacing: 2px; }
+        button#unlock-btn { 
+            font-size: 35px; padding: 20px 60px; 
+            background: var(--led); border: none; 
+            font-family: 'VT323'; cursor: pointer; border-radius: 5px;
+        }
     </style>
 </head>
 <body>
     <div id="msg-overlay">
-        <div id="status-text" style="color:white; font-size: 30px; margin-bottom: 20px;">OCZEKIWANIE NA KOD...</div>
-        <button id="unlock-btn" onclick="unlock()">POŁĄCZ TABLICĘ</button>
+        <div id="status-text">ŁĄCZENIE Z SERWEREM...</div>
+        <button id="unlock-btn" onclick="unlock()">URUCHOM SYSTEM</button>
     </div>
 
     <div class="stage">
@@ -125,16 +154,27 @@
     <audio id="snd-bad" src="zle.mp3"></audio>
 
     <script>
-        const peer = new Peer();
+        // Stabilniejsze połączenie
+        const peer = new Peer(undefined, {
+            host: '0.peerjs.com',
+            port: 443,
+            secure: true
+        });
+
         const display = document.getElementById('main-display');
         const welcome = document.getElementById('welcome-screen');
 
         function unlock() {
             document.querySelectorAll('audio').forEach(a => { a.play().then(()=>a.pause()); });
             document.getElementById('unlock-btn').style.display = 'none';
+            document.getElementById('status-text').innerText = "KOD NIEWYGENEROWANY - ODŚWIEŻ";
+            // Jeśli kod już jest, to go pokaż
+            if(peer.id) document.getElementById('status-text').innerText = "TWÓJ KOD ID: " + peer.id;
         }
 
-        peer.on('open', id => document.getElementById('status-text').innerText = "KOD: " + id);
+        peer.on('open', id => {
+            document.getElementById('status-text').innerText = "TWÓJ KOD ID: " + id;
+        });
 
         peer.on('connection', conn => {
             document.getElementById('msg-overlay').style.display = 'none';
