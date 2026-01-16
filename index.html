@@ -2,11 +2,12 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA TV - CLEAR LED</title>
+    <title>FAMILIADA TV - PRO LED</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root { --led: #d4ff00; --bg: #000; }
+        
         body { 
             background: var(--bg); 
             color: var(--led); 
@@ -17,50 +18,90 @@
             text-transform: uppercase; 
         }
 
-        /* MINIMALISTYCZNA, RZADKA SIATKA LED */
+        /* WIDOCZNA SIATKA LED - EFEKT KAFELKÓW */
         body::after {
-            content: ""; position: fixed; inset: 0;
+            content: ""; 
+            position: fixed; 
+            inset: 0;
+            /* Cienkie czarne linie tworzące siatkę */
             background-image: 
-                radial-gradient(rgba(212, 255, 0, 0.1) 1px, transparent 1px);
-            background-size: 80px 80px; /* Bardzo mało kropek */
+                linear-gradient(rgba(0,0,0,0.8) 2px, transparent 2px),
+                linear-gradient(90deg, rgba(0,0,0,0.8) 2px, transparent 2px);
+            background-size: 32px 32px; 
             z-index: 10000; 
             pointer-events: none;
         }
 
-        .stage { display: grid; grid-template-columns: 350px 1fr 350px; width: 98vw; height: 90vh; margin: 5vh auto; gap: 10px; }
+        .stage { 
+            display: grid; 
+            grid-template-columns: 320px 1fr 320px; 
+            width: 98vw; 
+            height: 90vh; 
+            margin: 5vh auto; 
+            gap: 15px; 
+        }
 
         /* KLASYCZNE X */
-        .x-box { width: 320px; height: 250px; display: flex; justify-content: center; align-items: center; margin-bottom: 20px; }
+        .x-box { width: 300px; height: 250px; display: flex; justify-content: center; align-items: center; }
         .x-shape {
-            width: 250px; height: 250px;
+            width: 240px; height: 240px;
             background-color: var(--led);
             display: none; 
             clip-path: polygon(10% 0, 35% 0, 50% 30%, 65% 0, 90% 0, 100% 10%, 70% 50%, 100% 90%, 90% 100%, 65% 100%, 50% 70%, 35% 100%, 10% 100%, 0 90%, 30% 50%, 0 10%);
-            filter: drop-shadow(0 0 20px var(--led));
         }
-        .x-box.active .x-shape { display: block; }
+        .x-box.active .x-shape { display: block; filter: drop-shadow(0 0 15px var(--led)); }
 
         /* TABLICA */
-        .board { background: #000; position: relative; padding: 130px 40px 40px 40px; display: flex; flex-direction: column; border: 2px solid #111; }
-        #welcome-screen { position: absolute; inset: 0; display: flex; justify-content: center; align-items: center; background: #000; z-index: 10; }
-        #welcome-screen h1 { font-size: 30vh; }
+        .board { 
+            background: #080808; 
+            position: relative; 
+            padding: 140px 50px 40px 50px; 
+            display: flex; 
+            flex-direction: column; 
+            border: 4px solid #111; 
+        }
+        
+        #welcome-screen { 
+            position: absolute; 
+            inset: 0; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            background: #000; 
+            z-index: 10; 
+        }
+        #welcome-screen h1 { font-size: 28vh; letter-spacing: 10px; }
 
-        /* WIERSZE I PUNKTY */
-        .row { display: flex; align-items: center; height: 11vh; font-size: 13vh; margin-bottom: 5px; }
-        .row-num { width: 80px; flex-shrink: 0; }
-        .row-txt { flex-grow: 1; padding-left: 20px; overflow: hidden; white-space: nowrap; }
-        .row-pts { width: 180px; text-align: right; flex-shrink: 0; font-weight: bold; }
+        /* WIERSZE I PUNKTY - WYRAŹNE */
+        .row { 
+            display: flex; 
+            align-items: center; 
+            height: 10vh; 
+            font-size: 12vh; 
+            margin-bottom: 15px; 
+            border-bottom: 1px solid #111;
+        }
+        .row-num { width: 80px; flex-shrink: 0; font-weight: bold; }
+        .row-txt { flex-grow: 1; padding-left: 25px; overflow: hidden; white-space: nowrap; }
+        .row-pts { width: 160px; text-align: right; flex-shrink: 0; font-weight: bold; }
 
-        .dots::after { content: " ...................................................."; letter-spacing: 15px; opacity: 0.1; }
-        .sum-box { margin-top: auto; align-self: flex-end; font-size: 16vh; display: flex; gap: 40px; padding-right: 20px; }
+        .dots::after { content: "................................"; letter-spacing: 12px; opacity: 0.1; }
+        
+        .sum-box { 
+            margin-top: auto; 
+            align-self: flex-end; 
+            font-size: 15vh; 
+            display: flex; 
+            gap: 40px; 
+        }
 
         #msg-overlay { position: fixed; inset: 0; background: #000; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 20000; }
-        button#unlock-btn { font-size: 40px; padding: 20px 50px; background: var(--led); border: none; font-family: 'VT323'; cursor: pointer; }
+        button#unlock-btn { font-size: 40px; padding: 25px 60px; background: var(--led); border: none; font-family: 'VT323', monospace; cursor: pointer; }
     </style>
 </head>
 <body>
     <div id="msg-overlay">
-        <div id="status-text" style="color:white; font-size: 40px; margin-bottom: 20px;">ŁĄCZENIE...</div>
+        <div id="status-text" style="color:white; font-size: 40px; margin-bottom: 20px;">SYSTEM GOTOWY</div>
         <button id="unlock-btn" onclick="unlock()">START</button>
     </div>
 
