@@ -2,14 +2,14 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA TV - LED FINAL</title>
+    <title>FAMILIADA TV - LED COMPACT</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root { 
             --led: #e2ff00; 
             --bg: #000; 
-            --glow: 0 0 12px rgba(226, 255, 0, 0.9), 0 0 25px rgba(226, 255, 0, 0.6);
+            --glow: 0 0 12px rgba(226, 255, 0, 0.9), 0 0 20px rgba(226, 255, 0, 0.5);
         }
         
         body { 
@@ -37,17 +37,18 @@
 
         .stage { 
             display: grid; 
-            grid-template-columns: 320px 1fr 320px; 
-            width: 98vw; 
+            grid-template-columns: 350px 800px 350px; /* STAŁA SZEROKOŚĆ TABLICY 800px */
+            justify-content: center;
+            width: 100vw; 
             height: 90vh; 
             margin: 5vh auto; 
-            gap: 15px; 
+            gap: 20px; 
         }
 
         /* KLASYCZNE X */
-        .x-box { width: 300px; height: 250px; display: flex; justify-content: center; align-items: center; }
+        .x-box { width: 350px; height: 230px; display: flex; justify-content: center; align-items: center; }
         .x-shape {
-            width: 240px; height: 240px;
+            width: 220px; height: 220px;
             background-color: var(--led);
             display: none; 
             clip-path: polygon(10% 0, 35% 0, 50% 30%, 65% 0, 90% 0, 100% 10%, 70% 50%, 100% 90%, 90% 100%, 65% 100%, 50% 70%, 35% 100%, 10% 100%, 0 90%, 30% 50%, 0 10%);
@@ -57,14 +58,15 @@
             filter: drop-shadow(0 0 25px var(--led)); 
         }
 
-        /* TABLICA */
+        /* TABLICA - POMNIEJSZONA */
         .board { 
             background: #050505; 
             position: relative; 
-            padding: 130px 50px 40px 50px; 
+            padding: 100px 40px 30px 40px; 
             display: flex; 
             flex-direction: column; 
-            border: 2px solid #111; 
+            border: 2px solid #111;
+            height: 80vh;
         }
         
         #welcome-screen { 
@@ -76,48 +78,48 @@
             background: #000; 
             z-index: 10; 
         }
-        #welcome-screen h1 { font-size: 28vh; text-shadow: var(--glow); }
+        #welcome-screen h1 { font-size: 20vh; text-shadow: var(--glow); }
 
-        /* WIERSZE I PUNKTY PRZESUNIĘTE W LEWO */
+        /* WIERSZE I PUNKTY */
         .row { 
             display: flex; 
             align-items: center; 
-            height: 10vh; 
-            font-size: 13vh; 
-            margin-bottom: 15px; 
+            height: 9vh; 
+            font-size: 10vh; 
+            margin-bottom: 10px; 
             text-shadow: var(--glow);
         }
-        .row-num { width: 90px; flex-shrink: 0; }
-        .row-txt { flex-grow: 1; padding-left: 25px; overflow: hidden; white-space: nowrap; }
+        .row-num { width: 70px; flex-shrink: 0; }
+        .row-txt { flex-grow: 1; padding-left: 20px; overflow: hidden; white-space: nowrap; }
         
-        /* PUNKTY PRZESUNIĘTE BARDZIEJ DO ŚRODKA (W LEWO OD KRAWĘDZI) */
+        /* PUNKTY PRZESUNIĘTE W LEWO */
         .row-pts { 
-            width: 220px; 
-            text-align: left; /* Zmienione na wyrównanie do lewej wewnątrz swojej sekcji */
-            padding-left: 40px; /* Odstęp od tekstu odpowiedzi */
+            width: 180px; 
+            text-align: left; 
+            padding-left: 30px; 
             flex-shrink: 0; 
         }
 
-        .dots::after { content: "................................"; letter-spacing: 12px; opacity: 0.1; }
+        .dots::after { content: "......................"; letter-spacing: 10px; opacity: 0.1; }
         
         .sum-box { 
             margin-top: auto; 
             align-self: flex-end; 
-            font-size: 16vh; 
+            font-size: 13vh; 
             display: flex; 
-            gap: 60px; 
-            padding-right: 80px; /* Suma też przesunięta w lewo */
+            gap: 40px; 
+            padding-right: 60px;
             text-shadow: var(--glow);
         }
 
         #msg-overlay { position: fixed; inset: 0; background: #000; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 20000; }
-        button#unlock-btn { font-size: 40px; padding: 25px 60px; background: var(--led); border: none; font-family: 'VT323'; cursor: pointer; box-shadow: var(--glow); }
+        button#unlock-btn { font-size: 35px; padding: 20px 50px; background: var(--led); border: none; font-family: 'VT323'; cursor: pointer; }
     </style>
 </head>
 <body>
     <div id="msg-overlay">
-        <div id="status-text" style="color:white; font-size: 40px; margin-bottom: 20px;">TABLICA GOTOWA</div>
-        <button id="unlock-btn" onclick="unlock()">URUCHOM</button>
+        <div id="status-text" style="color:white; font-size: 40px; margin-bottom: 20px;">POŁĄCZONO</div>
+        <button id="unlock-btn" onclick="unlock()">START</button>
     </div>
 
     <div class="stage">
