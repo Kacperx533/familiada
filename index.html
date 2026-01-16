@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA TV - LED COMPACT</title>
+    <title>FAMILIADA TV - WIDE LED</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
@@ -37,7 +37,8 @@
 
         .stage { 
             display: grid; 
-            grid-template-columns: 350px 800px 350px; /* STAŁA SZEROKOŚĆ TABLICY 800px */
+            /* SZEROKIE BOKI I SZEROKA TABLICA (1100px) */
+            grid-template-columns: 350px 1100px 350px; 
             justify-content: center;
             width: 100vw; 
             height: 90vh; 
@@ -58,15 +59,15 @@
             filter: drop-shadow(0 0 25px var(--led)); 
         }
 
-        /* TABLICA - POMNIEJSZONA */
+        /* TABLICA - SZEROKA I NISKA */
         .board { 
             background: #050505; 
             position: relative; 
-            padding: 100px 40px 30px 40px; 
+            padding: 80px 60px 30px 60px; 
             display: flex; 
             flex-direction: column; 
             border: 2px solid #111;
-            height: 80vh;
+            height: 75vh; /* Nieco niższa dla lepszego efektu wide */
         }
         
         #welcome-screen { 
@@ -78,37 +79,37 @@
             background: #000; 
             z-index: 10; 
         }
-        #welcome-screen h1 { font-size: 20vh; text-shadow: var(--glow); }
+        #welcome-screen h1 { font-size: 22vh; text-shadow: var(--glow); letter-spacing: 15px; }
 
         /* WIERSZE I PUNKTY */
         .row { 
             display: flex; 
             align-items: center; 
             height: 9vh; 
-            font-size: 10vh; 
-            margin-bottom: 10px; 
+            font-size: 11vh; 
+            margin-bottom: 8px; 
             text-shadow: var(--glow);
         }
-        .row-num { width: 70px; flex-shrink: 0; }
+        .row-num { width: 90px; flex-shrink: 0; }
         .row-txt { flex-grow: 1; padding-left: 20px; overflow: hidden; white-space: nowrap; }
         
-        /* PUNKTY PRZESUNIĘTE W LEWO */
+        /* PUNKTY PRZESUNIĘTE W LEWO W SZEROKIM UKŁADZIE */
         .row-pts { 
-            width: 180px; 
+            width: 250px; 
             text-align: left; 
-            padding-left: 30px; 
+            padding-left: 50px; 
             flex-shrink: 0; 
         }
 
-        .dots::after { content: "......................"; letter-spacing: 10px; opacity: 0.1; }
+        .dots::after { content: "............................................"; letter-spacing: 12px; opacity: 0.1; }
         
         .sum-box { 
             margin-top: auto; 
             align-self: flex-end; 
-            font-size: 13vh; 
+            font-size: 14vh; 
             display: flex; 
-            gap: 40px; 
-            padding-right: 60px;
+            gap: 50px; 
+            padding-right: 120px; /* Większy margines od prawej w szerokim widoku */
             text-shadow: var(--glow);
         }
 
