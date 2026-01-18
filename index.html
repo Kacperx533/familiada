@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA TV - STUDIO</title>
+    <title>FAMILIADA TV - PRO LOOK</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
@@ -13,125 +13,149 @@
         }
 
         body {
-            background-color: #050505;
+            /* Tło imitujące studio ze zdjęcia - gradienty boczne */
+            background: 
+                linear-gradient(90deg, rgba(150,0,0,0.8) 0%, rgba(0,0,0,1) 25%, rgba(0,0,0,1) 75%, rgba(0,0,150,0.8) 100%),
+                #000;
             color: var(--led-yellow);
             font-family: 'VT323', monospace;
             margin: 0;
+            height: 100vh;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 100vh;
             overflow: hidden;
             text-transform: uppercase;
         }
 
-        /* Główny kontener poziomy (Punkty Lewe - Tablica - Punkty Prawe) */
-        .studio-layout {
-            display: flex;
-            align-items: center;
-            gap: 40px;
-            width: 95vw;
-        }
-
-        /* Liczniki po bokach */
-        .side-score-box {
-            width: 180px;
-            height: 120px;
-            background: #000;
-            border-radius: 15px;
+        .studio-container {
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 90px;
-            box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+            gap: 50px;
+            width: 90vw;
         }
-        #score-L-box { border: 5px solid var(--neon-red); color: var(--neon-red); text-shadow: 0 0 10px var(--neon-red); }
-        #score-R-box { border: 5px solid var(--neon-blue); color: var(--neon-blue); text-shadow: 0 0 10px var(--neon-blue); }
 
-        /* Główna czarna tablica */
-        .main-board {
-            flex-grow: 1;
-            max-width: 800px;
-            background: #0a0a0a;
-            border: 8px solid #222;
-            border-radius: 20px;
-            padding: 30px;
+        /* Liczniki punktów wkomponowane w tło */
+        .score-display {
+            width: 160px;
+            height: 120px;
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 100px;
+            border-radius: 10px;
             position: relative;
-            /* Efekt kropek LED */
-            background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 0);
-            background-size: 5px 5px;
-            box-shadow: inset 0 0 30px #000;
+            box-shadow: 0 0 30px rgba(0,0,0,1);
+        }
+
+        #score-L { border: 4px solid var(--neon-red); color: var(--neon-red); text-shadow: 0 0 15px var(--neon-red); }
+        #score-R { border: 4px solid var(--neon-blue); color: var(--neon-blue); text-shadow: 0 0 15px var(--neon-blue); }
+
+        /* Czarna Tablica */
+        .main-board {
+            width: 750px;
+            background: #000; /* Całkowicie czarna tablica */
+            border: 4px solid #333;
+            border-radius: 15px;
+            padding: 20px 40px;
+            box-shadow: 0 0 50px rgba(0,0,0,1);
+            position: relative;
+        }
+
+        /* Siatka punktowa LED (delikatna) */
+        .main-board::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: radial-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 0);
+            background-size: 6px 6px;
+            pointer-events: none;
         }
 
         .row {
             display: flex;
-            font-size: 55px;
-            height: 60px;
             align-items: center;
-            border-bottom: 1px solid #1a1a1a;
-            letter-spacing: 2px;
+            height: 65px;
+            font-size: 60px;
+            border-bottom: 1px solid #111;
+            position: relative;
+            z-index: 1;
         }
 
-        .num { width: 40px; color: #444; }
-        .ans { flex-grow: 1; padding-left: 10px; }
-        .pts { width: 70px; text-align: right; }
+        .num { width: 50px; color: var(--led-yellow); opacity: 0.8; }
+        .ans { flex-grow: 1; letter-spacing: 2px; }
+        .pts { width: 80px; text-align: right; }
 
-        .suma-area {
+        .suma-row {
             display: flex;
             justify-content: flex-end;
-            margin-top: 20px;
-            font-size: 50px;
-            padding-right: 10px;
+            margin-top: 15px;
+            font-size: 55px;
+            color: var(--led-yellow);
+            border-top: 2px solid #222;
+            padding-top: 5px;
         }
 
-        /* Ekran powitalny */
-        #setup-screen {
-            position: fixed;
-            inset: 0;
-            background: #000;
-            z-index: 1000;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-
+        /* Overlay dla błędu X */
         #x-overlay {
             position: fixed;
             inset: 0;
             display: none;
             align-items: center;
             justify-content: center;
-            background: rgba(0,0,0,0.8);
-            z-index: 500;
+            background: rgba(0,0,0,0.85);
+            z-index: 5000;
         }
-        .x-large { font-size: 400px; color: var(--neon-red); font-weight: bold; font-family: sans-serif; }
+        .x-text { font-size: 450px; color: var(--neon-red); font-weight: bold; font-family: Arial, sans-serif; text-shadow: 0 0 40px var(--neon-red); }
+
+        /* Ekran startowy */
+        #setup-screen {
+            position: fixed;
+            inset: 0;
+            background: #000;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        button {
+            padding: 20px 40px;
+            font-size: 25px;
+            background: var(--led-yellow);
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
 
     <div id="setup-screen">
-        <h1 id="status-msg">FAMILIADA SYSTEM</h1>
-        <div id="join-code" style="font-size: 80px; margin: 20px; color: white;"></div>
-        <button onclick="initSystem()" style="padding: 15px 30px; font-size: 20px; cursor: pointer;">URUCHOM STUDIO</button>
+        <h1 id="status-msg">SYSTEM FAMILIADA PRO</h1>
+        <div id="join-code" style="font-size: 100px; color: white; margin: 20px;"></div>
+        <button id="btn-start" onclick="init()">ODPALAJ STUDIO</button>
     </div>
 
-    <div id="x-overlay"><div class="x-large" id="x-val">X</div></div>
+    <div id="x-overlay"><div class="x-text" id="x-val">X</div></div>
 
-    <div class="studio-layout">
-        <div id="score-L-box" class="side-score-box">0</div>
+    <div class="studio-container">
+        <div id="score-L" class="score-display">0</div>
 
         <div class="main-board">
             <div id="board-content">
                 </div>
-            <div class="suma-area">
-                <span>SUMA&nbsp;&nbsp;</span>
-                <span id="suma-val">0</span>
+            <div class="suma-row">
+                SUMA&nbsp;&nbsp;<span id="suma-val">0</span>
             </div>
         </div>
 
-        <div id="score-R-box" class="side-score-box">0</div>
+        <div id="score-R" class="score-display">0</div>
     </div>
 
     <audio id="snd-ok" src="ok.mp3"></audio>
@@ -141,12 +165,13 @@
         let peer;
         let total = 0;
 
-        function initSystem() {
-            const myId = Math.random().toString(36).substring(2, 5).toUpperCase();
-            document.getElementById('join-code').innerText = myId;
-            document.getElementById('status-msg').innerText = "KOD DO PILOTA:";
+        function init() {
+            const id = Math.random().toString(36).substring(2, 5).toUpperCase();
+            document.getElementById('join-code').innerText = id;
+            document.getElementById('btn-start').style.display = "none";
+            document.getElementById('status-msg').innerText = "KOD DO TELEFONU:";
             
-            peer = new Peer(myId);
+            peer = new Peer(id);
             peer.on('open', () => {
                 peer.on('connection', conn => {
                     document.getElementById('setup-screen').style.display = 'none';
@@ -178,8 +203,8 @@
                             setTimeout(() => document.getElementById('x-overlay').style.display = 'none', 1200);
                         }
                         if(d.type === 'SCORE_SYNC') {
-                            document.getElementById('score-L-box').innerText = d.l;
-                            document.getElementById('score-R-box').innerText = d.r;
+                            document.getElementById('score-L').innerText = d.l;
+                            document.getElementById('score-R').innerText = d.r;
                         }
                     });
                 });
