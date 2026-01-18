@@ -2,77 +2,84 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA - PANEL STEROWANIA</title>
+    <title>PILOT - FAMILIADA CONTROL</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        body { font-family: sans-serif; background: #121212; color: #fff; margin: 0; display: flex; flex-direction: column; height: 100vh; }
-        .top-bar { background: #000; padding: 10px; display: flex; gap: 10px; align-items: center; border-bottom: 2px solid #333; }
-        .main { display: grid; grid-template-columns: 300px 1fr; flex-grow: 1; overflow: hidden; }
-        .sidebar { background: #1e1e1e; padding: 15px; border-right: 1px solid #333; overflow-y: auto; }
-        .content { padding: 20px; overflow-y: auto; }
-        .card { background: #2a2a2a; border-radius: 8px; padding: 15px; margin-bottom: 20px; }
-        button { padding: 10px; cursor: pointer; border: none; border-radius: 4px; font-weight: bold; transition: 0.2s; }
-        .btn-blue { background: #007bff; color: white; }
-        .btn-green { background: #28a745; color: white; }
-        .btn-red { background: #dc3545; color: white; }
-        .btn-yellow { background: #ffc107; color: black; }
-        .btn-sound { background: #6f42c1; color: white; margin-bottom: 5px; width: 100%; }
-        input, textarea { background: #000; color: #fff; border: 1px solid #444; padding: 8px; width: 100%; box-sizing: border-box; }
-        .row-tool { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; background: #333; padding: 5px; border-radius: 4px; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #121212; color: #e0e0e0; margin: 0; display: flex; flex-direction: column; height: 100vh; }
+        .top { background: #000; padding: 15px; display: flex; gap: 15px; border-bottom: 3px solid #fbc02d; }
+        .main { display: grid; grid-template-columns: 350px 1fr; flex: 1; overflow: hidden; }
+        .side { background: #1e1e1e; padding: 20px; border-right: 1px solid #333; overflow-y: auto; }
+        .work { padding: 20px; overflow-y: auto; background: #121212; }
+        
+        .card { background: #252525; border-radius: 10px; padding: 20px; margin-bottom: 20px; border: 1px solid #333; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        h3 { margin-top: 0; color: #fbc02d; text-transform: uppercase; font-size: 14px; letter-spacing: 1px; }
+
+        button { border: none; padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.3s; text-transform: uppercase; }
+        button:active { transform: translateY(2px); }
+        
+        .btn-primary { background: #fbc02d; color: #000; width: 100%; margin-bottom: 8px; }
+        .btn-blue { background: #1976d2; color: #fff; }
+        .btn-red { background: #d32f2f; color: #fff; }
+        .btn-gray { background: #424242; color: #fff; }
+
+        input, textarea, select { width: 100%; padding: 10px; margin: 10px 0; background: #000; color: #fff; border: 1px solid #444; border-radius: 5px; }
+        .score-val { font-size: 50px; text-align: center; color: #fbc02d; font-family: monospace; background: #000; border-radius: 10px; margin: 10px 0; }
+        .row-item { display: flex; align-items: center; gap: 10px; background: #333; padding: 8px; margin-bottom: 5px; border-radius: 5px; }
     </style>
 </head>
 <body>
-    <div class="top-bar">
-        <span>ID TABLICY:</span>
-        <input id="target-id" style="width:150px">
-        <button onclick="connect()" class="btn-green">POŁĄCZ</button>
-        <button onclick="send({type:'SOUND', id:'snd-intro'})" class="btn-blue">🎵 CZOŁÓWKA</button>
-        <button onclick="location.reload()">RESET PANELU</button>
+    <div class="top">
+        <input id="target-id" placeholder="ID Z EKRANU TV" style="width: 200px; margin: 0;">
+        <button onclick="connect()" class="btn-blue" style="padding: 0 20px;">POŁĄCZ</button>
+        <button onclick="send({type:'PLAY_VID'})" class="btn-primary" style="width: auto;">🎬 CZOŁÓWKA (WIDEO)</button>
+        <button onclick="send({type:'PLAY_SND', id:'snd-intro'})" class="btn-gray">🎵 INTRO (AUDIO)</button>
     </div>
 
     <div class="main">
-        <div class="sidebar">
-            <h3>MULTIMEDIA</h3>
-            <button class="btn-sound" onclick="send({type:'SOUND', id:'snd-ok'})">✅ DOBRA ODPOWIEDŹ</button>
-            <button class="btn-sound" onclick="send({type:'SOUND', id:'snd-bad'})">❌ BŁĄD / KONIEC CZASU</button>
-            <button class="btn-sound" onclick="send({type:'SOUND', id:'snd-repeat'})" style="background:orange">⚠️ POWTÓRKA (FINAŁ)</button>
-            <hr>
-            <h3>BŁĘDY X</h3>
-            <div style="display:flex; gap:5px">
+        <div class="side">
+            <h3>Dźwięki i Efekty</h3>
+            <button class="btn-primary" onclick="send({type:'PLAY_SND', id:'snd-runda'})">🎵 START RUNDY</button>
+            <button class="btn-primary" onclick="send({type:'PLAY_SND', id:'snd-final'})">🎵 MUZYKA FINAŁU</button>
+            <button class="btn-gray" onclick="send({type:'PLAY_SND', id:'snd-powt'})" style="background: #ef6c00;">⚠️ POWTÓRKA</button>
+            
+            <h3 style="margin-top:20px">Błędy X</h3>
+            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:5px">
                 <button class="btn-red" onclick="send({type:'X', count:1})">X</button>
                 <button class="btn-red" onclick="send({type:'X', count:2})">XX</button>
                 <button class="btn-red" onclick="send({type:'X', count:3})">XXX</button>
             </div>
-            <hr>
-            <h3>SUMA PUNKTÓW</h3>
-            <div id="local-score" style="font-size:40px; text-align:center; color:#eaff00">0</div>
-            <input type="number" id="score-input" value="0" onchange="updateScore()">
+
+            <h3 style="margin-top:20px">Punkty</h3>
+            <div class="score-val" id="local-score">0</div>
+            <input type="number" id="manual-score" value="0" onchange="syncScore()">
         </div>
 
-        <div class="content">
+        <div class="work">
             <div class="card">
-                <h2>RUNDY 1 - 4</h2>
-                <textarea id="normal-data" rows="4" placeholder="Odpowiedź, Punkty (każda w nowej linii)">PIES, 35
-KOT, 25
-CHOMIK, 15</textarea>
-                <button onclick="setupNormal()" class="btn-blue" style="margin-top:10px">USTAW TABLICĘ RUNDY</button>
+                <h3>Gotowe Zestawy Pytań</h3>
+                <select id="preset-select" onchange="applyPreset()">
+                    <option value="">-- WYBIERZ ZESTAW --</option>
+                    <option value="r1">Runda 1: Co można robić rano?</option>
+                    <option value="r2">Runda 2: Więcej niż jedno zwierzę to...</option>
+                    <option value="f1">FINAŁ: Zestaw 1</option>
+                </select>
+                <textarea id="raw-data" rows="4" placeholder="Odpowiedź, Punkty"></textarea>
+                <button onclick="setupNormal()" class="btn-primary">ZAŁADUJ NA TABLICĘ</button>
                 <div id="normal-controls" style="margin-top:15px"></div>
             </div>
 
-            <div class="card" style="border-top: 4px solid #ffc107">
-                <h2>FINAŁ</h2>
-                <button onclick="setupFinal()" class="btn-yellow">PRZEŁĄCZ TABLICĘ NA FINAŁ</button>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 15px;">
+            <div class="card">
+                <h3>Tryb Finałowy</h3>
+                <button onclick="setupFinal()" class="btn-blue" style="width:100%">PRZEŁĄCZ EKRAN NA FINAŁ</button>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; margin-top:15px">
                     <div>
-                        <h4>GRACZ 1 (15s)</h4>
-                        <button onclick="send({type:'TIMER', sec:15})" class="btn-red">START ZEGARA 15s</button>
-                        <div id="p1-inputs"></div>
-                        <button onclick="send({type:'HIDE_P1'})" style="margin-top:10px">UKRYJ G1 (DLA G2)</button>
+                        <button onclick="send({type:'TIMER', sec:15})" class="btn-red">ZEGAR 15S (G1)</button>
+                        <div id="p1-ui" style="margin-top:10px"></div>
+                        <button onclick="send({type:'HIDE_P1'})" class="btn-gray" style="width:100%; margin-top:5px">UKRYJ G1</button>
                     </div>
                     <div>
-                        <h4>GRACZ 2 (20s)</h4>
-                        <button onclick="send({type:'TIMER', sec:20})" class="btn-red">START ZEGARA 20s</button>
-                        <div id="p2-inputs"></div>
+                        <button onclick="send({type:'TIMER', sec:20})" class="btn-red">ZEGAR 20S (G2)</button>
+                        <div id="p2-ui" style="margin-top:10px"></div>
                     </div>
                 </div>
             </div>
@@ -84,63 +91,63 @@ CHOMIK, 15</textarea>
         let conn;
         let score = 0;
 
+        const presets = {
+            r1: "MYĆ ZĘBY,35\nPIĆ KAWĘ,25\nUBIERAĆ SIĘ,15\nŚCIELIĆ ŁÓŻKO,10",
+            r2: "OWCE,40\nLUDZIE,30\nKROWY,15\nRYBY,10",
+            f1: "JABŁKO,30\nBANAN,20\nGRUSZKA,15\nPOMARAŃCZA,10\nŚLIWKA,5"
+        };
+
+        function applyPreset() {
+            const val = document.getElementById('preset-select').value;
+            if(val) document.getElementById('raw-data').value = presets[val];
+        }
+
         function connect() {
             conn = peer.connect(document.getElementById('target-id').value.toUpperCase());
-            conn.on('open', () => alert("POŁĄCZONO Z TABLICĄ!"));
+            conn.on('open', () => alert("POŁĄCZONO!"));
         }
 
         function send(d) { if(conn) conn.send(d); }
 
         function setupNormal() {
-            const lines = document.getElementById('normal-data').value.split('\n');
-            const ans = lines.map(l => ({ t: l.split(',')[0].trim(), p: parseInt(l.split(',')[1]) || 0 }));
+            const lines = document.getElementById('raw-data').value.split('\n');
+            const ans = lines.map(l => ({ t: l.split(',')[0], p: parseInt(l.split(',')[1]) || 0 }));
             send({type: 'SETUP_NORMAL', ans: ans});
-            
-            let html = '';
-            ans.forEach((a, i) => {
-                html += `<div class="row-tool"><span>${i+1}. ${a.t} (${a.p})</span> 
-                    <button onclick="revealNormal(${i}, '${a.t}', ${a.p})" class="btn-green">ODKRYJ</button></div>`;
-            });
-            document.getElementById('normal-controls').innerHTML = html;
+            document.getElementById('normal-controls').innerHTML = ans.map((a, i) => `
+                <div class="row-item"><span>${a.t} (${a.p})</span> 
+                <button onclick="reveal(${i}, '${a.t}', ${a.p})" class="btn-blue">OK</button></div>`).join('');
         }
 
-        function revealNormal(idx, t, p) {
+        function reveal(idx, t, p) {
             send({type: 'REV', mode: 'normal', idx: idx, t: t, p: p});
-            score += p; updateScoreUI();
+            score += p; syncScore();
         }
 
         function setupFinal() {
             send({type: 'SETUP_FINAL'});
-            score = 0; updateScoreUI();
+            score = 0; syncScore();
             const gen = (pid) => {
                 let h = '';
                 for(let i=0; i<5; i++) {
-                    h += `<div style="margin-bottom:5px">
-                        <input id="p${pid}t${i}" placeholder="Hasło" style="width:100px">
-                        <input id="p${pid}p${i}" placeholder="Pkt" style="width:40px">
-                        <button onclick="revealFinal(${pid}, ${i})" class="btn-green">OK</button>
-                    </div>`;
+                    h += `<div class="row-item"><input id="p${pid}t${i}" placeholder="Hasło" style="width:80px">
+                          <input id="p${pid}p${i}" placeholder="Pkt" style="width:40px">
+                          <button onclick="revFinal(${pid}, ${i})" class="btn-blue">OK</button></div>`;
                 }
-                document.getElementById(`p${pid}-inputs`).innerHTML = h;
+                document.getElementById(`p${pid}-ui`).innerHTML = h;
             };
             gen(1); gen(2);
         }
 
-        function revealFinal(pid, idx) {
+        function revFinal(pid, idx) {
             const t = document.getElementById(`p${pid}t${idx}`).value;
             const p = parseInt(document.getElementById(`p${pid}p${idx}`).value) || 0;
             send({type: 'REV', mode: 'final', player: pid, idx: idx, t: t, p: p});
-            score += p; updateScoreUI();
+            score += p; syncScore();
         }
 
-        function updateScore() {
-            score = parseInt(document.getElementById('score-input').value);
-            updateScoreUI();
-        }
-
-        function updateScoreUI() {
+        function syncScore() {
             document.getElementById('local-score').innerText = score;
-            document.getElementById('score-input').value = score;
+            document.getElementById('manual-score').value = score;
             send({type: 'SCORE', val: score});
         }
     </script>
