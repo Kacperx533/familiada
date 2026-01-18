@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA TV - ORYGINALNY WYGLĄD</title>
+    <title>FAMILIADA TV - FINAL LOOK</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
@@ -23,68 +23,58 @@
             text-transform: uppercase;
             font-family: 'VT323', monospace;
             
-            /* TŁO JAK ZE ZDJĘCIA */
+            /* TŁO: Poświaty łączące się na środku */
             background: 
-                /* Czarne pasy na górze i dole */
-                linear-gradient(to bottom, #000 0%, transparent 15%, transparent 85%, #000 100%),
-                /* Czerwona poświata z lewej */
-                radial-gradient(circle at 0% 50%, rgba(200, 0, 0, 0.6) 0%, transparent 40%),
-                /* Niebieska poświata z prawej */
-                radial-gradient(circle at 100% 50%, rgba(0, 0, 255, 0.6) 0%, transparent 40%),
-                /* Głębia w tle */
-                #050505;
+                linear-gradient(to bottom, #000 0%, transparent 20%, transparent 80%, #000 100%),
+                linear-gradient(90deg, rgba(255,0,0,0.5) 0%, rgba(0,0,0,1) 50%, rgba(0,0,255,0.5) 100%),
+                #000;
         }
 
-        /* SUMA NA GÓRZE - STYLIZOWANA */
-        .top-bar {
-            position: absolute;
-            top: 20px;
+        /* SUMA: Czarny kwadrat/prostokąt z żółtym obrysem */
+        .top-suma-box {
+            background: #000;
+            border: 6px solid var(--led-yellow);
+            padding: 10px 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 0 15px rgba(244, 255, 0, 0.3);
             display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 20px;
-            background: rgba(0,0,0,0.8);
-            padding: 5px 40px;
-            border: 2px solid #333;
-            border-radius: 10px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
         }
-        .suma-label { font-size: 50px; color: #666; }
-        #suma-val { font-size: 80px; color: var(--led-yellow); text-shadow: 0 0 10px var(--led-yellow); }
+        .suma-label { font-size: 30px; color: var(--led-yellow); margin-bottom: -10px; }
+        #suma-val { font-size: 100px; color: var(--led-yellow); line-height: 1; }
 
         .studio-layout {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 60px;
+            gap: 40px;
             width: 100%;
         }
 
-        /* Liczniki punktów drużyn */
+        /* PUNKTY: Takie same ramki jak suma */
         .score-box {
-            width: 180px;
-            height: 130px;
+            width: 160px;
+            height: 160px;
             background: #000;
+            border: 6px solid var(--led-yellow);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 110px;
-            border-radius: 15px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+            font-size: 120px;
+            color: var(--led-yellow);
+            box-shadow: 0 0 15px rgba(244, 255, 0, 0.3);
         }
-        #score-L { border: 5px solid var(--neon-red); color: var(--neon-red); text-shadow: 0 0 20px var(--neon-red); }
-        #score-R { border: 5px solid var(--neon-blue); color: var(--neon-blue); text-shadow: 0 0 20px var(--neon-blue); }
 
-        /* MEGA TABLICA - CZARNA I POWIĘKSZONA */
+        /* MEGA TABLICA */
         .board-frame {
-            width: 1000px;
-            height: 550px;
+            width: 1050px;
+            height: 580px;
             background: #000;
-            border: 3px solid #222;
-            border-radius: 25px;
+            border: 4px solid #222;
+            border-radius: 10px;
             padding: 20px 40px;
-            position: relative;
-            box-shadow: 0 0 100px rgba(0,0,0,1);
-            /* Efekt punktów LED w tle */
+            box-shadow: 0 0 50px rgba(0,0,0,1);
             background-image: radial-gradient(#111 2px, transparent 0);
             background-size: 6px 6px;
         }
@@ -92,17 +82,17 @@
         .row {
             display: flex;
             align-items: center;
-            height: 90px;
-            font-size: 90px;
-            border-bottom: 2px solid #080808;
-            letter-spacing: 3px;
+            height: 95px;
+            font-size: 95px;
+            border-bottom: 2px solid #0a0a0a;
+            letter-spacing: 4px;
         }
 
-        .num { width: 60px; color: #222; }
+        .num { width: 70px; color: #222; }
         .ans { flex-grow: 1; color: var(--led-yellow); }
-        .pts { width: 100px; text-align: right; color: var(--led-yellow); }
+        .pts { width: 110px; text-align: right; color: var(--led-yellow); }
 
-        /* Overlay X */
+        /* X Overlay */
         #x-overlay {
             position: fixed;
             inset: 0;
@@ -112,25 +102,25 @@
             background: rgba(0,0,0,0.9);
             z-index: 999;
         }
-        .x-text { font-size: 500px; color: var(--neon-red); font-weight: bold; font-family: Arial; text-shadow: 0 0 50px red; }
+        .x-text { font-size: 550px; color: red; font-weight: bold; font-family: Arial; text-shadow: 0 0 40px red; }
 
-        /* Ekran startowy */
         #setup { position: fixed; inset: 0; background: #000; z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        button { padding: 20px 50px; font-size: 24px; cursor: pointer; border: none; background: var(--led-yellow); font-weight: bold; border-radius: 10px; }
     </style>
 </head>
 <body>
 
     <div id="setup">
         <h1 style="color: white;">SYSTEM FAMILIADA PRO</h1>
-        <div id="code" style="font-size: 120px; color: var(--led-yellow); margin: 20px;"></div>
-        <button onclick="init()" style="padding: 20px 50px; font-size: 24px; cursor: pointer; border-radius: 10px; background: var(--led-yellow); border: none; font-weight: bold;">ODPAL STUDIO</button>
+        <div id="code" style="font-size: 100px; color: var(--led-yellow); margin: 20px;"></div>
+        <button onclick="init()">START STUDIO</button>
     </div>
 
     <div id="x-overlay"><div class="x-text" id="x-val">X</div></div>
 
-    <div class="top-bar">
-        <span class="suma-label">SUMA</span>
-        <span id="suma-val">0</span>
+    <div class="top-suma-box">
+        <div class="suma-label">SUMA</div>
+        <div id="suma-val">0</div>
     </div>
 
     <div class="studio-layout">
