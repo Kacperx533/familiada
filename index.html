@@ -2,14 +2,12 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA TV - STUDIO LOOK</title>
+    <title>FAMILIADA TV - PRO</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root {
             --led-yellow: #f4ff00;
-            --neon-red: #ff0000;
-            --neon-blue: #0066ff;
         }
 
         body {
@@ -23,25 +21,26 @@
             text-transform: uppercase;
             font-family: 'VT323', monospace;
             
-            /* TŁO: Poświaty stykają się na środku, brak czystego czarnego w tle */
+            /* TŁO: Kolory stykają się płynnie na środku */
             background: 
                 linear-gradient(90deg, 
-                    rgba(180, 0, 0, 0.8) 0%, 
-                    rgba(80, 0, 0, 1) 45%, 
-                    rgba(0, 0, 80, 1) 55%, 
-                    rgba(0, 0, 180, 0.8) 100%
+                    rgba(150, 0, 0, 1) 0%, 
+                    rgba(180, 0, 0, 1) 48%, 
+                    rgba(0, 0, 180, 1) 52%, 
+                    rgba(0, 0, 150, 1) 100%
                 );
         }
 
-        /* SUMA NA GÓRZE: Prostokąt bez napisu, cienki obrys */
+        /* SUMA NA GÓRZE: Poziomy prostokąt, cienki obrys */
         .top-suma-box {
             background: #000;
             border: 3px solid var(--led-yellow);
-            padding: 10px 60px;
-            margin-bottom: 25px;
+            padding: 5px 60px;
+            margin-bottom: 30px;
             display: flex;
             align-items: center;
             justify-content: center;
+            min-width: 150px;
         }
         #suma-val { font-size: 110px; color: var(--led-yellow); line-height: 0.9; }
 
@@ -49,27 +48,27 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 50px;
+            gap: 40px;
             width: 100%;
         }
 
-        /* PUNKTY: Prostokąty obrócone pionowo, cienki obrys */
+        /* PUNKTY DRUŻYN: Poziome prostokąty */
         .score-box {
-            width: 120px;
-            height: 220px;
+            width: 180px;
+            height: 120px;
             background: #000;
             border: 3px solid var(--led-yellow);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 130px;
+            font-size: 110px;
             color: var(--led-yellow);
         }
 
         /* GIGANTYCZNA TABLICA */
         .board-frame {
-            width: 1100px;
-            height: 620px;
+            width: 1000px;
+            height: 600px;
             background: #000;
             border: 2px solid #222;
             padding: 20px 40px;
@@ -81,13 +80,13 @@
         .row {
             display: flex;
             align-items: center;
-            height: 105px;
-            font-size: 105px;
+            height: 100px;
+            font-size: 100px;
             border-bottom: 2px solid #0d0d0d;
         }
 
         .num { width: 80px; color: #1a1a1a; }
-        .ans { flex-grow: 1; color: var(--led-yellow); letter-spacing: 5px; }
+        .ans { flex-grow: 1; color: var(--led-yellow); letter-spacing: 4px; }
         .pts { width: 120px; text-align: right; color: var(--led-yellow); }
 
         /* X Overlay */
@@ -98,18 +97,18 @@
             align-items: center;
             justify-content: center;
             background: rgba(0,0,0,0.95);
-            z-index: 999;
+            z-index: 9999;
         }
-        .x-text { font-size: 600px; color: red; font-weight: bold; font-family: Arial; }
+        .x-text { font-size: 600px; color: red; font-weight: bold; font-family: Arial, sans-serif; }
 
-        #setup { position: fixed; inset: 0; background: #000; z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        button { padding: 25px 60px; font-size: 30px; cursor: pointer; background: var(--led-yellow); border: none; font-weight: bold; }
+        #setup { position: fixed; inset: 0; background: #000; z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        button { padding: 25px 60px; font-size: 30px; cursor: pointer; background: var(--led-yellow); border: none; font-weight: bold; border-radius: 10px; }
     </style>
 </head>
 <body>
 
     <div id="setup">
-        <div id="code" style="font-size: 120px; color: var(--led-yellow); margin-bottom: 30px;"></div>
+        <div id="code" style="font-size: 100px; color: var(--led-yellow); margin-bottom: 30px;"></div>
         <button onclick="init()">URUCHOM TABLICĘ</button>
     </div>
 
