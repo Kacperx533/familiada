@@ -2,82 +2,191 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>ADMIN - MULTIMEDIA</title>
+    <title>FAMILIADA - CENTRUM DOWODZENIA</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        body { font-family: sans-serif; background: #222; color: white; padding: 20px; }
-        .card { background: #333; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #444; }
-        button { padding: 10px 15px; cursor: pointer; margin: 3px; border: none; border-radius: 4px; font-weight: bold; }
-        .btn-main { background: #eaff00; color: #000; }
-        .btn-audio { background: #007bff; color: white; }
-        .btn-final { background: #f0ad4e; color: black; }
-        .btn-x { background: #d9534f; color: white; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #1a1a1a; color: #f0f0f0; margin: 0; padding: 20px; }
+        .container { max-width: 1000px; margin: 0 auto; display: grid; gap: 20px; }
+        
+        .panel { background: #2b2b2b; padding: 20px; border-radius: 10px; border: 1px solid #444; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        .panel h3 { margin-top: 0; border-bottom: 2px solid #555; padding-bottom: 10px; color: #ffc107; }
+
+        input, select, textarea { width: 100%; padding: 10px; background: #111; color: white; border: 1px solid #555; border-radius: 5px; margin-bottom: 10px; box-sizing: border-box; }
+        
+        button { cursor: pointer; border: none; padding: 12px; border-radius: 5px; font-weight: bold; text-transform: uppercase; transition: 0.2s; margin: 2px; }
+        button:hover { filter: brightness(1.2); }
+        button:active { transform: scale(0.98); }
+
+        .btn-green { background: #28a745; color: white; width: 100%; font-size: 16px; }
+        .btn-blue { background: #007bff; color: white; }
+        .btn-red { background: #dc3545; color: white; }
+        .btn-yellow { background: #ffc107; color: black; }
+        .btn-purple { background: #6f42c1; color: white; width: 100%; }
+
+        .row-ctrl { display: flex; justify-content: space-between; align-items: center; background: #3a3a3a; padding: 10px; margin-bottom: 5px; border-radius: 5px; }
+        .row-ctrl span { font-size: 18px; font-weight: bold; color: #ffc107; }
+
+        .flex-row { display: flex; gap: 10px; }
+        .half { flex: 1; text-align: center; background: #222; padding: 10px; border-radius: 5px; }
     </style>
 </head>
 <body>
-    <div class="card">
-        ID Tablicy: <input id="peer-id" placeholder="ID z TV">
-        <button onclick="connect()" class="btn-main">POŁĄCZ 🟢</button>
+
+<div class="container">
+    
+    <div class="panel">
+        <h3>1. Połączenie</h3>
+        <div class="flex-row">
+            <input id="peer-id" placeholder="Wpisz KOD ID z ekranu TV" style="font-size: 18px;">
+            <button onclick="connect()" class="btn-green" style="width: 150px;">POŁĄCZ</button>
+        </div>
+        <div id="conn-status" style="color: #ff4444; font-weight: bold; margin-top: 5px;">🔴 ROZŁĄCZONY</div>
     </div>
 
-    <div class="card">
-        <h3>MULTIMEDIA</h3>
-        <button onclick="send({type:'PLAY_INTRO'})" class="btn-audio">MUZYKA CZOŁÓWKA 🎵</button>
-        <button onclick="sendReset()" class="btn-main">START NOWA RUNDA</button>
+    <div class="panel">
+        <h3>2. Wybór Rundy / Pytania</h3>
+        <label>Wybierz gotowy zestaw:</label>
+        <select id="set-selector" onchange="loadSet()">
+            <option value="">-- Wybierz lub wpisz własne --</option>
+            <option value="set1">Runda 1: Co robimy zaraz po przebudzeniu?</option>
+            <option value="set2">Runda 2: Zwierzęta domowe</option>
+            <option value="set3">Runda 3: Co ma klucze?</option>
+            <option value="set4">Runda 4: Miasta w Polsce</option>
+            <option value="set5">Runda Finałowa (Przykładowa)</option>
+        </select>
+        
+        <label>Edycja (Hasło, punkty, Hasło, punkty...):</label>
+        <textarea id="data-input" rows="3">MYJEMY ZĘBY, 36, PIJEMY KAWĘ, 24, UBIERAMY SIĘ, 15, ŚCIELIMY ŁÓŻKO, 10</textarea>
+        
+        <div class="flex-row">
+            <button onclick="sendReset()" class="btn-green">ZAŁADUJ RUNDĘ NA TABLICĘ</button>
+            <button onclick="playAudio('PLAY_INTRO')" class="btn-purple" style="width: auto;">🎵 CZOŁÓWKA</button>
+        </div>
     </div>
 
-    <div class="card">
-        <h3>RUNDA FINAŁOWA</h3>
-        Czas: <input type="number" id="fin-time" value="15" style="width:50px"> sek.
-        <button onclick="startFinale()" class="btn-final">START ZEGAR ⏱️</button>
+    <div id="game-controls" class="panel" style="display:none; border: 2px solid #28a745;">
+        <h3>3. Przebieg Gry</h3>
+        
+        <div id="answers-area"></div>
+
+        <hr style="border-color: #555;">
+
+        <div class="flex-row">
+            <div class="half">
+                <h4 style="color:#ff6666">LEWA DRUŻYNA</h4>
+                <button onclick="sendX('L', 1)" class="btn-red">X</button>
+                <button onclick="sendX('L', 2)" class="btn-red">XX</button>
+                <button onclick="sendX('L', 3)" class="btn-red">XXX</button>
+                <br><br>
+                <button onclick="sendX('L', 0)" style="background:#555; color:white;">WYCZYŚĆ</button>
+            </div>
+            
+            <div class="half">
+                <h4 style="color:#6666ff">PRAWA DRUŻYNA</h4>
+                <button onclick="sendX('R', 1)" class="btn-red">X</button>
+                <button onclick="sendX('R', 2)" class="btn-red">XX</button>
+                <button onclick="sendX('R', 3)" class="btn-red">XXX</button>
+                <br><br>
+                <button onclick="sendX('R', 0)" style="background:#555; color:white;">WYCZYŚĆ</button>
+            </div>
+        </div>
+
+        <hr style="border-color: #555;">
+        
+        <div class="flex-row" style="align-items: center; justify-content: space-between;">
+            <div style="font-size: 20px;">SUMA: <input id="score-input" type="number" value="0" style="width: 80px; font-size: 20px; text-align: center;" onchange="sendScore()"></div>
+            <div>
+                <label>Finał (sek):</label>
+                <input id="finale-time" type="number" value="15" style="width: 50px;">
+                <button onclick="startFinale()" class="btn-yellow">START FINAŁU ⏱️</button>
+            </div>
+        </div>
     </div>
 
-    <div id="game-controls" class="card" style="display:none">
-        <textarea id="data-input" style="width:100%; height:50px;">HASŁO 1, 30, HASŁO 2, 20</textarea>
-        <div id="ans-btns"></div>
-        <hr>
-        <h4>Błędy</h4>
-        Lewa: <button onclick="sendX('L',1)" class="btn-x">X</button> <button onclick="sendX('L',2)" class="btn-x">XX</button> <button onclick="sendX('L',3)" class="btn-x">XXX</button> |
-        Prawa: <button onclick="sendX('R',1)" class="btn-x">X</button> <button onclick="sendX('R',2)" class="btn-x">XX</button> <button onclick="sendX('R',3)" class="btn-x">XXX</button>
-        <hr>
-        Suma: <input type="number" id="manual-score" value="0" onchange="sendScore()">
-    </div>
+</div>
 
-    <script>
-        const peer = new Peer();
-        let conn;
-        let answers = [];
+<script>
+    const peer = new Peer();
+    let conn;
+    let currentAnswers = [];
 
-        function connect() {
-            conn = peer.connect(document.getElementById('peer-id').value);
-            conn.on('open', () => { document.getElementById('game-controls').style.display='block'; });
+    // --- BAZA PYTAŃ (EDYTUJ TUTAJ) ---
+    const questionSets = {
+        "set1": "MYJEMY ZĘBY, 36, PIJEMY KAWĘ, 24, UBIERAMY SIĘ, 15, ŚCIELIMY ŁÓŻKO, 10, JEMY ŚNIADANIE, 8",
+        "set2": "PIES, 45, KOT, 30, CHOMIK, 12, RYBKI, 8, PAPUGA, 5",
+        "set3": "DRZWI, 38, ZAMEK, 25, SAMOCHÓD, 20, PIANINO, 10, KLUCZNIK, 7",
+        "set4": "WARSZAWA, 35, KRAKÓW, 28, GDAŃSK, 15, WROCŁAW, 12, POZNAŃ, 10",
+        "set5": "FINAŁ, 0, ODPOWIEDŹ 1, 0, ODPOWIEDŹ 2, 0" 
+    };
+
+    function loadSet() {
+        const val = document.getElementById('set-selector').value;
+        if(questionSets[val]) {
+            document.getElementById('data-input').value = questionSets[val];
+        }
+    }
+
+    function connect() {
+        const id = document.getElementById('peer-id').value;
+        if(!id) return alert("Wpisz ID!");
+        conn = peer.connect(id);
+        
+        conn.on('open', () => {
+            document.getElementById('conn-status').innerText = "🟢 POŁĄCZONO";
+            document.getElementById('conn-status').style.color = "#28a745";
+            document.getElementById('game-controls').style.display = 'block';
+        });
+        
+        conn.on('close', () => {
+            document.getElementById('conn-status').innerText = "🔴 ROZŁĄCZONY";
+            document.getElementById('conn-status').style.color = "#ff4444";
+        });
+    }
+
+    function sendReset() {
+        if(!conn) return alert("Brak połączenia!");
+        
+        const raw = document.getElementById('data-input').value.split(',');
+        currentAnswers = [];
+        for(let i=0; i<raw.length; i+=2) {
+            if(raw[i+1]) {
+                currentAnswers.push({t: raw[i].trim(), p: raw[i+1].trim()});
+            }
         }
 
-        function send(data) { if(conn) conn.send(data); }
+        conn.send({type: 'RESET_BOARD', ans: currentAnswers});
+        
+        // Generowanie przycisków
+        const area = document.getElementById('answers-area');
+        area.innerHTML = '';
+        currentAnswers.forEach((a, i) => {
+            area.innerHTML += `
+                <div class="row-ctrl">
+                    <span>${i+1}. ${a.t} (${a.p})</span>
+                    <button onclick="reveal(${i})" class="btn-blue">ODKRYJ</button>
+                </div>
+            `;
+        });
+        
+        document.getElementById('score-input').value = 0;
+        sendScore();
+    }
 
-        function sendReset() {
-            let raw = document.getElementById('data-input').value.split(',');
-            answers = [];
-            for(let i=0; i<raw.length; i+=2) if(raw[i+1]) answers.push({t: raw[i].trim(), p: raw[i+1].trim()});
-            send({type: 'RESET_BOARD', ans: answers});
-            let html = '';
-            answers.forEach((a, i) => html += `<button onclick="reveal(${i})">ODKRYJ ${i+1}</button>`);
-            document.getElementById('ans-btns').innerHTML = html;
-        }
+    function reveal(idx) {
+        if(!conn) return;
+        conn.send({type: 'REV', idx: idx, t: currentAnswers[idx].t, p: currentAnswers[idx].p});
+        
+        // Auto-dodawanie punktów
+        const scoreEl = document.getElementById('score-input');
+        scoreEl.value = parseInt(scoreEl.value) + parseInt(currentAnswers[idx].p);
+        sendScore();
+    }
 
-        function reveal(i) {
-            send({type: 'REV', idx: i, t: answers[i].t, p: answers[i].p});
-            let s = document.getElementById('manual-score');
-            s.value = parseInt(s.value) + parseInt(answers[i].p);
-            sendScore();
-        }
+    function sendX(side, n) { if(conn) conn.send({type: 'X', side: side, n: n}); }
+    function sendScore() { if(conn) conn.send({type: 'SCORE', val: document.getElementById('score-input').value}); }
+    function playAudio(type) { if(conn) conn.send({type: type}); }
+    function startFinale() { if(conn) conn.send({type: 'START_FINALE', time: document.getElementById('finale-time').value}); }
+</script>
 
-        function startFinale() {
-            send({type: 'START_FINALE', time: document.getElementById('fin-time').value});
-        }
-
-        function sendX(side, n) { send({type:'X', side:side, n:n}); }
-        function sendScore() { send({type:'SCORE', val: document.getElementById('manual-score').value}); }
-    </script>
 </body>
 </html>
