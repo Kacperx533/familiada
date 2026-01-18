@@ -5,188 +5,276 @@
     <title>FAMILIADA - CENTRUM DOWODZENIA</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #1a1a1a; color: #f0f0f0; margin: 0; padding: 20px; }
-        .container { max-width: 1000px; margin: 0 auto; display: grid; gap: 20px; }
-        
-        .panel { background: #2b2b2b; padding: 20px; border-radius: 10px; border: 1px solid #444; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
-        .panel h3 { margin-top: 0; border-bottom: 2px solid #555; padding-bottom: 10px; color: #ffc107; }
+        :root {
+            --primary: #ffc107;
+            --secondary: #28a745;
+            --danger: #dc3545;
+            --dark: #121212;
+            --card: #1e1e1e;
+            --text: #f0f0f0;
+        }
 
-        input, select, textarea { width: 100%; padding: 10px; background: #111; color: white; border: 1px solid #555; border-radius: 5px; margin-bottom: 10px; box-sizing: border-box; }
-        
-        button { cursor: pointer; border: none; padding: 12px; border-radius: 5px; font-weight: bold; text-transform: uppercase; transition: 0.2s; margin: 2px; }
-        button:hover { filter: brightness(1.2); }
-        button:active { transform: scale(0.98); }
+        body {
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--dark);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
 
-        .btn-green { background: #28a745; color: white; width: 100%; font-size: 16px; }
-        .btn-blue { background: #007bff; color: white; }
-        .btn-red { background: #dc3545; color: white; }
-        .btn-yellow { background: #ffc107; color: black; }
-        .btn-purple { background: #6f42c1; color: white; width: 100%; }
+        .container {
+            max-width: 1000px;
+            width: 100%;
+        }
 
-        .row-ctrl { display: flex; justify-content: space-between; align-items: center; background: #3a3a3a; padding: 10px; margin-bottom: 5px; border-radius: 5px; }
-        .row-ctrl span { font-size: 18px; font-weight: bold; color: #ffc107; }
+        .card {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #333;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
 
-        .flex-row { display: flex; gap: 10px; }
-        .half { flex: 1; text-align: center; background: #222; padding: 10px; border-radius: 5px; }
+        h2, h3 { color: var(--primary); margin-top: 0; text-transform: uppercase; letter-spacing: 1px; }
+
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            background: #000;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        input, select, textarea {
+            background: #111;
+            border: 1px solid #444;
+            color: white;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 16px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+        button {
+            padding: 12px 20px;
+            font-weight: bold;
+            text-transform: uppercase;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        button:active { transform: scale(0.95); }
+
+        .btn-main { background: var(--primary); color: #000; width: 100%; font-size: 18px; }
+        .btn-action { background: #333; color: white; border: 1px solid #555; }
+        .btn-action:hover { background: #444; }
+        .btn-reveal { background: #007bff; color: white; width: 100px; }
+        .btn-x { background: var(--danger); color: white; flex: 1; font-size: 20px; }
+        .btn-audio { background: #6f42c1; color: white; }
+
+        .ans-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #2a2a2a;
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            border-left: 5px solid var(--primary);
+        }
+
+        .score-display {
+            font-size: 48px;
+            color: var(--primary);
+            font-family: monospace;
+            text-align: center;
+            background: #000;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+
+        .audio-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    
-    <div class="panel">
-        <h3>1. Połączenie</h3>
-        <div class="flex-row">
-            <input id="peer-id" placeholder="Wpisz KOD ID z ekranu TV" style="font-size: 18px;">
-            <button onclick="connect()" class="btn-green" style="width: 150px;">POŁĄCZ</button>
-        </div>
-        <div id="conn-status" style="color: #ff4444; font-weight: bold; margin-top: 5px;">🔴 ROZŁĄCZONY</div>
-    </div>
-
-    <div class="panel">
-        <h3>2. Wybór Rundy / Pytania</h3>
-        <label>Wybierz gotowy zestaw:</label>
-        <select id="set-selector" onchange="loadSet()">
-            <option value="">-- Wybierz lub wpisz własne --</option>
-            <option value="set1">Runda 1: Co robimy zaraz po przebudzeniu?</option>
-            <option value="set2">Runda 2: Zwierzęta domowe</option>
-            <option value="set3">Runda 3: Co ma klucze?</option>
-            <option value="set4">Runda 4: Miasta w Polsce</option>
-            <option value="set5">Runda Finałowa (Przykładowa)</option>
-        </select>
-        
-        <label>Edycja (Hasło, punkty, Hasło, punkty...):</label>
-        <textarea id="data-input" rows="3">MYJEMY ZĘBY, 36, PIJEMY KAWĘ, 24, UBIERAMY SIĘ, 15, ŚCIELIMY ŁÓŻKO, 10</textarea>
-        
-        <div class="flex-row">
-            <button onclick="sendReset()" class="btn-green">ZAŁADUJ RUNDĘ NA TABLICĘ</button>
-            <button onclick="playAudio('PLAY_INTRO')" class="btn-purple" style="width: auto;">🎵 CZOŁÓWKA</button>
+    <div class="status-bar">
+        <div>STATUS: <span id="conn-status" style="color: var(--danger)">🔴 ROZŁĄCZONY</span></div>
+        <div style="display:flex; gap:10px;">
+            <input id="target-id" placeholder="KOD Z TV" style="width: 120px; padding: 5px;">
+            <button onclick="connect()" class="btn-action" style="padding: 5px 15px;">POŁĄCZ</button>
         </div>
     </div>
 
-    <div id="game-controls" class="panel" style="display:none; border: 2px solid #28a745;">
-        <h3>3. Przebieg Gry</h3>
-        
-        <div id="answers-area"></div>
-
-        <hr style="border-color: #555;">
-
-        <div class="flex-row">
-            <div class="half">
-                <h4 style="color:#ff6666">LEWA DRUŻYNA</h4>
-                <button onclick="sendX('L', 1)" class="btn-red">X</button>
-                <button onclick="sendX('L', 2)" class="btn-red">XX</button>
-                <button onclick="sendX('L', 3)" class="btn-red">XXX</button>
-                <br><br>
-                <button onclick="sendX('L', 0)" style="background:#555; color:white;">WYCZYŚĆ</button>
+    <div class="grid">
+        <div>
+            <div class="card">
+                <h3>1. Przygotowanie Rundy</h3>
+                <label>Wybierz gotowy zestaw:</label>
+                <select id="preset-select" onchange="loadPreset()" style="margin-bottom: 15px;">
+                    <option value="">-- Własne pytania --</option>
+                    <option value="0">Runda 1: Co robimy rano?</option>
+                    <option value="1">Runda 2: Zwierzę domowe</option>
+                    <option value="2">Runda 3: Miasto w Polsce</option>
+                    <option value="3">FINAŁ</option>
+                </select>
+                
+                <label>Edytuj dane (Format: Hasło, Punkty):</label>
+                <textarea id="data-input" rows="6" placeholder="Hasło, 30&#10;Kolejne, 20"></textarea>
+                <button onclick="sendSetup()" class="btn-main" style="margin-top: 15px;">WYŚLIJ NA TABLICĘ</button>
             </div>
-            
-            <div class="half">
-                <h4 style="color:#6666ff">PRAWA DRUŻYNA</h4>
-                <button onclick="sendX('R', 1)" class="btn-red">X</button>
-                <button onclick="sendX('R', 2)" class="btn-red">XX</button>
-                <button onclick="sendX('R', 3)" class="btn-red">XXX</button>
-                <br><br>
-                <button onclick="sendX('R', 0)" style="background:#555; color:white;">WYCZYŚĆ</button>
+
+            <div class="card">
+                <h3>2. Multimedia</h3>
+                <div class="audio-grid">
+                    <button onclick="sendMsg({type:'PLAY_INTRO'})" class="btn-audio">🎵 CZOŁÓWKA</button>
+                    <button onclick="sendMsg({type:'PLAY_FINAL'})" class="btn-audio">⭐ FINAŁ MUZA</button>
+                    <button onclick="sendMsg({type:'STOP_AUDIO'})" class="btn-action">🛑 STOP</button>
+                </div>
+                <div style="margin-top: 15px;">
+                    <label>Timer Finałowy (sekundy):</label>
+                    <div style="display:flex; gap:10px;">
+                        <input type="number" id="timer-val" value="15" style="width: 80px;">
+                        <button onclick="startTimer()" class="btn-action" style="flex:1">START ZEGAR ⏱️</button>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <hr style="border-color: #555;">
-        
-        <div class="flex-row" style="align-items: center; justify-content: space-between;">
-            <div style="font-size: 20px;">SUMA: <input id="score-input" type="number" value="0" style="width: 80px; font-size: 20px; text-align: center;" onchange="sendScore()"></div>
-            <div>
-                <label>Finał (sek):</label>
-                <input id="finale-time" type="number" value="15" style="width: 50px;">
-                <button onclick="startFinale()" class="btn-yellow">START FINAŁU ⏱️</button>
+        <div>
+            <div class="card" id="control-panel" style="opacity: 0.5; pointer-events: none;">
+                <h3>3. Przebieg Gry</h3>
+                <div id="answers-list">
+                    <p style="text-align:center; color:#666;">Załaduj rundę, aby zobaczyć przyciski</p>
+                </div>
+
+                <hr style="border: 0; border-top: 1px solid #444; margin: 20px 0;">
+                
+                <h4>BŁĘDY (X)</h4>
+                <div style="display:flex; gap:10px; margin-bottom: 10px;">
+                    <div style="flex:1; text-align:center;">
+                        <small>DRUŻYNA LEWA</small>
+                        <div style="display:flex; gap:5px; margin-top:5px;">
+                            <button onclick="sendX('L', 1)" class="btn-x">X</button>
+                            <button onclick="sendX('L', 2)" class="btn-x">XX</button>
+                            <button onclick="sendX('L', 3)" class="btn-x">XXX</button>
+                        </div>
+                    </div>
+                </div>
+                <div style="display:flex; gap:10px;">
+                    <div style="flex:1; text-align:center;">
+                        <small>DRUŻYNA PRAWA</small>
+                        <div style="display:flex; gap:5px; margin-top:5px;">
+                            <button onclick="sendX('R', 1)" class="btn-x">X</button>
+                            <button onclick="sendX('R', 2)" class="btn-x">XX</button>
+                            <button onclick="sendX('R', 3)" class="btn-x">XXX</button>
+                        </div>
+                    </div>
+                </div>
+                <button onclick="sendX('L', 0); sendX('R', 0);" class="btn-action" style="width:100%; margin-top:10px;">WYCZYŚĆ WSZYSTKIE X</button>
+
+                <hr style="border: 0; border-top: 1px solid #444; margin: 20px 0;">
+
+                <h4>SUMA PUNKTÓW</h4>
+                <div class="score-display" id="local-score">0</div>
+                <div style="display:flex; gap:10px;">
+                    <button onclick="adjustScore(-5)" class="btn-action">-5</button>
+                    <button onclick="adjustScore(5)" class="btn-action">+5</button>
+                    <button onclick="manualScore()" class="btn-main">KOREKTA</button>
+                </div>
             </div>
         </div>
     </div>
-
 </div>
 
 <script>
     const peer = new Peer();
     let conn;
     let currentAnswers = [];
+    let totalScore = 0;
 
-    // --- BAZA PYTAŃ (EDYTUJ TUTAJ) ---
-    const questionSets = {
-        "set1": "MYJEMY ZĘBY, 36, PIJEMY KAWĘ, 24, UBIERAMY SIĘ, 15, ŚCIELIMY ŁÓŻKO, 10, JEMY ŚNIADANIE, 8",
-        "set2": "PIES, 45, KOT, 30, CHOMIK, 12, RYBKI, 8, PAPUGA, 5",
-        "set3": "DRZWI, 38, ZAMEK, 25, SAMOCHÓD, 20, PIANINO, 10, KLUCZNIK, 7",
-        "set4": "WARSZAWA, 35, KRAKÓW, 28, GDAŃSK, 15, WROCŁAW, 12, POZNAŃ, 10",
-        "set5": "FINAŁ, 0, ODPOWIEDŹ 1, 0, ODPOWIEDŹ 2, 0" 
-    };
+    const presets = [
+        "MYJEMY ZĘBY, 35\nPIJEMY KAWĘ, 25\nUBIERAMY SIĘ, 15\nŚCIELIMY ŁÓŻKO, 10",
+        "PIES, 45\nKOT, 30\nCHOMIK, 12\nRYBKI, 8",
+        "WARSZAWA, 40\nKRAKÓW, 30\nGDAŃSK, 15\nWROCŁAW, 10",
+        "FINAŁ ODPOWIEDŹ 1, 40\nFINAŁ ODPOWIEDŹ 2, 20"
+    ];
 
-    function loadSet() {
-        const val = document.getElementById('set-selector').value;
-        if(questionSets[val]) {
-            document.getElementById('data-input').value = questionSets[val];
-        }
+    function loadPreset() {
+        const idx = document.getElementById('preset-select').value;
+        if(idx !== "") document.getElementById('data-input').value = presets[idx];
     }
 
     function connect() {
-        const id = document.getElementById('peer-id').value;
-        if(!id) return alert("Wpisz ID!");
+        const id = document.getElementById('target-id').value.toUpperCase();
         conn = peer.connect(id);
-        
         conn.on('open', () => {
             document.getElementById('conn-status').innerText = "🟢 POŁĄCZONO";
             document.getElementById('conn-status').style.color = "#28a745";
-            document.getElementById('game-controls').style.display = 'block';
-        });
-        
-        conn.on('close', () => {
-            document.getElementById('conn-status').innerText = "🔴 ROZŁĄCZONY";
-            document.getElementById('conn-status').style.color = "#ff4444";
+            document.getElementById('control-panel').style.opacity = "1";
+            document.getElementById('control-panel').style.pointerEvents = "auto";
         });
     }
 
-    function sendReset() {
-        if(!conn) return alert("Brak połączenia!");
-        
-        const raw = document.getElementById('data-input').value.split(',');
-        currentAnswers = [];
-        for(let i=0; i<raw.length; i+=2) {
-            if(raw[i+1]) {
-                currentAnswers.push({t: raw[i].trim(), p: raw[i+1].trim()});
-            }
-        }
+    function sendMsg(data) { if(conn && conn.open) conn.send(data); }
 
-        conn.send({type: 'RESET_BOARD', ans: currentAnswers});
+    function sendSetup() {
+        const lines = document.getElementById('data-input').value.split('\n');
+        currentAnswers = lines.map(l => {
+            const parts = l.split(',');
+            return { t: parts[0]?.trim() || "", p: parseInt(parts[1]) || 0 };
+        }).filter(a => a.t !== "");
+
+        totalScore = 0;
+        updateScoreDisplay();
+        sendMsg({ type: 'RESET_BOARD', ans: currentAnswers });
         
-        // Generowanie przycisków
-        const area = document.getElementById('answers-area');
-        area.innerHTML = '';
-        currentAnswers.forEach((a, i) => {
-            area.innerHTML += `
-                <div class="row-ctrl">
-                    <span>${i+1}. ${a.t} (${a.p})</span>
-                    <button onclick="reveal(${i})" class="btn-blue">ODKRYJ</button>
-                </div>
-            `;
-        });
-        
-        document.getElementById('score-input').value = 0;
-        sendScore();
+        const list = document.getElementById('answers-list');
+        list.innerHTML = currentAnswers.map((a, i) => `
+            <div class="ans-row">
+                <span>${i+1}. <strong>${a.t}</strong> (${a.p})</span>
+                <button onclick="reveal(${i})" class="btn-reveal">ODKRYJ</button>
+            </div>
+        `).join('');
     }
 
     function reveal(idx) {
-        if(!conn) return;
-        conn.send({type: 'REV', idx: idx, t: currentAnswers[idx].t, p: currentAnswers[idx].p});
-        
-        // Auto-dodawanie punktów
-        const scoreEl = document.getElementById('score-input');
-        scoreEl.value = parseInt(scoreEl.value) + parseInt(currentAnswers[idx].p);
-        sendScore();
+        const ans = currentAnswers[idx];
+        sendMsg({ type: 'REV', idx: idx, t: ans.t, p: ans.p });
+        totalScore += ans.p;
+        updateScoreDisplay();
     }
 
-    function sendX(side, n) { if(conn) conn.send({type: 'X', side: side, n: n}); }
-    function sendScore() { if(conn) conn.send({type: 'SCORE', val: document.getElementById('score-input').value}); }
-    function playAudio(type) { if(conn) conn.send({type: type}); }
-    function startFinale() { if(conn) conn.send({type: 'START_FINALE', time: document.getElementById('finale-time').value}); }
-</script>
+    function sendX(side, n) { sendMsg({ type: 'X', side: side, n: n }); }
 
+    function updateScoreDisplay() {
+        document.getElementById('local-score').innerText = totalScore;
+        sendMsg({ type: 'SCORE', val: totalScore });
+    }
+
+    function adjustScore(v) { totalScore += v; updateScoreDisplay(); }
+    function manualScore() { 
+        const v = prompt("Wpisz nową sumę punktów:", totalScore);
+        if(v !== null) { totalScore = parseInt(v); updateScoreDisplay(); }
+    }
+
+    function startTimer() {
+        const t = document.getElementById('timer-val').value;
+        sendMsg({ type: 'START_FINALE', time: t });
+    }
+</script>
 </body>
 </html>
