@@ -2,89 +2,146 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>ADMIN - FINAŁ PRO</title>
+    <title>FAMILIADA - PANEL STEROWANIA</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        body { font-family: sans-serif; background: #1a1a1a; color: white; padding: 20px; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .panel { background: #2d2d2d; padding: 15px; border-radius: 8px; border: 1px solid #444; }
-        h3 { color: #eaff00; margin-top: 0; }
-        button { padding: 10px; cursor: pointer; border: none; border-radius: 4px; font-weight: bold; margin-bottom: 5px; width: 100%; }
-        .btn-timer { background: #ff3333; color: white; font-size: 18px; }
-        .btn-rev { background: #007bff; color: white; }
-        .btn-repeat { background: #ffc107; color: black; }
-        input { width: 80%; padding: 5px; margin-bottom: 10px; background: #111; color: white; border: 1px solid #555; }
-        .score-box { font-size: 30px; text-align: center; background: #000; padding: 10px; margin: 10px 0; color: #eaff00; }
+        body { font-family: sans-serif; background: #121212; color: #fff; margin: 0; display: flex; flex-direction: column; height: 100vh; }
+        .top-bar { background: #000; padding: 10px; display: flex; gap: 10px; align-items: center; border-bottom: 2px solid #333; }
+        .main { display: grid; grid-template-columns: 300px 1fr; flex-grow: 1; overflow: hidden; }
+        .sidebar { background: #1e1e1e; padding: 15px; border-right: 1px solid #333; overflow-y: auto; }
+        .content { padding: 20px; overflow-y: auto; }
+        .card { background: #2a2a2a; border-radius: 8px; padding: 15px; margin-bottom: 20px; }
+        button { padding: 10px; cursor: pointer; border: none; border-radius: 4px; font-weight: bold; transition: 0.2s; }
+        .btn-blue { background: #007bff; color: white; }
+        .btn-green { background: #28a745; color: white; }
+        .btn-red { background: #dc3545; color: white; }
+        .btn-yellow { background: #ffc107; color: black; }
+        .btn-sound { background: #6f42c1; color: white; margin-bottom: 5px; width: 100%; }
+        input, textarea { background: #000; color: #fff; border: 1px solid #444; padding: 8px; width: 100%; box-sizing: border-box; }
+        .row-tool { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; background: #333; padding: 5px; border-radius: 4px; }
     </style>
 </head>
 <body>
-    <div style="margin-bottom: 20px;">
-        ID TABLICY: <input id="peer-id" placeholder="Wpisz ID z ekranu TV" style="width: 200px;">
-        <button onclick="connect()" style="width: 100px; background: #28a745; color: white;">POŁĄCZ</button>
-        <button onclick="send({type:'RESET'})" style="width: 150px; background: #555; color: white;">RESET SYSTEMU</button>
+    <div class="top-bar">
+        <span>ID TABLICY:</span>
+        <input id="target-id" style="width:150px">
+        <button onclick="connect()" class="btn-green">POŁĄCZ</button>
+        <button onclick="send({type:'SOUND', id:'snd-intro'})" class="btn-blue">🎵 CZOŁÓWKA</button>
+        <button onclick="location.reload()">RESET PANELU</button>
     </div>
 
-    <div class="grid">
-        <div class="panel">
-            <h3>GRACZ 1 (15 SEK)</h3>
-            <button onclick="send({type:'TIMER', sec: 15})" class="btn-timer">START ZEGARA 15s</button>
+    <div class="main">
+        <div class="sidebar">
+            <h3>MULTIMEDIA</h3>
+            <button class="btn-sound" onclick="send({type:'SOUND', id:'snd-ok'})">✅ DOBRA ODPOWIEDŹ</button>
+            <button class="btn-sound" onclick="send({type:'SOUND', id:'snd-bad'})">❌ BŁĄD / KONIEC CZASU</button>
+            <button class="btn-sound" onclick="send({type:'SOUND', id:'snd-repeat'})" style="background:orange">⚠️ POWTÓRKA (FINAŁ)</button>
             <hr>
-            <div id="p1-inputs">
-                <script>
-                    for(let i=0; i<5; i++) {
-                        document.write(`<div>${i+1}. <input id="p1t${i}" placeholder="Hasło"> <input id="p1p${i}" placeholder="Pkt" style="width:40px"> <button onclick="reveal(1, ${i})" class="btn-rev">ODKRYJ</button></div>`);
-                    }
-                </script>
+            <h3>BŁĘDY X</h3>
+            <div style="display:flex; gap:5px">
+                <button class="btn-red" onclick="send({type:'X', count:1})">X</button>
+                <button class="btn-red" onclick="send({type:'X', count:2})">XX</button>
+                <button class="btn-red" onclick="send({type:'X', count:3})">XXX</button>
             </div>
-            <button onclick="send({type:'HIDE_P1'})" style="background: #666; margin-top: 10px;">UKRYJ ODPOWIEDZI G1 (Dla G2)</button>
+            <hr>
+            <h3>SUMA PUNKTÓW</h3>
+            <div id="local-score" style="font-size:40px; text-align:center; color:#eaff00">0</div>
+            <input type="number" id="score-input" value="0" onchange="updateScore()">
         </div>
 
-        <div class="panel">
-            <h3>GRACZ 2 (20 SEK)</h3>
-            <button onclick="send({type:'TIMER', sec: 20})" class="btn-timer">START ZEGARA 20s</button>
-            <button onclick="send({type:'REPEAT'})" class="btn-repeat">⚠️ DŹWIĘK POWTÓRKI (POWTÓRZENIA.MP3)</button>
-            <hr>
-            <div id="p2-inputs">
-                <script>
-                    for(let i=0; i<5; i++) {
-                        document.write(`<div>${i+1}. <input id="p2t${i}" placeholder="Hasło"> <input id="p2p${i}" placeholder="Pkt" style="width:40px"> <button onclick="reveal(2, ${i})" class="btn-rev">ODKRYJ</button></div>`);
-                    }
-                </script>
+        <div class="content">
+            <div class="card">
+                <h2>RUNDY 1 - 4</h2>
+                <textarea id="normal-data" rows="4" placeholder="Odpowiedź, Punkty (każda w nowej linii)">PIES, 35
+KOT, 25
+CHOMIK, 15</textarea>
+                <button onclick="setupNormal()" class="btn-blue" style="margin-top:10px">USTAW TABLICĘ RUNDY</button>
+                <div id="normal-controls" style="margin-top:15px"></div>
+            </div>
+
+            <div class="card" style="border-top: 4px solid #ffc107">
+                <h2>FINAŁ</h2>
+                <button onclick="setupFinal()" class="btn-yellow">PRZEŁĄCZ TABLICĘ NA FINAŁ</button>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 15px;">
+                    <div>
+                        <h4>GRACZ 1 (15s)</h4>
+                        <button onclick="send({type:'TIMER', sec:15})" class="btn-red">START ZEGARA 15s</button>
+                        <div id="p1-inputs"></div>
+                        <button onclick="send({type:'HIDE_P1'})" style="margin-top:10px">UKRYJ G1 (DLA G2)</button>
+                    </div>
+                    <div>
+                        <h4>GRACZ 2 (20s)</h4>
+                        <button onclick="send({type:'TIMER', sec:20})" class="btn-red">START ZEGARA 20s</button>
+                        <div id="p2-inputs"></div>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-
-    <div class="panel" style="margin-top: 20px; text-align: center;">
-        <h3>SUMA PUNKTÓW</h3>
-        <div class="score-box" id="local-score">0</div>
-        <button onclick="updateScore()" style="background: #eaff00; color: black; font-size: 20px;">AKTUALIZUJ TABLICĘ</button>
     </div>
 
     <script>
         const peer = new Peer();
         let conn;
-        let total = 0;
+        let score = 0;
 
         function connect() {
-            conn = peer.connect(document.getElementById('peer-id').value);
-            conn.on('open', () => alert("POŁĄCZONO!"));
+            conn = peer.connect(document.getElementById('target-id').value.toUpperCase());
+            conn.on('open', () => alert("POŁĄCZONO Z TABLICĄ!"));
         }
 
-        function send(data) { if(conn) conn.send(data); }
+        function send(d) { if(conn) conn.send(d); }
 
-        function reveal(player, idx) {
-            const t = document.getElementById(`p${player}t${idx}`).value;
-            const p = document.getElementById(`p${player}p${idx}`).value;
-            send({type: 'REV', player: player, idx: idx, t: t, p: p});
+        function setupNormal() {
+            const lines = document.getElementById('normal-data').value.split('\n');
+            const ans = lines.map(l => ({ t: l.split(',')[0].trim(), p: parseInt(l.split(',')[1]) || 0 }));
+            send({type: 'SETUP_NORMAL', ans: ans});
             
-            if(p) {
-                total += parseInt(p);
-                document.getElementById('local-score').innerText = total;
-            }
+            let html = '';
+            ans.forEach((a, i) => {
+                html += `<div class="row-tool"><span>${i+1}. ${a.t} (${a.p})</span> 
+                    <button onclick="revealNormal(${i}, '${a.t}', ${a.p})" class="btn-green">ODKRYJ</button></div>`;
+            });
+            document.getElementById('normal-controls').innerHTML = html;
+        }
+
+        function revealNormal(idx, t, p) {
+            send({type: 'REV', mode: 'normal', idx: idx, t: t, p: p});
+            score += p; updateScoreUI();
+        }
+
+        function setupFinal() {
+            send({type: 'SETUP_FINAL'});
+            score = 0; updateScoreUI();
+            const gen = (pid) => {
+                let h = '';
+                for(let i=0; i<5; i++) {
+                    h += `<div style="margin-bottom:5px">
+                        <input id="p${pid}t${i}" placeholder="Hasło" style="width:100px">
+                        <input id="p${pid}p${i}" placeholder="Pkt" style="width:40px">
+                        <button onclick="revealFinal(${pid}, ${i})" class="btn-green">OK</button>
+                    </div>`;
+                }
+                document.getElementById(`p${pid}-inputs`).innerHTML = h;
+            };
+            gen(1); gen(2);
+        }
+
+        function revealFinal(pid, idx) {
+            const t = document.getElementById(`p${pid}t${idx}`).value;
+            const p = parseInt(document.getElementById(`p${pid}p${idx}`).value) || 0;
+            send({type: 'REV', mode: 'final', player: pid, idx: idx, t: t, p: p});
+            score += p; updateScoreUI();
         }
 
         function updateScore() {
-            send({type: 'SCORE', val: total});
+            score = parseInt(document.getElementById('score-input').value);
+            updateScoreUI();
+        }
+
+        function updateScoreUI() {
+            document.getElementById('local-score').innerText = score;
+            document.getElementById('score-input').value = score;
+            send({type: 'SCORE', val: score});
         }
     </script>
 </body>
