@@ -2,37 +2,45 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>ADMIN - FAMILIADA</title>
+    <title>FAMILIADA - PANEL STEROWANIA</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        body { font-family: sans-serif; background: #1a1a1a; color: #fff; margin: 0; display: grid; grid-template-columns: 320px 1fr; height: 100vh; }
-        .sidebar { background: #222; padding: 20px; border-right: 2px solid #fbc02d; overflow-y: auto; }
-        .main { padding: 20px; overflow-y: auto; display: flex; flex-direction: column; }
-        .card { background: #333; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
-        button { padding: 10px; margin-bottom: 5px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; width: 100%; text-transform: uppercase; }
+        body { font-family: 'Segoe UI', sans-serif; background: #121212; color: #fff; margin: 0; display: grid; grid-template-columns: 320px 1fr; height: 100vh; overflow: hidden; }
+        .sidebar { background: #1e1e1e; padding: 15px; border-right: 2px solid #fbc02d; overflow-y: auto; }
+        .main { padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+        .card { background: #2a2a2a; padding: 12px; border-radius: 8px; border: 1px solid #444; }
+        h3 { color: #fbc02d; margin: 0 0 10px 0; font-size: 14px; text-transform: uppercase; border-bottom: 1px solid #444; padding-bottom: 5px; }
+        button { padding: 8px; margin-bottom: 4px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; width: 100%; text-transform: uppercase; font-size: 11px; }
         .btn-y { background: #fbc02d; color: #000; }
         .btn-b { background: #1976d2; color: #fff; }
         .btn-r { background: #d32f2f; color: #fff; }
-        .team-sel { display: flex; gap: 5px; margin-bottom: 10px; }
+        .team-sel { display: flex; gap: 4px; margin-bottom: 10px; }
         .team-sel input { display: none; }
-        .team-sel label { flex: 1; padding: 10px; background: #444; text-align: center; cursor: pointer; border-radius: 4px; }
+        .team-sel label { flex: 1; padding: 10px; background: #333; text-align: center; cursor: pointer; border-radius: 4px; font-size: 12px; }
         .team-sel input:checked + label { background: #fbc02d; color: #000; }
-        input, select, textarea { width: 100%; padding: 8px; margin: 5px 0; background: #000; color: #fff; border: 1px solid #555; box-sizing: border-box; }
-        .cheat-sheet { background: #000; padding: 15px; border: 1px dashed #fbc02d; margin-top: auto; }
-        .cheat-sheet h4 { color: #fbc02d; margin-top: 0; }
-        .cheat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 12px; }
-        .score-row { display: flex; justify-content: space-around; font-size: 24px; color: #fbc02d; font-weight: bold; padding: 10px 0; }
+        input, select, textarea { width: 100%; padding: 8px; margin: 4px 0; background: #000; color: #fff; border: 1px solid #555; box-sizing: border-box; }
+        .cheat-sheet { background: #000; padding: 12px; border-top: 3px solid #fbc02d; }
+        .cheat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; font-size: 11px; color: #ccc; }
+        .cheat-item { border-bottom: 1px solid #222; padding-bottom: 5px; }
+        .top-ans { color: #fbc02d; font-weight: bold; }
+        .score-row { display: flex; justify-content: space-around; font-size: 22px; color: #fbc02d; font-weight: bold; background: #000; padding: 10px; border-radius: 5px; margin-bottom: 10px; }
     </style>
 </head>
 <body>
     <div class="sidebar">
-        <input id="target-id" placeholder="KOD Z TV" maxlength="3" style="text-align:center; font-size:20px;">
-        <button onclick="connect()" class="btn-b">POŁĄCZ</button>
+        <input id="target-id" placeholder="KOD Z TV" maxlength="3" style="text-align:center; font-size:20px; border: 2px solid #fbc02d;">
+        <button onclick="connect()" class="btn-b" style="margin-bottom:15px">POŁĄCZ Z EKRANEM</button>
         
-        <h3>PUNKTY</h3>
+        <h3>MULTIMEDIA</h3>
+        <button class="btn-y" onclick="send({type:'PLAY_VID'})">🎬 CZOŁÓWKA (WIDEO)</button>
+        <button class="btn-y" onclick="send({type:'PLAY_SND', id:'snd-intro'})">🎵 INTRO (MUZYKA)</button>
+        <button class="btn-b" onclick="playFinal()">🎹 MUZYKA FINAŁU</button>
+        <button class="btn-b" onclick="send({type:'PLAY_SND', id:'snd-powt'})">⚠️ POWTÓRKA</button>
+
+        <h3 style="margin-top:15px">KONTROLA PUNKTÓW</h3>
         <div class="team-sel">
-            <input type="radio" name="active-team" id="tL" value="L" checked><label for="tL">D1 (LEWA)</label>
-            <input type="radio" name="active-team" id="tR" value="R"><label for="tR">D2 (PRAWA)</label>
+            <input type="radio" name="active-team" id="tL" value="L" checked><label for="tL">LEWA (D1)</label>
+            <input type="radio" name="active-team" id="tR" value="R"><label for="tR">PRAWA (D2)</label>
         </div>
         <div class="score-row">
             <span>D1: <b id="lScore">0</b></span>
@@ -40,46 +48,45 @@
         </div>
 
         <h3>BŁĘDY (X)</h3>
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px">
-            <div><small>LEWA</small>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:5px">
+            <div><center><small>D1</small></center>
                 <button class="btn-r" onclick="send({type:'X', count:1})">X</button>
                 <button class="btn-r" onclick="send({type:'X', count:2})">XX</button>
                 <button class="btn-r" onclick="send({type:'X', count:3})">XXX</button>
             </div>
-            <div><small>PRAWA</small>
+            <div><center><small>D2</small></center>
                 <button class="btn-r" onclick="send({type:'X', count:1})">X</button>
                 <button class="btn-r" onclick="send({type:'X', count:2})">XX</button>
                 <button class="btn-r" onclick="send({type:'X', count:3})">XXX</button>
             </div>
         </div>
 
-        <h3>DŹWIĘKI / RUNDY</h3>
-        <button class="btn-y" onclick="send({type:'PLAY_VID'})">🎬 CZOŁÓWKA</button>
-        <button class="btn-y" onclick="playRunda(1)">RUNDA 1</button>
-        <button class="btn-y" onclick="playRunda(2)">RUNDA 2</button>
-        <button class="btn-y" onclick="playRunda(3)">RUNDA 3</button>
-        <button class="btn-y" onclick="playRunda(4)">RUNDA 4</button>
-        <button class="btn-b" onclick="playFinal()">FINAŁ (AUDIO)</button>
-        <button class="btn-b" onclick="send({type:'PLAY_SND', id:'snd-powt'})">⚠️ POWTÓRKA</button>
+        <h3>RUNDY (DŹWIĘK)</h3>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:5px">
+            <button class="btn-y" onclick="playRunda(1)">R1</button>
+            <button class="btn-y" onclick="playRunda(2)">R2</button>
+            <button class="btn-y" onclick="playRunda(3)">R3</button>
+            <button class="btn-y" onclick="playRunda(4)">R4</button>
+        </div>
     </div>
 
     <div class="main">
         <div class="card">
-            <h3>BAZA 50 PYTAŃ (RUNDY)</h3>
+            <h3>BAZA PYTAŃ (WYBIERZ ZESTAW)</h3>
             <select id="preset-sel" onchange="loadPreset()"></select>
-            <textarea id="raw-data" rows="4" placeholder="Odpowiedź, Punkty"></textarea>
+            <textarea id="raw-data" rows="3"></textarea>
             <button onclick="setupNormal()" class="btn-y">WYŚLIJ NA TABLICĘ</button>
-            <div id="normal-btns" style="margin-top:10px; display: grid; grid-template-columns: 1fr 1fr; gap: 5px;"></div>
+            <div id="normal-btns" style="margin-top:10px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px;"></div>
         </div>
 
         <div class="card">
-            <h3>FINAŁ</h3>
-            <button onclick="setupFinal()" class="btn-b">WŁĄCZ TRYB FINAŁOWY</button>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; margin-top:10px">
+            <h3>TRYB FINAŁOWY</h3>
+            <button onclick="setupFinal()" class="btn-b">URUCHOM FINAŁ NA TV</button>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-top:10px">
                 <div>
                     <button class="btn-r" onclick="send({type:'TIMER', sec:15})">ZEGAR 15S</button>
                     <div id="p1-ui"></div>
-                    <button onclick="send({type:'HIDE_P1'})" style="background:#555; color:#fff">UKRYJ G1</button>
+                    <button onclick="send({type:'HIDE_P1'})" style="background:#555; color:#fff">UKRYJ HASŁA G1</button>
                 </div>
                 <div>
                     <button class="btn-r" onclick="send({type:'TIMER', sec:20})">ZEGAR 20S</button>
@@ -89,9 +96,10 @@
         </div>
 
         <div class="cheat-sheet">
-            <h4>ŚCIĄGA DLA PROWADZĄCEGO (FINAŁ - 10 ZESTAWÓW)</h4>
+            <h3>📜 ŚCIĄGA DLA PROWADZĄCEGO (TOP ODPOWIEDZI)</h3>
             <div class="cheat-grid" id="cheat-grid"></div>
         </div>
+        <button onclick="scoreL=0; scoreR=0; sync()" class="btn-r" style="width:200px; margin: 0 auto;">ZRESETUJ PUNKTY</button>
     </div>
 
     <script>
@@ -102,70 +110,29 @@
             ["PIES,40\nKOT,30\nCHOMIK,15\nRYBKI,10\nKANAREK,5", "Zwierzę domowe"],
             ["OWOCE,45\nWARZYWA,25\nSŁODYCZE,15\nMIĘSO,10\nNABIAŁ,5", "Co kupujemy w spożywczym?"],
             ["LATO,50\nZIMA,20\nWIOSNA,15\nJESIEŃ,15", "Ulubiona pora roku"],
-            ["FRANCJA,35\nWŁOCHY,25\nNIEMCY,20\nHISZPANIA,15\nGRECJA,5", "Państwo w Europie"],
-            ["ROWER,40\nBIEGANIE,30\nPŁYWANIE,20\nPIŁKA NOŻNA,10", "Popularny sport"],
             ["KAWA,50\nHERBATA,30\nWODA,15\nSOK,5", "Co pijemy rano?"],
-            ["TELEFON,45\nKLUCZE,30\nPORTFEL,20\nCHUSTECZKI,5", "Co mamy w kieszeni?"],
-            ["SAMOCHÓD,40\nAUTOBUS,30\nPOCIĄG,20\nROWER,10", "Środek transportu"],
+            ["ROWER,40\nBIEGANIE,30\nPŁYWANIE,20\nPIŁKA NOŻNA,10", "Popularny sport"],
             ["POMIDOROWA,40\nROSÓŁ,35\nOGÓRKOWA,15\nŻUREK,10", "Ulubiona zupa"],
-            ["LEKARZ,35\nSTRAŻAK,25\nPOLICJANT,20\nNAUCZYCIEL,15\nPIŁKARZ,5", "Kim chciałeś być w dzieciństwie?"],
-            // ... dopisz kolejne 40 zestawów tutaj według wzoru powyżej ...
-            ["KOMPUTER,40\nTELEWIZOR,30\nLODÓWKA,20\nPRALKA,10", "Sprzęt AGD/RTV"],
-            ["GÓRY,50\nMORZE,30\nJEZIORO,15\nLAS,5", "Gdzie na wakacje?"],
-            ["RADIO,40\nTV,30\nINTERNET,20\nPRASA,10", "Źródło informacji"],
-            ["CZYTANIE,40\nFILMY,30\nGRY,20\nSPACER,10", "Hobby"],
-            ["MAMA,50\nTATA,30\nBABCIA,10\nDZIADEK,10", "Najważniejsza osoba"],
-            ["POLSKA,60\nUSA,20\nCHINY,10\nROSJA,10", "Duże państwo"],
-            ["CHLEB,50\nBUŁKA,30\nROGAL,15\nDROŻDŻÓWKA,5", "Pieczywo"],
-            ["MASŁO,40\nSER,30\nSZYNKA,20\nDŻEM,10", "Na kanapkę"],
-            ["NÓŻ,40\nWIDELEC,30\nŁYŻKA,20\nŁYŻECZKA,10", "Sztućce"],
-            ["TULIPAN,40\nRÓŻA,35\nGONŹDZIK,15\nSTOKROTKA,10", "Kwiat"],
-            ["WARSZAWA,50\nKRAKÓW,25\nWROCŁAW,15\nGDAŃSK,10", "Polskie miasto"],
-            ["MATEMATYKA,40\nPOLSKI,30\nWF,20\nHISTORIA,10", "Przedmiot w szkole"],
-            ["KOMEDIA,40\nHORROR,30\nDRAMAT,20\nAKCJA,10", "Gatunek filmu"],
-            ["GITARA,40\nPIANINO,30\nSKRZYPCE,20\nPERKUSJA,10", "Instrument"],
-            ["SŁOŃCE,50\nKSIĘŻYC,30\nGWIAZDY,15\nCHMURY,5", "Na niebie"],
-            ["BALON,40\nTORT,35\nPREZENTY,20\nGOŚCIE,5", "Na urodzinach"],
-            ["BUTY,40\nKURTKA,30\nSPODNIE,20\nCZAPKA,10", "Ubranie"],
-            ["SAŁATKA,40\nFRYTKI,30\nRYŻ,20\nKASZA,10", "Dodatek do obiadu"],
-            ["DŁUGOPIS,40\nOŁÓWEK,30\nZESZYT,20\nGUMKA,10", "W piórniku"],
-            ["REKIN,40\nWIELORYB,30\nDELFIN,20\nZŁOTA RYBKA,10", "Morskie zwierzę"],
-            ["BAJKA,40\nWIADOMOŚCI,30\nSERIAL,20\nMECZ,10", "W telewizji"],
-            ["CUKIER,40\nSÓL,30\nPIEPRZ,20\nPAPRYKA,10", "Przyprawa"],
-            ["DYWAN,40\nOBRAZ,30\nKWIATEK,20\nLAMPA,10", "Ozdoba domu"],
-            ["KOŁDRA,50\nPODUSZKA,30\nPRZEŚCIERADŁO,15\nKOC,5", "W łóżku"],
-            ["LEW,40\nTYGRYS,30\nMAŁPA,20\nSŁOŃ,10", "W ZOO"],
-            ["PĄCZEK,40\nDROŻDŻÓWKA,30\nCIASTKO,20\nCZEKOLADA,10", "Słodka przekąka"],
-            ["MYDŁO,40\nSZAMPON,30\nPASTA,20\nPERFUMY,10", "Kosmetyk"],
-            ["WISŁA,50\nODRA,30\nWARTA,15\nBUG,5", "Polska rzeka"],
+            ["TELEFON,45\nKLUCZE,30\nPORTFEL,20\nCHUSTECZKI,5", "Co mamy w kieszeni?"],
             ["STYCZEŃ,40\nGRUDZIEŃ,30\nLIPIEC,20\nMAJ,10", "Miesiąc"],
-            ["PONIEDZIAŁEK,40\nPIĄTEK,30\nSOBOTA,20\nNIEDZIELA,10", "Dzień tygodnia"],
-            ["LUSTRO,40\nUMYWALKA,30\nWANNNA,20\nPRYSZNIC,10", "W łazience"],
-            ["STÓŁ,40\nKRZESŁO,30\nKANAPA,20\nSZAFA,10", "Mebel"],
-            ["ZŁOTO,40\nSREBRO,30\nBRĄZ,20\nMIEDŹ,10", "Metal szlachetny"],
-            ["BIAŁY,40\nCZARNY,30\nCZERWONY,20\nNIEBIESKI,10", "Kolor"],
-            ["GŁOWA,40\nRĘKA,30\nnOGA,20\nBRZUCH,10", "Część ciała"],
-            ["KARTKA,40\nKOPERTA,30\nZNACZEK,20\nADRES,10", "List"],
-            ["SŁUCHAWKI,40\nGŁOŚNIK,30\nMYSZKA,20\nKLAWIATURA,10", "Akcesorium komputerowe"],
-            ["LAS,40\nPARK,30\nOGRÓD,20\nŁĄKA,10", "Miejsce spaceru"],
-            ["ŚNIEG,50\nDESZCZ,30\nWIATR,15\nMROZ,5", "Zjawisko pogodowe"],
-            ["SMOK,40\nWRÓŻKA,30\nKRÓL,20\nCZAROWNICA,10", "Postać z bajki"]
+            ["KOMEDIA,40\nHORROR,30\nDRAMAT,20\nAKCJA,10", "Gatunek filmu"],
+            ["WARSZAWA,50\nKRAKÓW,25\nWROCŁAW,15\nGDAŃSK,10", "Polskie miasto"]
+            // Tutaj możesz dopisać kolejne zestawy...
         ];
 
-        const finalPresets = [
-            "1. Owoc: Jabłko, Banan, Gruszka\n2. Zawód: Lekarz, Nauczyciel, Kierowca\n3. Sport: Piłka, Bieg, Tenis\n4. Drzewo: Dąb, Sosna, Brzoza\n5. Napój: Woda, Kawa, Sok",
-            "1. Kolor: Biały, Niebieski, Czerwony\n2. Ryba: Karp, Rekin, Szczupak\n3. Miasto: Warszawa, Kraków, Londyn\n4. Mebel: Krzesło, Stół, Łóżko\n5. Rzeka: Wisła, Odra, Amazonka",
-            "1. Ptak: Wróbel, Bocian, Orzeł\n2. Kwiat: Róża, Tulipan, Stokrotka\n3. Marka Auta: Fiat, BMW, Audi\n4. Gazeta: Fakt, Wyborcza, Przegląd\n5. Gra: Szachy, Poker, Warcaby",
-            "1. Stolica: Paryż, Berlin, Madryt\n2. Grzyb: Borowik, Maślak, Muchomor\n3. Warzywo: Marchew, Cebula, Por\n4. Instrument: Gitara, Flet, Trąbka\n5. Planeta: Ziemia, Mars, Jowisz",
-            "1. Państwo: Polska, USA, Chiny\n2. Metal: Złoto, Żelazo, Miedź\n3. Bajka: Shrek, Król Lew, Bambi\n4. Święto: Wielkanoc, Boże Narodzenie, Nowy Rok\n5. Język: Polski, Angielski, Niemiecki",
-            "1. Góry: Tatry, Alpy, Himalaje\n2. Ciecz: Woda, Olej, Mleko\n3. Narzędzie: Młotek, Śrubokręt, Piła\n4. Budynek: Dom, Blok, Zamek\n5. Imię: Jan, Anna, Piotr",
-            "1. Część ciała: Oko, Ręka, Serce\n2. Przyprawa: Sól, Pieprz, Papryka\n3. Zwierzę leśne: Sarna, Wilk, Lis\n4. Uczucie: Miłość, Strach, Radość\n5. Pogoda: Słońce, Deszcz, Burza",
-            "1. Kuchnia: Polska, Włoska, Chińska\n2. Obuwie: Kapcie, Trampki, Szpilki\n3. Transport: Auto, Samolot, Statek\n4. Drzewo owocowe: Jabłoń, Wiśnia, Śliwa\n5. Gaz: Tlen, Hel, Azot",
-            "1. Pismo: Drukowane, Ręczne, Braille\n2. Materiał: Drewno, Plastik, Szkło\n3. Pismo święte: Biblia, Koran, Tora\n4. Owad: Mucha, Pszczoła, Komar\n5. Kontynent: Europa, Azja, Afryka",
-            "1. Król: Kazimierz, Jagiełło, Chrobry\n2. Jednostka: Metr, Litr, Kilogram\n3. Plan dnia: Praca, Sen, Obiad\n4. Czas: Godzina, Minuta, Sekunda\n5. Biżuteria: Pierścionek, Kolczyki, Naszyjnik"
+        const finalCheat = [
+            {q: "OWOC", a: "JABŁKO (35), BANAN (22), GRUSZKA (18)"},
+            {q: "ZAWÓD NA L", a: "LEKARZ (42), LISTONOSZ (25), LAKIERNIK (12)"},
+            {q: "COŚ DO PICIA", a: "WODA (38), SOK (24), KAWA (16)"},
+            {q: "PAŃSTWO NA A", a: "AUSTRIA (31), ALBANIA (18), ALGIERIA (10)"},
+            {q: "DRZEWO", a: "DĄB (45), SOSNA (28), BRZOZA (15)"},
+            {q: "CZĘŚĆ CIAŁA", a: "GŁOWA (40), RĘKA (30), NOGA (20)"},
+            {q: "INSTRUMENT", a: "GITARA (35), PIANINO (27), SKRZYPCE (14)"},
+            {q: "RYBA", a: "KARP (48), REKIN (20), SZCZUPAK (15)"},
+            {q: "KOLOR", a: "BIAŁY (42), NIEBIESKI (30), CZERWONY (18)"},
+            {q: "NA KANAPKĘ", a: "SER (36), SZYNKA (32), MASŁO (20)"}
         ];
 
-        // Inicjalizacja listy presetów i ściągi
         window.onload = () => {
             const sel = document.getElementById('preset-sel');
             roundPresets.forEach((p, i) => {
@@ -173,16 +140,16 @@
                 opt.value = i; opt.innerText = p[1]; sel.appendChild(opt);
             });
             const cheat = document.getElementById('cheat-grid');
-            finalPresets.forEach((p, i) => {
-                cheat.innerHTML += `<div><strong>ZESTAW ${i+1}:</strong><br>${p.replace(/\n/g, '<br>')}</div>`;
+            finalCheat.forEach((item, i) => {
+                cheat.innerHTML += `<div class="cheat-item"><b>${i+1}. ${item.q}:</b><br><span class="top-ans">${item.a}</span></div>`;
             });
         };
 
         function loadPreset() { const p = roundPresets[document.getElementById('preset-sel').value]; document.getElementById('raw-data').value = p[0]; }
-        function connect() { conn = peer.connect(document.getElementById('target-id').value.toUpperCase()); conn.on('open', () => alert("POŁĄCZONO")); }
+        function connect() { conn = peer.connect(document.getElementById('target-id').value.toUpperCase()); conn.on('open', () => alert("POŁĄCZONO Z TV")); }
         function send(d) { if(conn) conn.send(d); }
 
-        function playRunda(n) { send({type:'PLAY_SND', id:'snd-runda'}); alert("RUNDA " + n + " START!"); }
+        function playRunda(n) { send({type:'PLAY_SND', id:'snd-runda'}); }
         function playFinal() { send({type:'PLAY_SND', id:'snd-final'}); }
 
         function sync() {
@@ -197,8 +164,8 @@
             send({type:'SETUP_NORMAL', ans: ans});
             document.getElementById('normal-btns').innerHTML = ans.map((a, i) => `
                 <div style="background:#444; padding:5px; border-radius:4px; display:flex; justify-content:space-between; align-items:center;">
-                    <span style="font-size:12px">${a.t} (${a.p})</span>
-                    <button onclick="rev(${i},'${a.t}',${a.p})" class="btn-b" style="width:40px; margin:0">OK</button>
+                    <span style="font-size:10px">${a.t} (${a.p})</span>
+                    <button onclick="rev(${i},'${a.t}',${a.p})" class="btn-b" style="width:30px; margin:0; padding:2px">OK</button>
                 </div>`).join('');
         }
 
@@ -214,9 +181,9 @@
             const gen = (pid) => {
                 let h = '';
                 for(let i=0; i<5; i++) h += `<div style="display:flex; gap:2px; margin-bottom:2px">
-                    <input id="p${pid}t${i}" placeholder="H" style="width:70px">
-                    <input id="p${pid}p${i}" placeholder="P" style="width:30px">
-                    <button onclick="revF(${pid},${i})" class="btn-b" style="width:40px">OK</button></div>`;
+                    <input id="p${pid}t${i}" placeholder="H" style="width:70px; font-size:10px">
+                    <input id="p${pid}p${i}" placeholder="P" style="width:25px; font-size:10px">
+                    <button onclick="revF(${pid},${i})" class="btn-b" style="width:30px; padding:2px">OK</button></div>`;
                 document.getElementById(`p${pid}-ui`).innerHTML = h;
             };
             gen(1); gen(2);
