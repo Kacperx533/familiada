@@ -2,21 +2,23 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA TV - PRO LOOK</title>
+    <title>FAMILIADA TV - MEGA STUDIO</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root {
             --led-yellow: #eaff00;
-            --neon-red: #ff0000;
-            --neon-blue: #0084ff;
+            --neon-red: #ff1100;
+            --neon-blue: #00a2ff;
+            --bg-dark: #000510; /* Bardzo ciemny granat zamiast czarnego */
         }
 
         body {
-            /* Tło imitujące studio ze zdjęcia - gradienty boczne */
+            /* Tło studyjne: gradienty imitujące światła rampy */
             background: 
-                linear-gradient(90deg, rgba(150,0,0,0.8) 0%, rgba(0,0,0,1) 25%, rgba(0,0,0,1) 75%, rgba(0,0,150,0.8) 100%),
-                #000;
+                radial-gradient(circle at 10% 50%, rgba(255, 0, 0, 0.25), transparent 40%),
+                radial-gradient(circle at 90% 50%, rgba(0, 100, 255, 0.25), transparent 40%),
+                linear-gradient(180deg, #000a20 0%, var(--bg-dark) 100%);
             color: var(--led-yellow);
             font-family: 'VT323', monospace;
             margin: 0;
@@ -31,115 +33,117 @@
         .studio-container {
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 50px;
-            width: 90vw;
+            justify-content: space-between;
+            width: 96vw;
+            max-width: 1800px;
         }
 
-        /* Liczniki punktów wkomponowane w tło */
+        /* Powiększone liczniki */
         .score-display {
-            width: 160px;
-            height: 120px;
-            background: #000;
+            width: 220px;
+            height: 160px;
+            background: rgba(0, 0, 0, 0.9);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 100px;
-            border-radius: 10px;
-            position: relative;
-            box-shadow: 0 0 30px rgba(0,0,0,1);
+            font-size: 130px;
+            border-radius: 20px;
+            box-shadow: 0 0 40px rgba(0,0,0,0.8);
         }
 
-        #score-L { border: 4px solid var(--neon-red); color: var(--neon-red); text-shadow: 0 0 15px var(--neon-red); }
-        #score-R { border: 4px solid var(--neon-blue); color: var(--neon-blue); text-shadow: 0 0 15px var(--neon-blue); }
+        #score-L { border: 6px solid var(--neon-red); color: var(--neon-red); text-shadow: 0 0 20px var(--neon-red); }
+        #score-R { border: 6px solid var(--neon-blue); color: var(--neon-blue); text-shadow: 0 0 20px var(--neon-blue); }
 
-        /* Czarna Tablica */
+        /* MEGA TABLICA */
         .main-board {
-            width: 750px;
-            background: #000; /* Całkowicie czarna tablica */
-            border: 4px solid #333;
-            border-radius: 15px;
-            padding: 20px 40px;
-            box-shadow: 0 0 50px rgba(0,0,0,1);
+            width: 950px; /* Znacznie powiększona */
+            height: 600px;
+            background: #000;
+            border: 6px solid #2a2a2a;
+            border-radius: 30px;
+            padding: 40px 60px;
+            box-shadow: 0 0 60px rgba(0,0,0,1), inset 0 0 20px rgba(255,255,255,0.05);
             position: relative;
         }
 
-        /* Siatka punktowa LED (delikatna) */
-        .main-board::before {
+        /* Subtelna siatka LED */
+        .main-board::after {
             content: "";
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
-            background-image: radial-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 0);
-            background-size: 6px 6px;
+            background-image: radial-gradient(rgba(255, 255, 0, 0.02) 1px, transparent 0);
+            background-size: 8px 8px;
             pointer-events: none;
+            border-radius: 30px;
         }
 
         .row {
             display: flex;
             align-items: center;
-            height: 65px;
-            font-size: 60px;
-            border-bottom: 1px solid #111;
+            height: 85px; /* Wyższe wiersze */
+            font-size: 80px; /* Większa czcionka */
+            border-bottom: 2px solid #111;
             position: relative;
             z-index: 1;
         }
 
-        .num { width: 50px; color: var(--led-yellow); opacity: 0.8; }
-        .ans { flex-grow: 1; letter-spacing: 2px; }
-        .pts { width: 80px; text-align: right; }
+        .num { width: 70px; color: #333; }
+        .ans { flex-grow: 1; letter-spacing: 4px; text-shadow: 0 0 10px rgba(234, 255, 0, 0.5); }
+        .pts { width: 100px; text-align: right; }
 
         .suma-row {
             display: flex;
             justify-content: flex-end;
-            margin-top: 15px;
-            font-size: 55px;
+            margin-top: 30px;
+            font-size: 70px;
             color: var(--led-yellow);
-            border-top: 2px solid #222;
-            padding-top: 5px;
+            border-top: 3px solid #222;
+            padding-top: 10px;
         }
 
-        /* Overlay dla błędu X */
+        /* Overlay X */
         #x-overlay {
             position: fixed;
             inset: 0;
             display: none;
             align-items: center;
             justify-content: center;
-            background: rgba(0,0,0,0.85);
-            z-index: 5000;
+            background: rgba(0,0,0,0.9);
+            z-index: 9999;
         }
-        .x-text { font-size: 450px; color: var(--neon-red); font-weight: bold; font-family: Arial, sans-serif; text-shadow: 0 0 40px var(--neon-red); }
+        .x-text { font-size: 550px; color: var(--neon-red); font-weight: bold; font-family: Arial, sans-serif; text-shadow: 0 0 50px var(--neon-red); }
 
-        /* Ekran startowy */
+        /* Start screen */
         #setup-screen {
             position: fixed;
             inset: 0;
             background: #000;
-            z-index: 9999;
+            z-index: 10000;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
         }
-        
-        button {
-            padding: 20px 40px;
-            font-size: 25px;
+
+        .btn-start {
+            padding: 25px 50px;
+            font-size: 30px;
             background: var(--led-yellow);
+            color: black;
             border: none;
+            border-radius: 15px;
             cursor: pointer;
             font-weight: bold;
-            border-radius: 10px;
-            margin-top: 20px;
+            box-shadow: 0 0 20px var(--led-yellow);
         }
     </style>
 </head>
 <body>
 
     <div id="setup-screen">
-        <h1 id="status-msg">SYSTEM FAMILIADA PRO</h1>
-        <div id="join-code" style="font-size: 100px; color: white; margin: 20px;"></div>
-        <button id="btn-start" onclick="init()">ODPALAJ STUDIO</button>
+        <h1 id="status-msg" style="color: white;">FAMILIADA STUDIO LIVE</h1>
+        <div id="join-code" style="font-size: 120px; color: var(--led-yellow); margin: 30px;"></div>
+        <button class="btn-start" id="btn-run" onclick="init()">ODPAL STUDIO</button>
     </div>
 
     <div id="x-overlay"><div class="x-text" id="x-val">X</div></div>
@@ -163,27 +167,27 @@
 
     <script>
         let peer;
-        let total = 0;
+        let totalScore = 0;
 
         function init() {
-            const id = Math.random().toString(36).substring(2, 5).toUpperCase();
-            document.getElementById('join-code').innerText = id;
-            document.getElementById('btn-start').style.display = "none";
-            document.getElementById('status-msg').innerText = "KOD DO TELEFONU:";
+            const myId = Math.random().toString(36).substring(2, 5).toUpperCase();
+            document.getElementById('join-code').innerText = myId;
+            document.getElementById('btn-run').style.display = "none";
+            document.getElementById('status-msg').innerText = "PODAJ KOD NA TELEFONIE:";
             
-            peer = new Peer(id);
+            peer = new Peer(myId);
             peer.on('open', () => {
                 peer.on('connection', conn => {
                     document.getElementById('setup-screen').style.display = 'none';
                     conn.on('data', d => {
                         if(d.type === 'SETUP_NORMAL' || d.type === 'SETUP_FINAL') {
-                            total = 0;
+                            totalScore = 0;
                             document.getElementById('suma-val').innerText = "0";
                             let rows = "";
                             for(let i=1; i<=5; i++) {
                                 rows += `<div class="row">
                                     <div class="num">${i}</div>
-                                    <div class="ans" id="ans-${i}">...................</div>
+                                    <div class="ans" id="ans-${i}">................</div>
                                     <div class="pts" id="pts-${i}"></div>
                                 </div>`;
                             }
@@ -193,8 +197,8 @@
                             document.getElementById('snd-ok').play();
                             document.getElementById(`ans-${d.idx+1}`).innerText = d.t;
                             document.getElementById(`pts-${d.idx+1}`).innerText = d.p;
-                            total += parseInt(d.p);
-                            document.getElementById('suma-val').innerText = total;
+                            totalScore += parseInt(d.p);
+                            document.getElementById('suma-val').innerText = totalScore;
                         }
                         if(d.type === 'X') {
                             document.getElementById('snd-zle').play();
