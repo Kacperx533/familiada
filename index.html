@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA TV - FINAL VERSION</title>
+    <title>FAMILIADA TV - WERSJA STUDIO</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
@@ -21,97 +21,99 @@
             text-transform: uppercase;
             font-family: 'VT323', monospace;
             
-            background: 
-                linear-gradient(90deg, 
-                    rgba(150, 0, 0, 1) 0%, 
-                    rgba(180, 0, 0, 1) 48%, 
-                    rgba(0, 0, 180, 1) 52%, 
-                    rgba(0, 0, 150, 1) 100%
-                );
+            /* TŁO: Płynne przejście kolorów bez czarnego paska na środku */
+            background: linear-gradient(90deg, 
+                rgb(180, 20, 20) 0%, 
+                rgb(160, 15, 15) 45%, 
+                rgb(15, 40, 150) 55%, 
+                rgb(20, 50, 180) 100%
+            );
         }
 
-        /* SUMA: Cyfra dosunięta do prawej */
+        /* SUMA NA GÓRZE: Pozioma ramka, liczba po prawej */
         .top-suma-box {
             background: #000;
-            border: 3px solid var(--led-yellow);
-            padding: 5px 20px;
-            margin-bottom: 30px;
+            border: 2px solid var(--led-yellow);
+            padding: 5px 15px;
+            margin-bottom: 20px;
             display: flex;
             align-items: center;
-            justify-content: flex-end; /* Max do prawej */
-            min-width: 200px;
+            justify-content: flex-end; /* Liczba na maxa w prawo */
+            width: 150px;
+            height: 70px;
         }
-        #suma-val { font-size: 110px; color: var(--led-yellow); line-height: 0.9; padding-right: 10px; }
+        #suma-val { font-size: 80px; color: var(--led-yellow); }
 
         .studio-layout {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 30px;
-            width: 100%;
+            gap: 20px;
+            width: 95vw;
         }
 
-        /* WYNIKI BOCZNE: Prostokąty, cyfry max do prawej */
+        /* PUNKTY DRUŻYN: Poziome prostokąty, liczba po prawej */
         .score-box {
-            width: 200px;
-            height: 130px;
+            width: 180px;
+            height: 100px;
             background: #000;
-            border: 3px solid var(--led-yellow);
+            border: 2px solid var(--led-yellow);
             display: flex;
             align-items: center;
-            justify-content: flex-end; /* Max do prawej */
-            font-size: 110px;
+            justify-content: flex-end; /* Liczba na maxa w prawo */
+            font-size: 100px;
             color: var(--led-yellow);
+            padding-right: 15px;
+            box-sizing: border-box;
         }
-        .score-box span { padding-right: 15px; }
 
-        /* TABLICA Z MOCNO ZAKRĄGLONYMI BOKAMI */
+        /* TABLICA Z ZAOKRĄGLONYMI NAROŻNIKAMI (JAK NA FOTO) */
         .board-frame {
-            width: 1000px;
-            height: 580px;
+            width: 900px;
+            height: 520px;
             background: #000;
-            border: 3px solid #333;
-            border-radius: 80px; /* Mocne zaokrąglenie boków */
-            padding: 30px 60px;
+            border: 3px solid #444;
+            border-radius: 40px; /* Zaokrąglone boki tablicy */
+            padding: 20px 40px;
             position: relative;
-            box-shadow: 0 0 50px rgba(0,0,0,1);
+            box-shadow: inset 0 0 30px rgba(0,0,0,1);
+            /* Efekt siatki punktów LED */
             background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 0);
-            background-size: 8px 8px;
-            overflow: hidden;
+            background-size: 10px 10px;
         }
 
         .row {
             display: flex;
             align-items: center;
-            height: 95px;
-            font-size: 95px;
-            border-bottom: 2px solid #0d0d0d;
+            height: 85px;
+            font-size: 85px;
+            border-bottom: 1px solid #111;
         }
 
-        .num { width: 80px; color: #1a1a1a; }
-        .ans { flex-grow: 1; color: var(--led-yellow); letter-spacing: 4px; }
-        .pts { width: 120px; text-align: right; color: var(--led-yellow); }
+        .num { width: 60px; color: #333; }
+        .ans { flex-grow: 1; color: var(--led-yellow); letter-spacing: 3px; }
+        .pts { width: 100px; text-align: right; color: var(--led-yellow); }
 
+        /* Overlay dla błędu X */
         #x-overlay {
             position: fixed;
             inset: 0;
             display: none;
             align-items: center;
             justify-content: center;
-            background: rgba(0,0,0,0.95);
+            background: rgba(0,0,0,0.9);
             z-index: 9999;
         }
-        .x-text { font-size: 600px; color: red; font-weight: bold; font-family: Arial, sans-serif; }
+        .x-text { font-size: 500px; color: red; font-weight: bold; font-family: Arial, sans-serif; }
 
-        #setup { position: fixed; inset: 0; background: #000; z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        button { padding: 25px 60px; font-size: 30px; cursor: pointer; background: var(--led-yellow); border: none; font-weight: bold; border-radius: 10px; }
+        #setup { position: fixed; inset: 0; background: #000; z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; }
     </style>
 </head>
 <body>
 
     <div id="setup">
-        <div id="code" style="font-size: 100px; color: var(--led-yellow); margin-bottom: 30px;"></div>
-        <button onclick="init()">URUCHOM TABLICĘ</button>
+        <div id="code" style="font-size: 80px; color: var(--led-yellow); margin-bottom: 20px;"></div>
+        <button onclick="init()" style="padding: 15px 40px; font-size: 20px; cursor: pointer;">URUCHOM STUDIO</button>
     </div>
 
     <div id="x-overlay"><div class="x-text" id="x-val">X</div></div>
@@ -149,7 +151,7 @@
                         if(d.type === 'SETUP_NORMAL' || d.type === 'SETUP_FINAL') {
                             sum = 0; document.getElementById('suma-val').innerText = "0";
                             let h = "";
-                            for(let i=1; i<=5; i++) h += `<div class="row"><div class="num">${i}</div><div class="ans" id="ans-${i}">..........</div><div class="pts" id="pts-${i}"></div></div>`;
+                            for(let i=1; i<=6; i++) h += `<div class="row"><div class="num">${i}</div><div class="ans" id="ans-${i}">..........</div><div class="pts" id="pts-${i}"></div></div>`;
                             document.getElementById('board-content').innerHTML = h;
                         }
                         if(d.type === 'REV') {
