@@ -2,198 +2,82 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PILOT FAMILIADA</title>
-    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PILOT</title>
+    <script src="https://cdn.jsdelivr.net/npm/peerjs@1.4.7/dist/peerjs.min.js"></script>
     <style>
-        body { font-family: sans-serif; background: #121212; color: #fff; margin: 0; padding: 10px; padding-bottom: 100px; }
-        .section { background: #222; border-radius: 10px; padding: 15px; margin-bottom: 15px; border: 1px solid #333; }
-        h3 { margin-top: 0; font-size: 14px; color: #fbc02d; text-transform: uppercase; border-bottom: 1px solid #333; padding-bottom: 5px; }
-        
-        /* Przyciski */
-        button { padding: 15px 5px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 12px; }
-        .btn-y { background: #fbc02d; color: #000; }
-        .btn-b { background: #1976d2; color: #fff; }
-        .btn-r { background: #d32f2f; color: #fff; }
-        
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; }
-
-        /* Wybór drużyny */
-        .team-toggle { display: flex; background: #000; border-radius: 8px; margin-bottom: 10px; }
-        .team-toggle input { display: none; }
-        .team-toggle label { flex: 1; padding: 15px; text-align: center; border-radius: 8px; font-weight: bold; }
-        .team-toggle input:checked + label { background: #fbc02d; color: #000; }
-
-        .score-display { font-size: 30px; font-weight: bold; color: #fbc02d; text-align: center; background: #000; padding: 10px; border-radius: 8px; margin-bottom: 10px; }
-        
-        select, textarea, input[type="text"] { width: 100%; padding: 12px; background: #000; color: #fff; border: 1px solid #444; border-radius: 5px; box-sizing: border-box; margin-bottom: 10px; font-size: 16px; }
-
-        .cheat-sheet { font-size: 12px; color: #aaa; line-height: 1.4; }
-        .cheat-q { color: #fbc02d; font-weight: bold; }
-
-        /* Stały pasek dolny z najważniejszymi funkcjami */
-        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #1a1a1a; padding: 10px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; border-top: 2px solid #fbc02d; }
+        body { background: #111; color: white; font-family: sans-serif; padding: 10px; text-align: center; }
+        button { padding: 15px; margin: 5px; width: 90%; border-radius: 10px; border: none; font-weight: bold; }
+        input { padding: 15px; width: 80%; font-size: 20px; margin-bottom: 10px; border-radius: 10px; }
+        .status-on { color: #00ff00; margin-bottom: 10px; }
+        .btn-x { background: red; color: white; width: 30%; }
+        .btn-ok { background: #fbc02d; }
     </style>
 </head>
 <body>
 
-    <div class="section">
-        <h3>Połączenie</h3>
-        <div style="display:flex; gap:10px">
-            <input id="target-id" placeholder="KOD Z TV" maxlength="3" style="margin:0; text-align:center">
-            <button onclick="connect()" class="btn-b" style="width:120px">POŁĄCZ</button>
-        </div>
+    <h2>PILOT FAMILIADY</h2>
+    <div id="conn-status" style="color: red;">BRAK POŁĄCZENIA</div>
+    <input id="target-id" placeholder="WPISZ KOD Z TV">
+    <button onclick="connect()" style="background: #1976d2; color: white;">POŁĄCZ Z TELEWIZOREM</button>
+
+    <hr>
+
+    <div style="display: flex; justify-content: space-around;">
+        <div>D1: <h3 id="lS">0</h3></div>
+        <div>D2: <h3 id="rS">0</h3></div>
     </div>
 
-    <div class="section">
-        <h3>Punkty i Drużyny</h3>
-        <div class="team-toggle">
-            <input type="radio" name="active-team" id="tL" value="L" checked><label for="tL">D1 (LEWA)</label>
-            <input type="radio" name="active-team" id="tR" value="R"><label for="tR">D2 (PRAWA)</label>
-        </div>
-        <div class="grid-2">
-            <div class="score-display">D1: <span id="lScore">0</span></div>
-            <div class="score-display">D2: <span id="rScore">0</span></div>
-        </div>
+    <button class="btn-ok" onclick="sendSnd('snd-intro')">MUZYKA INTRO</button>
+    <button class="btn-ok" onclick="sendSnd('snd-runda')">DŹWIĘK RUNDY</button>
+    <button class="btn-ok" onclick="sendSnd('snd-final')">MUZYKA FINAŁU</button>
+
+    <div style="margin-top: 20px;">
+        <button class="btn-x" onclick="sendX(1)">X</button>
+        <button class="btn-x" onclick="sendX(2)">XX</button>
+        <button class="btn-x" onclick="sendX(3)">XXX</button>
     </div>
 
-    <div class="section">
-        <h3>Multimedia i Rundy</h3>
-        <div class="grid-2" style="margin-bottom:10px">
-            <button class="btn-y" onclick="send({type:'PLAY_VID'})">CZOŁÓWKA</button>
-            <button class="btn-y" onclick="send({type:'PLAY_SND', id:'snd-intro'})">INTRO</button>
-        </div>
-        <div class="grid-2">
-            <button class="btn-b" onclick="send({type:'PLAY_SND', id:'snd-runda'})">DŹWIĘK RUNDY</button>
-            <button class="btn-b" onclick="send({type:'PLAY_SND', id:'snd-final'})">DŹWIĘK FINAŁU</button>
-        </div>
-    </div>
-
-    <div class="section">
-        <h3>Runda Zwykła</h3>
-        <select id="preset-sel" onchange="loadPreset()"></select>
-        <textarea id="raw-data" rows="3" placeholder="Hasło, Punkty"></textarea>
-        <button onclick="setupNormal()" class="btn-y" style="width:100%">ZAŁADUJ NA TV</button>
-        <div id="normal-btns" style="margin-top:10px; display:flex; flex-direction:column; gap:5px"></div>
-    </div>
-
-    <div class="section">
-        <h3>Tryb Finałowy</h3>
-        <button onclick="setupFinal()" class="btn-b" style="width:100%; margin-bottom:10px">WŁĄCZ FINAŁ NA TV</button>
-        <div class="grid-2">
-            <div>
-                <button class="btn-r" onclick="send({type:'TIMER', sec:15})" style="width:100%">ZEGAR 15S</button>
-                <div id="p1-ui"></div>
-                <button onclick="send({type:'HIDE_P1'})" style="background:#444; color:#fff; width:100%; margin-top:5px">UKRYJ G1</button>
-            </div>
-            <div>
-                <button class="btn-r" onclick="send({type:'TIMER', sec:20})" style="width:100%">ZEGAR 20S</button>
-                <div id="p2-ui"></div>
-            </div>
-        </div>
-    </div>
-
-    <div class="section">
-        <h3>📜 Ściąga Finał (TOP 1)</h3>
-        <div id="cheat-sheet" class="cheat-sheet"></div>
-    </div>
-
-    <div class="bottom-nav">
-        <button class="btn-r" onclick="send({type:'X', count:1})">X</button>
-        <button class="btn-r" onclick="send({type:'X', count:2})">XX</button>
-        <button class="btn-r" onclick="send({type:'X', count:3})">XXX</button>
-    </div>
+    <hr>
+    <h3>SZYBKI TEST (RUNDA 1)</h3>
+    <button onclick="testRunda()">ZAŁADUJ TESTOWĄ RUNDĘ</button>
+    <div id="btns"></div>
 
     <script>
-        const peer = new Peer();
-        let conn, scoreL = 0, scoreR = 0;
-
-        const roundPresets = [
-            ["PIES,40\nKOT,30\nCHOMIK,15\nRYBKI,10", "Zwierzę domowe"],
-            ["KAWA,50\nHERBATA,30\nWODA,15\nSOK,5", "Co pijemy rano?"],
-            ["JABŁKO,40\nBANAN,30\nTRUSKAWKA,20\nGRUSZKA,10", "Popularny owoc"],
-            ["POLSKA,50\nNIEMCY,25\nFRANCJA,15\nWŁOCHY,10", "Państwo w Europie"],
-            ["POMIDOROWA,40\nROSÓŁ,35\nOGÓRKOWA,15\nŻUREK,10", "Ulubiona zupa"]
-            // Tutaj możesz dopisać kolejne 45 zestawów...
-        ];
-
-        const finalCheat = [
-            {q: "Owoc", a: "Jabłko (40)"},
-            {q: "Przedmiot w szkole", a: "WF (35)"},
-            {q: "Zwierzę leśne", a: "Lis (30)"},
-            {q: "Marka auta", a: "Toyota (28)"},
-            {q: "Część ciała", a: "Głowa (42)"}
-        ];
-
-        window.onload = () => {
-            const sel = document.getElementById('preset-sel');
-            roundPresets.forEach((p, i) => {
-                let opt = document.createElement('option');
-                opt.value = i; opt.innerText = p[1]; sel.appendChild(opt);
-            });
-            const cheat = document.getElementById('cheat-sheet');
-            finalCheat.forEach(c => {
-                cheat.innerHTML += `<div style="margin-bottom:5px"><span class="cheat-q">${c.q}:</span> ${c.a}</div>`;
-            });
-        };
+        let peer = new Peer();
+        let conn;
+        let sL = 0, sR = 0;
 
         function connect() {
-            const id = document.getElementById('target-id').value.toUpperCase();
-            conn = peer.connect(id);
-            conn.on('open', () => alert("POŁĄCZONO!"));
+            const code = document.getElementById('target-id').value.toUpperCase();
+            conn = peer.connect(code);
+            conn.on('open', () => {
+                document.getElementById('conn-status').innerText = "POŁĄCZONO!";
+                document.getElementById('conn-status').className = "status-on";
+            });
         }
 
-        function send(d) { if(conn) conn.send(d); }
+        function sendSnd(id) { if(conn) conn.send({type: 'PLAY_SND', id: id}); }
+        function sendX(c) { if(conn) conn.send({type: 'X', count: c}); }
 
-        function sync() {
-            document.getElementById('lScore').innerText = scoreL;
-            document.getElementById('rScore').innerText = scoreR;
-            send({type:'SCORE_SYNC', l: scoreL, r: scoreR});
+        function testRunda() {
+            const data = [ {t: "PIES", p: 40}, {t: "KOT", p: 30}, {t: "CHOMIK", p: 10} ];
+            if(conn) conn.send({type: 'SETUP_NORMAL', ans: data});
+            
+            let html = "";
+            data.forEach((a, i) => {
+                html += `<button style="background: #444; color: white" onclick="reveal(${i}, '${a.t}', ${a.p})">${a.t}</button>`;
+            });
+            document.getElementById('btns').innerHTML = html;
         }
 
-        function loadPreset() {
-            const p = roundPresets[document.getElementById('preset-sel').value];
-            document.getElementById('raw-data').value = p[0];
-        }
-
-        function setupNormal() {
-            const lines = document.getElementById('raw-data').value.split('\n');
-            const ans = lines.map(l => ({ t: l.split(',')[0], p: parseInt(l.split(',')[1]) || 0 }));
-            send({type:'SETUP_NORMAL', ans: ans});
-            document.getElementById('normal-btns').innerHTML = ans.map((a, i) => `
-                <button onclick="rev(${i},'${a.t}',${a.p})" class="btn-b" style="text-align:left; padding:15px">
-                    ${i+1}. ${a.t} (${a.p} pkt)
-                </button>`).join('');
-        }
-
-        function rev(idx, t, p) {
-            send({type:'REV', mode:'normal', idx:idx, t:t, p:p});
-            let team = document.querySelector('input[name="active-team"]:checked').value;
-            if(team === 'L') scoreL += p; else scoreR += p;
-            sync();
-        }
-
-        function setupFinal() {
-            send({type:'SETUP_FINAL'});
-            const gen = (pid) => {
-                let h = '';
-                for(let i=0; i<5; i++) h += `<div style="display:flex; gap:2px; margin-bottom:5px">
-                    <input id="p${pid}t${i}" placeholder="H" style="width:70%; margin:0; font-size:12px">
-                    <input id="p${pid}p${i}" placeholder="P" style="width:30%; margin:0; font-size:12px">
-                    <button onclick="revF(${pid},${i})" class="btn-b" style="padding:5px 10px">OK</button></div>`;
-                document.getElementById(`p${pid}-ui`).innerHTML = h;
-            };
-            gen(1); gen(2);
-        }
-
-        function revF(pid, idx) {
-            const t = document.getElementById(`p${pid}t${idx}`).value;
-            const p = parseInt(document.getElementById(`p${pid}p${idx}`).value) || 0;
-            send({type:'REV', mode:'final', player:pid, idx:idx, t:t, p:p});
-            let team = document.querySelector('input[name="active-team"]:checked').value;
-            if(team === 'L') scoreL += p; else scoreR += p;
-            sync();
+        function reveal(idx, t, p) {
+            if(conn) {
+                conn.send({type: 'REV', idx: idx, t: t, p: p});
+                sL += p; // Automatycznie do Lewej dla testu
+                document.getElementById('lS').innerText = sL;
+                conn.send({type: 'SCORE_SYNC', l: sL, r: sR});
+            }
         }
     </script>
 </body>
