@@ -2,36 +2,31 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA TV - CZYSTY EKRAN</title>
+    <title>FAMILIADA TV - PRO</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root { --led: #eaff00; --glow: 0 0 15px rgba(234, 255, 0, 0.7); }
         body { background: #000; color: var(--led); font-family: 'VT323', monospace; margin: 0; overflow: hidden; text-transform: uppercase; }
-        
-        /* Kontener przesunięty do góry */
         .container { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; width: 100vw; height: 100vh; padding-top: 2vh; }
         
         #setup-screen { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         #join-code { font-size: 120px; color: #fff; text-shadow: 0 0 20px var(--led); }
 
-        /* Usunięte ramki w rzędach */
         .board { width: 85%; display: none; flex-direction: column; gap: 5px; }
-        .row { display: flex; align-items: center; height: 8.5vh; font-size: 7.5vh; background: rgba(20,20,20,0.5); padding: 0 25px; border: none; }
+        .row { display: flex; align-items: center; height: 8.5vh; font-size: 7.5vh; background: rgba(20,20,20,0.5); padding: 0 25px; }
         .row-txt { flex-grow: 1; text-shadow: var(--glow); letter-spacing: 2px; }
         .row-pts { width: 100px; text-align: right; }
 
         .final-grid { display: none; grid-template-columns: 1fr 1fr; gap: 40px; width: 92%; }
         
-        /* Sekcja wyników drużyn na dole */
-        .team-scores { display: flex; justify-content: space-between; width: 90%; margin-top: 20px; font-size: 8vh; }
-        .score-box { text-align: center; min-width: 200px; }
+        .team-scores { display: flex; justify-content: space-around; width: 100%; margin-top: 20px; font-size: 8vh; }
+        .score-box { text-align: center; min-width: 300px; }
         .score-box span { display: block; font-size: 3vh; color: #666; }
 
-        #timer { font-size: 15vh; color: #ff3333; visibility: hidden; height: 16vh; margin-bottom: 5px; }
+        #timer { font-size: 15vh; color: #ff3333; visibility: hidden; height: 16vh; }
         #x-overlay { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.8); z-index: 5000; }
         .x-text { font-size: 45vh; color: #ff0000; font-family: Arial, sans-serif; font-weight: bold; }
-        
         #vid-player { position: fixed; inset: 0; width: 100%; height: 100%; display: none; z-index: 2000; }
         .hidden-ans { color: transparent !important; text-shadow: none !important; }
     </style>
@@ -40,41 +35,33 @@
     <div id="setup-screen">
         <h1>KOD:</h1>
         <div id="join-code">...</div>
-        <button onclick="document.querySelectorAll('audio').forEach(a=>a.play().then(()=>a.pause()))">ODBLOKU AUDIO</button>
+        <button onclick="document.querySelectorAll('audio').forEach(a=>a.play().then(()=>a.pause()))">ODBLOKUJ MULTIMEDIA</button>
     </div>
-
     <video id="vid-player"></video>
     <div id="x-overlay"><div class="x-text">X</div></div>
-
     <div class="container">
         <div id="timer">00</div>
-        
         <div id="normal-board" class="board"></div>
         <div id="final-board" class="final-grid">
             <div id="col-p1" style="display:flex; flex-direction:column; gap:8px"></div>
             <div id="col-p2" style="display:flex; flex-direction:column; gap:8px"></div>
         </div>
-
         <div class="team-scores">
             <div class="score-box"><span>DRUŻYNA 1</span><div id="score-L">0</div></div>
-            <div id="center-sum" style="font-size: 10vh; color: #fff;">0</div>
             <div class="score-box"><span>DRUŻYNA 2</span><div id="score-R">0</div></div>
         </div>
     </div>
-
     <audio id="snd-ok" src="ok.mp3"></audio>
     <audio id="snd-zle" src="zle.mp3"></audio>
     <audio id="snd-intro" src="intro.mp3"></audio>
     <audio id="snd-powt" src="powtorzenie.mp3"></audio>
     <audio id="snd-runda" src="runda.mp3"></audio>
     <audio id="snd-final" src="final.mp3"></audio>
-
     <script>
         const code = Math.random().toString(36).substring(2, 5).toUpperCase();
         document.getElementById('join-code').innerText = code;
         const peer = new Peer(code);
         let countdown;
-
         peer.on('connection', conn => {
             document.getElementById('setup-screen').style.display = 'none';
             conn.on('data', d => {
@@ -82,7 +69,10 @@
                     const v = document.getElementById('vid-player'); v.src = 'czolowka.mp4'; 
                     v.style.display = 'block'; v.play(); v.onended = () => v.style.display = 'none';
                 }
-                if(d.type === 'PLAY_SND') document.getElementById(d.id).play();
+                if(d.type === 'PLAY_SND') {
+                    const s = document.getElementById(d.id);
+                    s.currentTime = 0; s.play();
+                }
                 if(d.type === 'X') {
                     document.getElementById('snd-zle').play();
                     const ov = document.getElementById('x-overlay');
@@ -118,7 +108,6 @@
                 if(d.type === 'SCORE_SYNC') {
                     document.getElementById('score-L').innerText = d.l;
                     document.getElementById('score-R').innerText = d.r;
-                    document.getElementById('center-sum').innerText = d.c;
                 }
             });
         });
