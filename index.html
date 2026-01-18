@@ -2,59 +2,52 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>TABLICA TV - FAMILIADA PRO</title>
+    <title>FAMILIADA TV - KOD 3 ZNAKI</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root { --led: #eaff00; --glow: 0 0 15px rgba(234, 255, 0, 0.7); }
         body { background: #000; color: var(--led); font-family: 'VT323', monospace; margin: 0; overflow: hidden; text-transform: uppercase; }
+        .container { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100vw; height: 100vh; }
         
-        /* Efekt siatki retro */
-        .overlay-scanlines { position: fixed; inset: 0; background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06)); background-size: 100% 4px, 3px 100%; pointer-events: none; z-index: 1000; }
+        /* Ekran startowy z kodem */
+        #setup-screen { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        #join-code { font-size: 150px; color: #fff; text-shadow: 0 0 20px var(--led); margin: 20px 0; }
 
-        .container { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100vw; height: 100vh; position: relative; }
-        
-        /* Wideo czołówki */
+        /* Wideo i X */
         #vid-player { position: fixed; inset: 0; width: 100%; height: 100%; background: #000; z-index: 2000; display: none; }
-
-        /* Timer */
-        #timer { font-size: 18vh; color: #ff3333; text-shadow: 0 0 20px red; margin-bottom: 10px; min-height: 20vh; visibility: hidden; }
-
-        /* Rundy */
-        .board { width: 85%; display: none; flex-direction: column; gap: 10px; }
-        .row { display: flex; align-items: center; height: 8.5vh; font-size: 7vh; background: #080808; border: 2px solid #1a1a1a; padding: 0 25px; box-shadow: inset 0 0 10px #000; }
-        .row-num { width: 60px; color: #333; }
-        .row-txt { flex-grow: 1; text-shadow: var(--glow); letter-spacing: 3px; }
-        .row-pts { width: 120px; text-align: right; border-left: 2px solid #1a1a1a; padding-left: 15px; }
-
-        /* Finał */
-        .final-grid { display: none; grid-template-columns: 1fr 1fr; gap: 40px; width: 92%; }
-        .player-col { display: flex; flex-direction: column; gap: 10px; }
-        .hidden-ans { color: #080808; text-shadow: none; }
-
-        /* Suma */
-        .total-box { margin-top: 30px; font-size: 9vh; border: 4px solid var(--led); padding: 5px 50px; background: rgba(234, 255, 0, 0.05); box-shadow: var(--glow); }
-
-        /* X Overlay */
         #x-overlay { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.8); z-index: 5000; }
-        .x-text { font-size: 45vh; color: var(--led); text-shadow: 0 0 40px red; font-family: Arial; font-weight: bold; }
+        .x-text { font-size: 40vh; color: var(--led); text-shadow: 0 0 40px red; font-family: Arial, sans-serif; font-weight: bold; }
+
+        /* Tablice */
+        .board { width: 85%; display: none; flex-direction: column; gap: 10px; }
+        .final-grid { display: none; grid-template-columns: 1fr 1fr; gap: 40px; width: 92%; }
+        .row { display: flex; align-items: center; height: 8.5vh; font-size: 7vh; background: #080808; border: 2px solid #1a1a1a; padding: 0 25px; }
+        .row-txt { flex-grow: 1; text-shadow: var(--glow); letter-spacing: 2px; }
+        .row-pts { width: 100px; text-align: right; color: var(--led); }
+        .hidden-ans { color: #080808 !important; text-shadow: none !important; }
+
+        #timer { font-size: 18vh; color: #ff3333; visibility: hidden; height: 20vh; }
+        .total-box { margin-top: 20px; font-size: 8vh; border: 3px solid var(--led); padding: 5px 40px; }
     </style>
 </head>
 <body>
-    <div class="overlay-scanlines"></div>
+    <div id="setup-screen">
+        <h1>KOD POŁĄCZENIA:</h1>
+        <div id="join-code">...</div>
+        <button onclick="unlock()" style="padding:15px; cursor:pointer">KLIKNIJ ABY AKTYWOWAĆ SYSTEM</button>
+    </div>
+
     <video id="vid-player"></video>
-    <div id="x-overlay"><div class="x-text">XXX</div></div>
+    <div id="x-overlay"><div class="x-text">X</div></div>
 
     <div class="container">
         <div id="timer">00</div>
-        
         <div id="normal-board" class="board"></div>
-
         <div id="final-board" class="final-grid">
-            <div class="player-col" id="col-p1"></div>
-            <div class="player-col" id="col-p2"></div>
+            <div id="col-p1" style="display:flex; flex-direction:column; gap:10px"></div>
+            <div id="col-p2" style="display:flex; flex-direction:column; gap:10px"></div>
         </div>
-
         <div class="total-box">SUMA: <span id="total-val">0</span></div>
     </div>
 
@@ -66,81 +59,61 @@
     <audio id="snd-final" src="fianl.mp3"></audio>
 
     <script>
-        const peer = new Peer();
+        // Generator 3-znakowego kodu
+        const code = Math.random().toString(36).substring(2, 5).toUpperCase();
+        document.getElementById('join-code').innerText = code;
+
+        const peer = new Peer(code);
         let countdown;
         const aud = (id) => document.getElementById(id);
 
-        peer.on('open', id => console.log("ID:", id));
+        function unlock() { aud('snd-ok').play(); aud('snd-ok').pause(); }
 
         peer.on('connection', conn => {
+            document.getElementById('setup-screen').style.display = 'none';
             conn.on('data', d => {
                 if(d.type === 'PLAY_VID') {
-                    const v = aud('vid-player');
-                    v.src = 'czolowka.mp4';
-                    v.style.display = 'block';
-                    v.play();
+                    const v = aud('vid-player'); v.src = 'czolowka.mp4';
+                    v.style.display = 'block'; v.play();
                     v.onended = () => v.style.display = 'none';
                 }
-
                 if(d.type === 'PLAY_SND') aud(d.id).play();
-
+                if(d.type === 'X') {
+                    aud('snd-zle').play();
+                    document.getElementById('x-overlay').style.display = 'flex';
+                    document.querySelector('.x-text').innerText = "X".repeat(d.count);
+                    setTimeout(() => document.getElementById('x-overlay').style.display = 'none', 1500);
+                }
                 if(d.type === 'SETUP_NORMAL') {
                     document.getElementById('final-board').style.display = 'none';
                     const nb = document.getElementById('normal-board');
                     nb.style.display = 'flex';
-                    nb.innerHTML = d.ans.map((a, i) => `
-                        <div class="row">
-                            <div class="row-num">${i+1}</div>
-                            <div class="row-txt">................</div>
-                            <div class="row-pts"></div>
-                        </div>`).join('');
+                    nb.innerHTML = d.ans.map((a, i) => `<div class="row"><div style="width:50px;color:#333">${i+1}</div><div class="row-txt">................</div><div class="row-pts"></div></div>`).join('');
                 }
-
                 if(d.type === 'SETUP_FINAL') {
                     document.getElementById('normal-board').style.display = 'none';
                     document.getElementById('final-board').style.display = 'grid';
-                    const fill = (id) => {
-                        document.getElementById(id).innerHTML = Array(5).fill().map(() => `
-                            <div class="row"><div class="row-txt">...</div><div class="row-pts"></div></div>
-                        `).join('');
-                    };
-                    fill('col-p1'); fill('col-p2');
+                    const rowHtml = `<div class="row"><div class="row-txt">...</div><div class="row-pts"></div></div>`;
+                    document.getElementById('col-p1').innerHTML = rowHtml.repeat(5);
+                    document.getElementById('col-p2').innerHTML = rowHtml.repeat(5);
                 }
-
                 if(d.type === 'REV') {
                     aud('snd-ok').play();
-                    let row = d.mode === 'normal' 
-                        ? document.getElementById('normal-board').children[d.idx]
-                        : document.getElementById('col-p'+d.player).children[d.idx];
+                    let row = d.mode === 'normal' ? document.getElementById('normal-board').children[d.idx] : document.getElementById('col-p'+d.player).children[d.idx];
                     row.querySelector('.row-txt').innerText = d.t;
                     row.querySelector('.row-txt').classList.remove('hidden-ans');
                     row.querySelector('.row-pts').innerText = d.p;
                 }
-
-                if(d.type === 'X') {
-                    aud('snd-zle').play();
-                    const ov = document.getElementById('x-overlay');
-                    ov.querySelector('.x-text').innerText = "X".repeat(d.count);
-                    ov.style.display = 'flex';
-                    setTimeout(() => ov.style.display = 'none', 1500);
-                }
-
+                if(d.type === 'HIDE_P1') document.querySelectorAll('#col-p1 .row-txt').forEach(r => r.classList.add('hidden-ans'));
                 if(d.type === 'TIMER') {
-                    const tEl = document.getElementById('timer');
-                    tEl.style.visibility = 'visible';
-                    let time = d.sec;
-                    tEl.innerText = time;
+                    const tEl = document.getElementById('timer'); tEl.style.visibility = 'visible';
+                    let time = d.sec; tEl.innerText = time;
                     clearInterval(countdown);
                     countdown = setInterval(() => {
                         time--; tEl.innerText = time;
                         if(time <= 0) { clearInterval(countdown); aud('snd-zle').play(); }
                     }, 1000);
                 }
-
-                if(d.type === 'HIDE_P1') {
-                    document.querySelectorAll('#col-p1 .row-txt').forEach(r => r.classList.add('hidden-ans'));
-                }
-
                 if(d.type === 'SCORE') document.getElementById('total-val').innerText = d.val;
             });
         });
