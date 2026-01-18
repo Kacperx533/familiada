@@ -1,69 +1,117 @@
 <!DOCTYPE html>
-<html>
+<html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>Pilot</title>
+    <title>FAMILIADA TV - PRO FINAL</title>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        body { background: #222; color: white; font-family: sans-serif; padding: 20px; }
-        input, button { padding: 10px; margin: 5px; width: 100%; box-sizing: border-box; }
-        button { background: #444; color: #fff; border: 1px solid #666; cursor: pointer; }
-        .active { background: #0a0; }
-        .row-c { display: flex; gap: 5px; margin-bottom: 5px; }
+        :root { --led: #eaff00; --glow: 0 0 15px rgba(234, 255, 0, 0.8); }
+        body { background: #000; color: var(--led); font-family: 'VT323', monospace; margin: 0; overflow: hidden; text-transform: uppercase; }
+        body::after { content: ""; position: fixed; inset: 0; background-image: linear-gradient(rgba(0,0,0,0.9) 2px, transparent 2px), linear-gradient(90deg, rgba(0,0,0,0.9) 2px, transparent 2px); background-size: 4px 4px; z-index: 10000; pointer-events: none; }
+        
+        .stage { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100vw; height: 100vh; }
+        
+        /* UKŁAD FINAŁOWY */
+        .final-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; width: 90%; max-width: 1400px; }
+        .player-col { display: flex; flex-direction: column; gap: 10px; }
+        
+        .row { display: flex; align-items: center; height: 9vh; font-size: 7vh; background: #0a0a0a; border: 1px solid #222; padding: 0 20px; }
+        .row-txt { flex-grow: 1; text-shadow: var(--glow); letter-spacing: 2px; }
+        .row-pts { width: 100px; text-align: right; color: var(--led); font-size: 8vh; }
+        
+        #timer { font-size: 20vh; color: #ff3333; text-shadow: 0 0 30px red; margin-bottom: 20px; min-height: 22vh; }
+        .total-box { margin-top: 30px; font-size: 10vh; text-shadow: var(--glow); border: 3px solid var(--led); padding: 10px 40px; }
+        
+        #msg-overlay { position: fixed; inset: 0; background: #000; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100000; }
+        .hidden-ans { color: #111; text-shadow: none; } /* Ukrywanie odpowiedzi Gracza 1 */
     </style>
 </head>
 <body>
-    <input id="targetId" placeholder="Wpisz krótki kod z TV (np. A1B2)">
-    <button onclick="connect()">POŁĄCZ</button>
-    <hr>
-    <h3>1. Ustawienia</h3>
-    <textarea id="csv" rows="4" style="width:100%">ŚLĄSK,36
-KASZUBY,27
-PODHALE,17</textarea>
-    <button onclick="setup()">WYŚLIJ NA TABLICĘ</button>
-    
-    <h3>2. Gra</h3>
-    <div id="buttons"></div>
-    <hr>
-    <button onclick="sendX(1)" style="background:#a00">X</button>
-    <button onclick="sendX(2)" style="background:#a00">XX</button>
-    <button onclick="sendX(3)" style="background:#a00">XXX</button>
-    <br>
-    Suma: <input type="number" id="score" value="0" onchange="upScore()">
+    <div id="msg-overlay">
+        <h1 id="status-text">ŁADOWANIE...</h1>
+        <button onclick="unlock()" style="padding: 20px 40px; font-size: 24px; cursor:pointer;">START SYSTEMU</button>
+    </div>
+
+    <div class="stage">
+        <div id="timer">--</div>
+        
+        <div class="final-grid">
+            <div class="player-col" id="col-p1">
+                <div class="row"><div class="row-txt">...</div><div class="row-pts"></div></div>
+                <div class="row"><div class="row-txt">...</div><div class="row-pts"></div></div>
+                <div class="row"><div class="row-txt">...</div><div class="row-pts"></div></div>
+                <div class="row"><div class="row-txt">...</div><div class="row-pts"></div></div>
+                <div class="row"><div class="row-txt">...</div><div class="row-pts"></div></div>
+            </div>
+            <div class="player-col" id="col-p2">
+                <div class="row"><div class="row-txt">...</div><div class="row-pts"></div></div>
+                <div class="row"><div class="row-txt">...</div><div class="row-pts"></div></div>
+                <div class="row"><div class="row-txt">...</div><div class="row-pts"></div></div>
+                <div class="row"><div class="row-txt">...</div><div class="row-pts"></div></div>
+                <div class="row"><div class="row-txt">...</div><div class="row-pts"></div></div>
+            </div>
+        </div>
+
+        <div class="total-box">SUMA: <span id="total-val">0</span></div>
+    </div>
+
+    <audio id="snd-ok" src="ok.mp3"></audio>
+    <audio id="snd-bad" src="zle.mp3"></audio>
+    <audio id="snd-repeat" src="powtorzenia.mp3"></audio>
+    <audio id="snd-think" src="think.mp3"></audio>
 
     <script>
         const peer = new Peer();
-        let conn;
-        let answers = [];
+        let countdown;
 
-        function connect() {
-            conn = peer.connect(document.getElementById('targetId').value.toUpperCase());
-            conn.on('open', () => alert("Połączono!"));
-        }
+        function unlock() { document.querySelectorAll('audio').forEach(a => { a.play().then(()=>a.pause()); }); }
+        
+        peer.on('open', id => { document.getElementById('status-text').innerText = "ID: " + id; });
 
-        function setup() {
-            const lines = document.getElementById('csv').value.split('\n');
-            answers = lines.map(l => { const p = l.split(','); return {t: p[0], p: p[1] || 0}; });
-            conn.send({ type: 'SETUP', rows: answers });
-            
-            const div = document.getElementById('buttons');
-            div.innerHTML = '';
-            answers.forEach((a, i) => {
-                div.innerHTML += `<div class="row-c"><span>${i+1}. ${a.t}</span><button onclick="reveal(${i})">Odkryj</button></div>`;
+        peer.on('connection', conn => {
+            document.getElementById('msg-overlay').style.display = 'none';
+            conn.on('data', d => {
+                const aud = (id) => document.getElementById(id);
+                
+                if(d.type === 'TIMER') {
+                    let time = d.sec;
+                    const timerEl = document.getElementById('timer');
+                    timerEl.innerText = time;
+                    aud('snd-think').play();
+                    clearInterval(countdown);
+                    countdown = setInterval(() => {
+                        time--;
+                        timerEl.innerText = time;
+                        if(time <= 0) {
+                            clearInterval(countdown);
+                            aud('snd-think').pause();
+                            aud('snd-bad').play();
+                        }
+                    }, 1000);
+                }
+
+                if(d.type === 'REPEAT') aud('snd-repeat').play();
+
+                if(d.type === 'REV') {
+                    aud('snd-ok').play();
+                    const col = document.getElementById('col-p' + d.player);
+                    const row = col.children[d.idx];
+                    row.querySelector('.row-txt').innerText = d.t;
+                    row.querySelector('.row-pts').innerText = d.p;
+                    row.querySelector('.row-txt').classList.remove('hidden-ans');
+                }
+
+                if(d.type === 'HIDE_P1') {
+                    const rows = document.getElementById('col-p1').querySelectorAll('.row-txt');
+                    rows.forEach(r => r.classList.add('hidden-ans'));
+                }
+
+                if(d.type === 'SCORE') document.getElementById('total-val').innerText = d.val;
+
+                if(d.type === 'RESET') location.reload();
             });
-            document.getElementById('score').value = 0;
-        }
-
-        function reveal(i) {
-            conn.send({ type: 'REVEAL', index: i, text: answers[i].t, points: answers[i].p });
-            let s = document.getElementById('score');
-            s.value = parseInt(s.value) + parseInt(answers[i].p);
-            upScore();
-        }
-
-        function sendX(n) { conn.send({ type: 'X', count: n }); }
-        function upScore() { conn.send({ type: 'SCORE', val: document.getElementById('score').value }); }
+        });
     </script>
 </body>
 </html>
-
