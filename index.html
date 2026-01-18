@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA TV - PRO</title>
+    <title>FAMILIADA TV - FINAL VERSION</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
@@ -21,7 +21,6 @@
             text-transform: uppercase;
             font-family: 'VT323', monospace;
             
-            /* TŁO: Kolory stykają się płynnie na środku */
             background: 
                 linear-gradient(90deg, 
                     rgba(150, 0, 0, 1) 0%, 
@@ -31,57 +30,61 @@
                 );
         }
 
-        /* SUMA NA GÓRZE: Poziomy prostokąt, cienki obrys */
+        /* SUMA: Cyfra dosunięta do prawej */
         .top-suma-box {
             background: #000;
             border: 3px solid var(--led-yellow);
-            padding: 5px 60px;
+            padding: 5px 20px;
             margin-bottom: 30px;
             display: flex;
             align-items: center;
-            justify-content: center;
-            min-width: 150px;
+            justify-content: flex-end; /* Max do prawej */
+            min-width: 200px;
         }
-        #suma-val { font-size: 110px; color: var(--led-yellow); line-height: 0.9; }
+        #suma-val { font-size: 110px; color: var(--led-yellow); line-height: 0.9; padding-right: 10px; }
 
         .studio-layout {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 40px;
+            gap: 30px;
             width: 100%;
         }
 
-        /* PUNKTY DRUŻYN: Poziome prostokąty */
+        /* WYNIKI BOCZNE: Prostokąty, cyfry max do prawej */
         .score-box {
-            width: 180px;
-            height: 120px;
+            width: 200px;
+            height: 130px;
             background: #000;
             border: 3px solid var(--led-yellow);
             display: flex;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-end; /* Max do prawej */
             font-size: 110px;
             color: var(--led-yellow);
         }
+        .score-box span { padding-right: 15px; }
 
-        /* GIGANTYCZNA TABLICA */
+        /* TABLICA Z MOCNO ZAKRĄGLONYMI BOKAMI */
         .board-frame {
             width: 1000px;
-            height: 600px;
+            height: 580px;
             background: #000;
-            border: 2px solid #222;
-            padding: 20px 40px;
+            border: 3px solid #333;
+            border-radius: 80px; /* Mocne zaokrąglenie boków */
+            padding: 30px 60px;
             position: relative;
+            box-shadow: 0 0 50px rgba(0,0,0,1);
             background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 0);
             background-size: 8px 8px;
+            overflow: hidden;
         }
 
         .row {
             display: flex;
             align-items: center;
-            height: 100px;
-            font-size: 100px;
+            height: 95px;
+            font-size: 95px;
             border-bottom: 2px solid #0d0d0d;
         }
 
@@ -89,7 +92,6 @@
         .ans { flex-grow: 1; color: var(--led-yellow); letter-spacing: 4px; }
         .pts { width: 120px; text-align: right; color: var(--led-yellow); }
 
-        /* X Overlay */
         #x-overlay {
             position: fixed;
             inset: 0;
@@ -119,14 +121,13 @@
     </div>
 
     <div class="studio-layout">
-        <div id="score-L" class="score-box">0</div>
+        <div class="score-box"><span id="score-L">0</span></div>
 
         <div class="board-frame">
-            <div id="board-content">
-                </div>
+            <div id="board-content"></div>
         </div>
 
-        <div id="score-R" class="score-box">0</div>
+        <div class="score-box"><span id="score-R">0</span></div>
     </div>
 
     <audio id="snd-ok" src="ok.mp3"></audio>
