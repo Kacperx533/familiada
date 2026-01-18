@@ -2,12 +2,14 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA TV - WERSJA STUDIO</title>
+    <title>FAMILIADA TV - FULL REPLICA</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root {
             --led-yellow: #f4ff00;
+            --neon-red: #ff3333;
+            --neon-blue: #3388ff;
         }
 
         body {
@@ -20,81 +22,113 @@
             overflow: hidden;
             text-transform: uppercase;
             font-family: 'VT323', monospace;
-            
-            /* TŁO: Płynne przejście kolorów bez czarnego paska na środku */
-            background: linear-gradient(90deg, 
-                rgb(180, 20, 20) 0%, 
-                rgb(160, 15, 15) 45%, 
-                rgb(15, 40, 150) 55%, 
-                rgb(20, 50, 180) 100%
-            );
+            background: linear-gradient(90deg, #b41414 0%, #a00f0f 45%, #0f2896 55%, #1432b4 100%);
         }
 
-        /* SUMA NA GÓRZE: Pozioma ramka, liczba po prawej */
+        /* GÓRNA DEKORACJA: Łuki neonowe */
+        .top-decoration {
+            position: absolute;
+            top: 0;
+            width: 100%;
+            height: 150px;
+            display: flex;
+            justify-content: center;
+            pointer-events: none;
+        }
+
+        .neon-line {
+            position: absolute;
+            top: 20px;
+            width: 45%;
+            height: 80px;
+            border-top: 4px solid;
+            border-radius: 100px 100px 0 0;
+        }
+
+        .line-left {
+            left: 2%;
+            border-left: 4px solid var(--neon-red);
+            border-color: var(--neon-red);
+            box-shadow: 0 -5px 15px var(--neon-red);
+            clip-path: inset(0 0 0 0); /* Obcięcie do połowy */
+        }
+
+        .line-right {
+            right: 2%;
+            border-right: 4px solid var(--neon-blue);
+            border-color: var(--neon-blue);
+            box-shadow: 0 -5px 15px var(--neon-blue);
+        }
+
+        /* CENTRALNY LICZNIK NA GÓRZE */
         .top-suma-box {
             background: #000;
             border: 2px solid var(--led-yellow);
             padding: 5px 15px;
-            margin-bottom: 20px;
+            z-index: 10;
             display: flex;
             align-items: center;
-            justify-content: flex-end; /* Liczba na maxa w prawo */
-            width: 150px;
-            height: 70px;
+            justify-content: flex-end;
+            width: 140px;
+            height: 75px;
+            margin-bottom: 20px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            background-image: radial-gradient(#222 1px, transparent 0);
+            background-size: 4px 4px;
         }
-        #suma-val { font-size: 80px; color: var(--led-yellow); }
+        #suma-val { font-size: 85px; color: var(--led-yellow); line-height: 1; }
 
         .studio-layout {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 20px;
-            width: 95vw;
+            gap: 25px;
+            width: 98vw;
+            z-index: 5;
         }
 
-        /* PUNKTY DRUŻYN: Poziome prostokąty, liczba po prawej */
+        /* PROSTOKĄTY WYNIKÓW - LICZBA DO PRAWEJ */
         .score-box {
-            width: 180px;
-            height: 100px;
+            width: 190px;
+            height: 110px;
             background: #000;
             border: 2px solid var(--led-yellow);
             display: flex;
             align-items: center;
-            justify-content: flex-end; /* Liczba na maxa w prawo */
-            font-size: 100px;
+            justify-content: flex-end;
+            font-size: 110px;
             color: var(--led-yellow);
             padding-right: 15px;
             box-sizing: border-box;
+            background-image: radial-gradient(#222 1px, transparent 0);
+            background-size: 5px 5px;
         }
 
-        /* TABLICA Z ZAOKRĄGLONYMI NAROŻNIKAMI (JAK NA FOTO) */
+        /* TABLICA GŁÓWNA */
         .board-frame {
-            width: 900px;
-            height: 520px;
+            width: 950px;
+            height: 550px;
             background: #000;
-            border: 3px solid #444;
-            border-radius: 40px; /* Zaokrąglone boki tablicy */
-            padding: 20px 40px;
-            position: relative;
-            box-shadow: inset 0 0 30px rgba(0,0,0,1);
-            /* Efekt siatki punktów LED */
+            border: 3px solid #555;
+            border-radius: 50px;
+            padding: 25px 45px;
             background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 0);
             background-size: 10px 10px;
+            box-shadow: inset 0 0 40px #000;
         }
 
         .row {
             display: flex;
             align-items: center;
-            height: 85px;
-            font-size: 85px;
+            height: 90px;
+            font-size: 90px;
             border-bottom: 1px solid #111;
         }
 
-        .num { width: 60px; color: #333; }
-        .ans { flex-grow: 1; color: var(--led-yellow); letter-spacing: 3px; }
-        .pts { width: 100px; text-align: right; color: var(--led-yellow); }
+        .num { width: 65px; color: #222; }
+        .ans { flex-grow: 1; color: var(--led-yellow); letter-spacing: 2px; }
+        .pts { width: 110px; text-align: right; color: var(--led-yellow); }
 
-        /* Overlay dla błędu X */
         #x-overlay {
             position: fixed;
             inset: 0;
@@ -104,7 +138,7 @@
             background: rgba(0,0,0,0.9);
             z-index: 9999;
         }
-        .x-text { font-size: 500px; color: red; font-weight: bold; font-family: Arial, sans-serif; }
+        .x-text { font-size: 550px; color: red; font-weight: bold; font-family: Arial; }
 
         #setup { position: fixed; inset: 0; background: #000; z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; }
     </style>
@@ -112,8 +146,13 @@
 <body>
 
     <div id="setup">
-        <div id="code" style="font-size: 80px; color: var(--led-yellow); margin-bottom: 20px;"></div>
-        <button onclick="init()" style="padding: 15px 40px; font-size: 20px; cursor: pointer;">URUCHOM STUDIO</button>
+        <div id="code" style="font-size: 100px; color: var(--led-yellow); margin-bottom: 20px;"></div>
+        <button onclick="init()" style="padding: 20px 50px; font-size: 25px; cursor: pointer;">ODPAL STUDIO</button>
+    </div>
+
+    <div class="top-decoration">
+        <div class="neon-line line-left"></div>
+        <div class="neon-line line-right"></div>
     </div>
 
     <div id="x-overlay"><div class="x-text" id="x-val">X</div></div>
@@ -124,11 +163,9 @@
 
     <div class="studio-layout">
         <div class="score-box"><span id="score-L">0</span></div>
-
         <div class="board-frame">
             <div id="board-content"></div>
         </div>
-
         <div class="score-box"><span id="score-R">0</span></div>
     </div>
 
@@ -140,11 +177,11 @@
         let sum = 0;
 
         function init() {
-            const myId = Math.random().toString(36).substring(2, 5).toUpperCase();
-            document.getElementById('code').innerText = myId;
+            const id = Math.random().toString(36).substring(2, 5).toUpperCase();
+            document.getElementById('code').innerText = id;
             document.getElementById('setup').style.display = 'none';
             
-            peer = new Peer(myId);
+            peer = new Peer(id);
             peer.on('open', () => {
                 peer.on('connection', conn => {
                     conn.on('data', d => {
