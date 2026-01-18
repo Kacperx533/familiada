@@ -2,50 +2,55 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA TV - FULL SYSTEM</title>
+    <title>TABLICA TV - FAMILIADA PRO</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        :root { --led: #eaff00; --glow: 0 0 15px rgba(234, 255, 0, 0.8); }
+        :root { --led: #eaff00; --glow: 0 0 15px rgba(234, 255, 0, 0.7); }
         body { background: #000; color: var(--led); font-family: 'VT323', monospace; margin: 0; overflow: hidden; text-transform: uppercase; }
-        body::after { content: ""; position: fixed; inset: 0; background-image: linear-gradient(rgba(0,0,0,0.9) 2px, transparent 2px), linear-gradient(90deg, rgba(0,0,0,0.9) 2px, transparent 2px); background-size: 4px 4px; z-index: 10000; pointer-events: none; }
         
-        .container { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100vw; height: 100vh; }
-        
-        /* ZWYKŁA TABLICA (Rundy 1-4) */
-        #normal-board { width: 80%; display: none; flex-direction: column; gap: 10px; }
-        
-        /* TABLICA FINAŁOWA */
-        #final-board { display: none; grid-template-columns: 1fr 1fr; gap: 40px; width: 90%; }
-        
-        .row { display: flex; align-items: center; height: 8vh; font-size: 6.5vh; background: #0a0a0a; border: 1px solid #222; padding: 0 20px; }
-        .row-num { width: 50px; color: #444; }
-        .row-txt { flex-grow: 1; text-shadow: var(--glow); letter-spacing: 2px; }
-        .row-pts { width: 100px; text-align: right; color: var(--led); }
-        
-        #timer { font-size: 18vh; color: #ff3333; text-shadow: 0 0 30px red; margin-bottom: 10px; height: 20vh; visibility: hidden; }
-        .total-box { margin-top: 30px; font-size: 9vh; text-shadow: var(--glow); border: 3px solid var(--led); padding: 5px 30px; }
-        
-        /* IKSY */
-        .x-overlay { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.7); z-index: 20000; }
-        .x-text { font-size: 400px; color: #eaff00; text-shadow: 0 0 30px red; font-family: sans-serif; font-weight: bold; }
+        /* Efekt siatki retro */
+        .overlay-scanlines { position: fixed; inset: 0; background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06)); background-size: 100% 4px, 3px 100%; pointer-events: none; z-index: 1000; }
 
-        #welcome { position: fixed; inset: 0; background: #000; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100000; }
-        .hidden-ans { color: #000; text-shadow: none; }
+        .container { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100vw; height: 100vh; position: relative; }
+        
+        /* Wideo czołówki */
+        #vid-player { position: fixed; inset: 0; width: 100%; height: 100%; background: #000; z-index: 2000; display: none; }
+
+        /* Timer */
+        #timer { font-size: 18vh; color: #ff3333; text-shadow: 0 0 20px red; margin-bottom: 10px; min-height: 20vh; visibility: hidden; }
+
+        /* Rundy */
+        .board { width: 85%; display: none; flex-direction: column; gap: 10px; }
+        .row { display: flex; align-items: center; height: 8.5vh; font-size: 7vh; background: #080808; border: 2px solid #1a1a1a; padding: 0 25px; box-shadow: inset 0 0 10px #000; }
+        .row-num { width: 60px; color: #333; }
+        .row-txt { flex-grow: 1; text-shadow: var(--glow); letter-spacing: 3px; }
+        .row-pts { width: 120px; text-align: right; border-left: 2px solid #1a1a1a; padding-left: 15px; }
+
+        /* Finał */
+        .final-grid { display: none; grid-template-columns: 1fr 1fr; gap: 40px; width: 92%; }
+        .player-col { display: flex; flex-direction: column; gap: 10px; }
+        .hidden-ans { color: #080808; text-shadow: none; }
+
+        /* Suma */
+        .total-box { margin-top: 30px; font-size: 9vh; border: 4px solid var(--led); padding: 5px 50px; background: rgba(234, 255, 0, 0.05); box-shadow: var(--glow); }
+
+        /* X Overlay */
+        #x-overlay { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.8); z-index: 5000; }
+        .x-text { font-size: 45vh; color: var(--led); text-shadow: 0 0 40px red; font-family: Arial; font-weight: bold; }
     </style>
 </head>
 <body>
-    <div id="welcome">
-        <h1 id="peer-id-display">ŁADOWANIE...</h1>
-        <button onclick="document.getElementById('welcome').style.display='none'" style="padding:15px 30px; font-size:20px; cursor:pointer;">ODBLOKUJ DŹWIĘK I EKRAN</button>
-    </div>
+    <div class="overlay-scanlines"></div>
+    <video id="vid-player"></video>
+    <div id="x-overlay"><div class="x-text">XXX</div></div>
 
     <div class="container">
         <div id="timer">00</div>
+        
+        <div id="normal-board" class="board"></div>
 
-        <div id="normal-board"></div>
-
-        <div id="final-board">
+        <div id="final-board" class="final-grid">
             <div class="player-col" id="col-p1"></div>
             <div class="player-col" id="col-p2"></div>
         </div>
@@ -53,25 +58,32 @@
         <div class="total-box">SUMA: <span id="total-val">0</span></div>
     </div>
 
-    <div id="x-overlay" class="x-overlay"><div class="x-text">X</div></div>
-
-    <audio id="snd-intro" src="intro.mp3"></audio>
     <audio id="snd-ok" src="ok.mp3"></audio>
-    <audio id="snd-bad" src="zle.mp3"></audio>
-    <audio id="snd-repeat" src="powtorzenia.mp3"></audio>
-    <audio id="snd-think" src="think.mp3"></audio>
+    <audio id="snd-zle" src="zle.mp3"></audio>
+    <audio id="snd-intro" src="intro.mp3"></audio>
+    <audio id="snd-powt" src="powtorzenie.mp3"></audio>
+    <audio id="snd-runda" src="runda.mp3"></audio>
+    <audio id="snd-final" src="fianl.mp3"></audio>
 
     <script>
         const peer = new Peer();
         let countdown;
         const aud = (id) => document.getElementById(id);
 
-        peer.on('open', id => document.getElementById('peer-id-display').innerText = "ID: " + id);
+        peer.on('open', id => console.log("ID:", id));
 
         peer.on('connection', conn => {
             conn.on('data', d => {
-                if(d.type === 'SOUND') aud(d.id).play();
-                
+                if(d.type === 'PLAY_VID') {
+                    const v = aud('vid-player');
+                    v.src = 'czolowka.mp4';
+                    v.style.display = 'block';
+                    v.play();
+                    v.onended = () => v.style.display = 'none';
+                }
+
+                if(d.type === 'PLAY_SND') aud(d.id).play();
+
                 if(d.type === 'SETUP_NORMAL') {
                     document.getElementById('final-board').style.display = 'none';
                     const nb = document.getElementById('normal-board');
@@ -79,7 +91,7 @@
                     nb.innerHTML = d.ans.map((a, i) => `
                         <div class="row">
                             <div class="row-num">${i+1}</div>
-                            <div class="row-txt">....................</div>
+                            <div class="row-txt">................</div>
                             <div class="row-pts"></div>
                         </div>`).join('');
                 }
@@ -97,21 +109,20 @@
 
                 if(d.type === 'REV') {
                     aud('snd-ok').play();
-                    let row;
-                    if(d.mode === 'normal') row = document.getElementById('normal-board').children[d.idx];
-                    else row = document.getElementById('col-p'+d.player).children[d.idx];
-                    
+                    let row = d.mode === 'normal' 
+                        ? document.getElementById('normal-board').children[d.idx]
+                        : document.getElementById('col-p'+d.player).children[d.idx];
                     row.querySelector('.row-txt').innerText = d.t;
                     row.querySelector('.row-txt').classList.remove('hidden-ans');
                     row.querySelector('.row-pts').innerText = d.p;
                 }
 
                 if(d.type === 'X') {
-                    aud('snd-bad').play();
+                    aud('snd-zle').play();
                     const ov = document.getElementById('x-overlay');
                     ov.querySelector('.x-text').innerText = "X".repeat(d.count);
                     ov.style.display = 'flex';
-                    setTimeout(() => ov.style.display = 'none', 2000);
+                    setTimeout(() => ov.style.display = 'none', 1500);
                 }
 
                 if(d.type === 'TIMER') {
@@ -119,14 +130,10 @@
                     tEl.style.visibility = 'visible';
                     let time = d.sec;
                     tEl.innerText = time;
-                    aud('snd-think').play();
                     clearInterval(countdown);
                     countdown = setInterval(() => {
                         time--; tEl.innerText = time;
-                        if(time <= 0) { 
-                            clearInterval(countdown); 
-                            aud('snd-think').pause(); aud('snd-bad').play();
-                        }
+                        if(time <= 0) { clearInterval(countdown); aud('snd-zle').play(); }
                     }, 1000);
                 }
 
