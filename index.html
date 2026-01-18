@@ -2,106 +2,98 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA TV - MEGA STUDIO</title>
+    <title>FAMILIADA TV - FULL SCREEN LIVE</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root {
-            --led-yellow: #eaff00;
-            --neon-red: #ff1100;
-            --neon-blue: #00a2ff;
-            --bg-dark: #000510; /* Bardzo ciemny granat zamiast czarnego */
+            --led-yellow: #f4ff00;
+            --neon-red: #ff3c00;
+            --neon-blue: #00d9ff;
+            --studio-blue: #003399; /* Jasny, nasycony niebieski zamiast czarnego */
         }
 
         body {
-            /* Tło studyjne: gradienty imitujące światła rampy */
+            /* Nowe tło: Całkowicie niebieskie studio z poświatą */
             background: 
-                radial-gradient(circle at 10% 50%, rgba(255, 0, 0, 0.25), transparent 40%),
-                radial-gradient(circle at 90% 50%, rgba(0, 100, 255, 0.25), transparent 40%),
-                linear-gradient(180deg, #000a20 0%, var(--bg-dark) 100%);
+                radial-gradient(circle at center, #0055ff 0%, var(--studio-blue) 100%);
             color: var(--led-yellow);
             font-family: 'VT323', monospace;
             margin: 0;
             height: 100vh;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             overflow: hidden;
             text-transform: uppercase;
         }
 
-        .studio-container {
+        /* SUMA NA GÓRZE */
+        .top-suma-container {
+            background: rgba(0, 0, 0, 0.8);
+            border: 5px solid white;
+            padding: 10px 60px;
+            border-radius: 50px;
+            margin-bottom: 20px;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+        }
+        .top-suma-text {
+            font-size: 80px;
+            color: white;
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            width: 96vw;
-            max-width: 1800px;
+            gap: 20px;
+        }
+        #suma-val { color: var(--led-yellow); font-size: 100px; }
+
+        .studio-layout {
+            display: flex;
+            align-items: center;
+            justify-content: space-evenly;
+            width: 98vw;
         }
 
-        /* Powiększone liczniki */
-        .score-display {
-            width: 220px;
-            height: 160px;
-            background: rgba(0, 0, 0, 0.9);
+        /* Mega liczniki boczne */
+        .score-box {
+            width: 200px;
+            height: 150px;
+            background: #000;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 130px;
+            font-size: 120px;
             border-radius: 20px;
-            box-shadow: 0 0 40px rgba(0,0,0,0.8);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
+        #score-L { border: 8px solid var(--neon-red); color: var(--neon-red); text-shadow: 0 0 20px var(--neon-red); }
+        #score-R { border: 8px solid var(--neon-blue); color: var(--neon-blue); text-shadow: 0 0 20px var(--neon-blue); }
 
-        #score-L { border: 6px solid var(--neon-red); color: var(--neon-red); text-shadow: 0 0 20px var(--neon-red); }
-        #score-R { border: 6px solid var(--neon-blue); color: var(--neon-blue); text-shadow: 0 0 20px var(--neon-blue); }
-
-        /* MEGA TABLICA */
-        .main-board {
-            width: 950px; /* Znacznie powiększona */
-            height: 600px;
-            background: #000;
-            border: 6px solid #2a2a2a;
-            border-radius: 30px;
-            padding: 40px 60px;
-            box-shadow: 0 0 60px rgba(0,0,0,1), inset 0 0 20px rgba(255,255,255,0.05);
+        /* GIGANTYCZNA TABLICA */
+        .mega-board {
+            width: 1100px; /* Jeszcze większa */
+            height: 650px;
+            background: #080808; /* Bardzo ciemny grafit, żeby hasła świeciły */
+            border: 10px solid #ffffff;
+            border-radius: 40px;
+            padding: 30px 50px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
             position: relative;
-        }
-
-        /* Subtelna siatka LED */
-        .main-board::after {
-            content: "";
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-image: radial-gradient(rgba(255, 255, 0, 0.02) 1px, transparent 0);
-            background-size: 8px 8px;
-            pointer-events: none;
-            border-radius: 30px;
         }
 
         .row {
             display: flex;
             align-items: center;
-            height: 85px; /* Wyższe wiersze */
-            font-size: 80px; /* Większa czcionka */
-            border-bottom: 2px solid #111;
-            position: relative;
-            z-index: 1;
+            height: 110px; /* Maksymalna wysokość wiersza */
+            font-size: 100px; /* Ogromne litery */
+            border-bottom: 3px solid #1a1a1a;
         }
 
-        .num { width: 70px; color: #333; }
-        .ans { flex-grow: 1; letter-spacing: 4px; text-shadow: 0 0 10px rgba(234, 255, 0, 0.5); }
-        .pts { width: 100px; text-align: right; }
+        .num { width: 80px; color: #444; }
+        .ans { flex-grow: 1; letter-spacing: 5px; text-shadow: 2px 2px 0px #000; }
+        .pts { width: 120px; text-align: right; }
 
-        .suma-row {
-            display: flex;
-            justify-content: flex-end;
-            margin-top: 30px;
-            font-size: 70px;
-            color: var(--led-yellow);
-            border-top: 3px solid #222;
-            padding-top: 10px;
-        }
-
-        /* Overlay X */
+        /* Stylizacja dla X */
         #x-overlay {
             position: fixed;
             inset: 0;
@@ -111,55 +103,44 @@
             background: rgba(0,0,0,0.9);
             z-index: 9999;
         }
-        .x-text { font-size: 550px; color: var(--neon-red); font-weight: bold; font-family: Arial, sans-serif; text-shadow: 0 0 50px var(--neon-red); }
+        .x-text { font-size: 600px; color: var(--neon-red); font-weight: bold; font-family: Arial; }
 
-        /* Start screen */
         #setup-screen {
             position: fixed;
             inset: 0;
-            background: #000;
+            background: var(--studio-blue);
             z-index: 10000;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-        }
-
-        .btn-start {
-            padding: 25px 50px;
-            font-size: 30px;
-            background: var(--led-yellow);
-            color: black;
-            border: none;
-            border-radius: 15px;
-            cursor: pointer;
-            font-weight: bold;
-            box-shadow: 0 0 20px var(--led-yellow);
+            color: white;
         }
     </style>
 </head>
 <body>
 
     <div id="setup-screen">
-        <h1 id="status-msg" style="color: white;">FAMILIADA STUDIO LIVE</h1>
-        <div id="join-code" style="font-size: 120px; color: var(--led-yellow); margin: 30px;"></div>
-        <button class="btn-start" id="btn-run" onclick="init()">ODPAL STUDIO</button>
+        <h1>FAMILIADA TV - START</h1>
+        <div id="join-code" style="font-size: 120px; margin: 20px; color: var(--led-yellow);"></div>
+        <button onclick="init()" style="padding: 20px 60px; font-size: 30px; cursor:pointer;">ODPAL SYSTEM</button>
     </div>
 
     <div id="x-overlay"><div class="x-text" id="x-val">X</div></div>
 
-    <div class="studio-container">
-        <div id="score-L" class="score-display">0</div>
+    <div class="top-suma-container">
+        <div class="top-suma-text">SUMA: <span id="suma-val">0</span></div>
+    </div>
 
-        <div class="main-board">
+    <div class="studio-layout">
+        <div id="score-L" class="score-box">0</div>
+
+        <div class="mega-board">
             <div id="board-content">
                 </div>
-            <div class="suma-row">
-                SUMA&nbsp;&nbsp;<span id="suma-val">0</span>
-            </div>
         </div>
 
-        <div id="score-R" class="score-display">0</div>
+        <div id="score-R" class="score-box">0</div>
     </div>
 
     <audio id="snd-ok" src="ok.mp3"></audio>
@@ -167,27 +148,25 @@
 
     <script>
         let peer;
-        let totalScore = 0;
+        let total = 0;
 
         function init() {
-            const myId = Math.random().toString(36).substring(2, 5).toUpperCase();
-            document.getElementById('join-code').innerText = myId;
-            document.getElementById('btn-run').style.display = "none";
-            document.getElementById('status-msg').innerText = "PODAJ KOD NA TELEFONIE:";
+            const id = Math.random().toString(36).substring(2, 5).toUpperCase();
+            document.getElementById('join-code').innerText = id;
+            document.getElementById('setup-screen').style.display = 'none';
             
-            peer = new Peer(myId);
+            peer = new Peer(id);
             peer.on('open', () => {
                 peer.on('connection', conn => {
-                    document.getElementById('setup-screen').style.display = 'none';
                     conn.on('data', d => {
                         if(d.type === 'SETUP_NORMAL' || d.type === 'SETUP_FINAL') {
-                            totalScore = 0;
+                            total = 0;
                             document.getElementById('suma-val').innerText = "0";
                             let rows = "";
                             for(let i=1; i<=5; i++) {
                                 rows += `<div class="row">
                                     <div class="num">${i}</div>
-                                    <div class="ans" id="ans-${i}">................</div>
+                                    <div class="ans" id="ans-${i}">........</div>
                                     <div class="pts" id="pts-${i}"></div>
                                 </div>`;
                             }
@@ -197,8 +176,8 @@
                             document.getElementById('snd-ok').play();
                             document.getElementById(`ans-${d.idx+1}`).innerText = d.t;
                             document.getElementById(`pts-${d.idx+1}`).innerText = d.p;
-                            totalScore += parseInt(d.p);
-                            document.getElementById('suma-val').innerText = totalScore;
+                            total += parseInt(d.p);
+                            document.getElementById('suma-val').innerText = total;
                         }
                         if(d.type === 'X') {
                             document.getElementById('snd-zle').play();
