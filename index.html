@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA - NOWOCZESNE STUDIO</title>
+    <title>FAMILIADA - TABLICA LED</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
@@ -12,127 +12,91 @@
         }
 
         body, html {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            font-family: 'VT323', monospace;
-            /* TŁO: GRADIENT Z TWOICH ZDJĘĆ */
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            overflow: hidden; font-family: 'VT323', monospace;
             background: linear-gradient(90deg, #ff2d55 0%, #6383ff 50%, #7592ff 100%);
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            display: flex; justify-content: center; align-items: center;
         }
 
-        /* GŁÓWNA TABLICA (CIEMNA RAMKA) */
+        /* EKRAN STARTOWY / SETUP */
+        #setup {
+            position: fixed; inset: 0; background: #000; z-index: 2000;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; color: white;
+            transition: opacity 0.5s;
+        }
+
+        #display-code {
+            font-size: 150px; color: var(--led-yellow);
+            text-shadow: 0 0 30px rgba(244, 255, 0, 0.6);
+            margin: 20px 0;
+        }
+
+        .start-btn {
+            padding: 20px 60px; font-size: 28px; cursor: pointer;
+            background: var(--led-yellow); border: none; font-weight: bold;
+            border-radius: 15px; font-family: 'VT323', monospace;
+        }
+
+        /* TABLICA */
         .board-container {
-            width: 90vw;
-            height: 80vh;
-            background-color: #22222b;
-            border-radius: 40px;
-            padding: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            width: 90vw; height: 80vh; background-color: #22222b;
+            border-radius: 40px; padding: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            display: flex; justify-content: center; align-items: center;
         }
 
-        /* MATRYCA LED (KAFELKI) */
         .led-matrix {
-            width: 100%;
-            height: 100%;
-            background-color: #0f0f13;
-            border-radius: 20px;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            padding: 0 5%;
+            width: 100%; height: 100%; background-color: #0f0f13;
+            border-radius: 20px; position: relative; display: flex;
+            flex-direction: column; justify-content: center; padding: 0 5%;
             box-sizing: border-box;
-            
-            /* EFEKT KAFELKÓW LED */
-            background-image: 
-                linear-gradient(var(--bg-grid) 2px, transparent 2px),
-                linear-gradient(90deg, var(--bg-grid) 2px, transparent 2px);
+            background-image: linear-gradient(var(--bg-grid) 2px, transparent 2px),
+                              linear-gradient(90deg, var(--bg-grid) 2px, transparent 2px);
             background-size: 45px 45px;
         }
 
-        /* WIERSZ */
         .row {
-            display: flex;
-            align-items: center;
-            height: 10vh;
-            font-size: 9vh;
-            color: var(--led-yellow);
-            text-shadow: 0 0 10px rgba(244, 255, 0, 0.5);
+            display: flex; align-items: center; height: 10vh; font-size: 9vh;
+            color: var(--led-yellow); text-shadow: 0 0 10px rgba(244, 255, 0, 0.5);
             border-bottom: 1px solid #1a1a24;
-            z-index: 2;
         }
 
         .num { width: 6vw; color: var(--led-yellow); }
         .ans { flex-grow: 1; letter-spacing: 2px; text-transform: uppercase; }
         .pts { width: 10vw; text-align: right; }
 
-        /* SUMA W PRAWYM DOLNYM ROGU MATRYCY */
         .board-footer {
-            position: absolute;
-            bottom: 5%;
-            right: 8%;
-            display: flex;
-            align-items: center;
-            gap: 30px;
-            font-size: 9vh;
-            color: var(--led-yellow);
+            position: absolute; bottom: 5%; right: 8%;
+            display: flex; align-items: center; gap: 30px;
+            font-size: 9vh; color: var(--led-yellow);
         }
 
-        /* CZERWONY X (BŁĄD) - PO LEWEJ LUB PRAWEJ STRONIE */
+        /* X (BŁĄD) */
         .x-container {
-            position: absolute;
-            width: 150px;
-            height: 150px;
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 10;
+            position: absolute; width: 180px; height: 180px;
+            display: none; justify-content: center; align-items: center; z-index: 10;
         }
-        .x-container.left { left: 2%; top: 20%; }
-        .x-container.right { right: 2%; top: 20%; }
-
-        .x-mark {
-            color: #ff3333;
-            font-size: 150px;
-            font-family: Arial, sans-serif;
-            font-weight: bold;
-            text-shadow: 0 0 20px red;
-        }
-
-        /* PANEL STARTOWY */
-        #setup { 
-            position: fixed; inset: 0; background: #000; z-index: 2000; 
-            display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; 
-        }
+        .x-container.left { left: 2%; top: 15%; }
+        .x-container.right { right: 2%; top: 15%; }
+        .x-mark { color: #ff3333; font-size: 180px; font-weight: bold; font-family: Arial; text-shadow: 0 0 20px red; }
     </style>
 </head>
 <body>
 
     <div id="setup">
-        <div id="code" style="font-size: 80px; color: var(--led-yellow); margin-bottom: 20px;">----</div>
-        <button onclick="init()" style="padding: 20px 50px; font-size: 24px; cursor: pointer; background: var(--led-yellow); border: none; font-weight: bold; border-radius: 10px;">POŁĄCZ TABLICĘ</button>
+        <div style="font-size: 40px;">KOD TWOJEJ TABLICY:</div>
+        <div id="display-code">---</div>
+        <button class="start-btn" id="init-btn" onclick="startApp()">POKAŻ KOD I URUCHOM</button>
+        <div id="loading-msg" style="margin-top:20px; color:#666; display:none;">Inicjalizacja systemu...</div>
     </div>
 
     <div class="board-container">
         <div class="led-matrix">
             <div id="x-left" class="x-container left"><div class="x-mark">X</div></div>
-            
-            <div id="board-rows">
-                </div>
-
+            <div id="board-rows"></div>
             <div class="board-footer">
                 <span>SUMA</span>
                 <span id="suma-val">0</span>
             </div>
-
             <div id="x-right" class="x-container right"><div class="x-mark">X</div></div>
         </div>
     </div>
@@ -154,33 +118,45 @@
         }
         createRows();
 
-        function init() {
+        function startApp() {
+            const btn = document.getElementById('init-btn');
+            const msg = document.getElementById('loading-msg');
+            btn.style.display = 'none';
+            msg.style.display = 'block';
+
             const id = Math.random().toString(36).substring(2, 5).toUpperCase();
-            document.getElementById('code').innerText = id;
-            document.getElementById('setup').style.display = 'none';
-            
+            document.getElementById('display-code').innerText = id;
+
             peer = new Peer(id);
+            
             peer.on('open', () => {
-                peer.on('connection', conn => {
-                    conn.on('data', d => {
-                        if(d.type.startsWith('SETUP')) {
-                            document.getElementById('suma-val').innerText = "0";
-                            createRows();
-                        }
-                        if(d.type === 'REV') {
-                            document.getElementById(`ans-${d.idx+1}`).innerText = d.t;
-                            document.getElementById(`pts-${d.idx+1}`).innerText = d.p;
-                            let s = document.getElementById('suma-val');
-                            s.innerText = (parseInt(s.innerText) || 0) + parseInt(d.p);
-                        }
-                        if(d.type === 'X') {
-                            // Pokazuje X po lewej (jak na screenie 174ca1) lub po prawej
-                            const side = (Math.random() > 0.5) ? 'x-left' : 'x-right';
-                            const el = document.getElementById(side);
-                            el.style.display = 'flex';
-                            setTimeout(() => el.style.display = 'none', 1500);
-                        }
-                    });
+                console.log('Połączono, ID:', id);
+                setTimeout(() => {
+                    document.getElementById('setup').style.opacity = '0';
+                    setTimeout(() => { document.getElementById('setup').style.display = 'none'; }, 500);
+                }, 4000); 
+            });
+
+            peer.on('connection', conn => {
+                conn.on('data', d => {
+                    if(d.type === 'SETUP') {
+                        document.getElementById('suma-val').innerText = "0";
+                        createRows();
+                    }
+                    if(d.type === 'REV') {
+                        document.getElementById(`ans-${d.idx+1}`).innerText = d.t;
+                        document.getElementById(`pts-${d.idx+1}`).innerText = d.p;
+                        let s = document.getElementById('suma-val');
+                        s.innerText = (parseInt(s.innerText) || 0) + parseInt(d.p);
+                    }
+                    if(d.type === 'X') {
+                        const side = (d.count === 1) ? 'x-left' : 'x-right';
+                        const el = document.getElementById(side);
+                        const xText = el.querySelector('.x-mark');
+                        xText.innerText = "X".repeat(d.count);
+                        el.style.display = 'flex';
+                        setTimeout(() => el.style.display = 'none', 2000);
+                    }
                 });
             });
         }
