@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA TV - TABLICA</title>
+    <title>FAMILIADA - TABLICA LED</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
@@ -12,33 +12,32 @@
         #setup { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; }
         #display-code { font-size: 150px; color: var(--led-yellow); margin: 10px; }
 
-        .board-container { width: 94vw; height: 88vh; background-color: #22222b; border-radius: 40px; padding: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; }
-        .led-matrix { width: 100%; height: 100%; background-color: #0f0f13; border-radius: 20px; position: relative; display: flex; padding: 0 120px; box-sizing: border-box; background-image: linear-gradient(var(--bg-grid) 2px, transparent 2px), linear-gradient(90deg, var(--bg-grid) 2px, transparent 2px); background-size: 45px 45px; }
+        .board-container { width: 96vw; height: 90vh; background-color: #22222b; border-radius: 40px; padding: 20px; display: flex; justify-content: center; align-items: center; position: relative; }
         
-        /* Flexbox dla 2 kolumn w finale */
+        /* KLUCZOWA ZMIANA: DUŻE MARGINESY BOCZNE (180px) DLA X */
+        .led-matrix { width: 100%; height: 100%; background-color: #0f0f13; border-radius: 20px; position: relative; display: flex; padding: 0 180px; box-sizing: border-box; background-image: linear-gradient(var(--bg-grid) 2px, transparent 2px), linear-gradient(90deg, var(--bg-grid) 2px, transparent 2px); background-size: 45px 45px; }
+        
         #board-rows { display: flex; flex-direction: column; width: 100%; justify-content: center; }
-        .final-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; width: 100%; }
+        .final-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; width: 100%; }
 
-        .row { display: flex; align-items: center; height: 10vh; font-size: 9vh; color: var(--led-yellow); text-shadow: 0 0 10px rgba(244, 255, 0, 0.5); border-bottom: 1px solid #1a1a24; }
+        .row { display: flex; align-items: center; height: 9vh; font-size: 8.5vh; color: var(--led-yellow); text-shadow: 0 0 10px rgba(244, 255, 0, 0.5); border-bottom: 2px solid #1a1a24; }
         .num { width: 50px; color: var(--led-yellow); }
-        .ans { flex-grow: 1; letter-spacing: 2px; text-transform: uppercase; white-space: nowrap; overflow: hidden; }
-        .pts { width: 100px; text-align: right; }
+        .ans { flex-grow: 1; letter-spacing: 2px; text-transform: uppercase; }
+        .pts { width: 90px; text-align: right; border-left: 2px solid #1a1a24; margin-left: 10px; }
         
-        .board-footer { position: absolute; bottom: 5%; right: 5%; font-size: 10vh; color: var(--led-yellow); }
+        .board-footer { position: absolute; bottom: 4%; right: 10%; font-size: 10vh; color: var(--led-yellow); }
 
-        /* X - ZWIĘKSZONY MARGINES */
-        .x-container { position: absolute; width: 220px; display: none; z-index: 100; top: 15%; }
-        .x-container.left { left: 20px; }
-        .x-container.right { right: 20px; }
-        .x-mark { color: #ff3333; font-size: 200px; font-weight: bold; font-family: Arial; text-shadow: 0 0 30px red; text-align: center; }
+        /* X - POZA MATRYCĄ WYZNACZONĄ PRZEZ PADDING */
+        .x-container { position: absolute; width: 160px; display: none; z-index: 100; top: 20%; }
+        .x-container.left { left: 10px; }
+        .x-container.right { right: 10px; }
+        .x-mark { color: #ff3333; font-size: 220px; font-weight: bold; font-family: Arial; text-shadow: 0 0 30px red; }
     </style>
 </head>
 <body>
-
     <div id="setup">
-        <div style="font-size: 30px;">ID DO PANELU:</div>
         <div id="display-code">---</div>
-        <button onclick="generateID()" style="padding: 20px; font-size: 20px; cursor: pointer;">GENERUJ</button>
+        <button onclick="initPeer()" style="padding:20px; font-size:24px; cursor:pointer;">GENERUJ KOD</button>
         <button onclick="document.getElementById('setup').style.display='none'" style="margin-top:20px;">ZAMKNIJ</button>
     </div>
 
@@ -53,38 +52,33 @@
 
     <script>
         let peer;
-        function createNormalRows() {
+        function updateLayout(type, rowsCount) {
             const container = document.getElementById('board-rows');
-            container.className = "";
             container.innerHTML = '';
-            for(let i=1; i<=6; i++) {
-                container.innerHTML += `<div class="row"><div class="num">${i}</div><div class="ans" id="ans-${i}">..........</div><div class="pts" id="pts-${i}"></div></div>`;
+            if(type === 'normal') {
+                container.className = "";
+                for(let i=1; i<=rowsCount; i++) {
+                    container.innerHTML += `<div class="row"><div class="num">${i}</div><div class="ans" id="ans-${i}">................</div><div class="pts" id="pts-${i}"></div></div>`;
+                }
+            } else {
+                container.className = "final-grid";
+                let l = '<div id="f1">', r = '<div id="f2">';
+                for(let i=1; i<=5; i++) {
+                    l += `<div class="row"><div class="ans" id="f1-ans-${i}">................</div><div class="pts" id="f1-pts-${i}"></div></div>`;
+                    r += `<div class="row"><div class="ans" id="f2-ans-${i}">................</div><div class="pts" id="f2-pts-${i}"></div></div>`;
+                }
+                container.innerHTML = l + '</div>' + r + '</div>';
             }
         }
 
-        function createFinalRows() {
-            const container = document.getElementById('board-rows');
-            container.className = "final-grid";
-            container.innerHTML = '';
-            // Lewa kolumna (Gracz 1)
-            let leftCol = '<div id="final-l">';
-            for(let i=1; i<=5; i++) leftCol += `<div class="row"><div class="ans" id="f1-ans-${i}">..........</div><div class="pts" id="f1-pts-${i}"></div></div>`;
-            leftCol += '</div>';
-            // Prawa kolumna (Gracz 2)
-            let rightCol = '<div id="final-r">';
-            for(let i=1; i<=5; i++) rightCol += `<div class="row"><div class="ans" id="f2-ans-${i}">..........</div><div class="pts" id="f2-pts-${i}"></div></div>`;
-            rightCol += '</div>';
-            container.innerHTML = leftCol + rightCol;
-        }
-
-        function generateID() {
+        function initPeer() {
             const id = Math.random().toString(36).substring(2, 5).toUpperCase();
             document.getElementById('display-code').innerText = id;
             peer = new Peer(id);
             peer.on('connection', conn => {
                 conn.on('data', d => {
-                    if(d.type === 'SETUP') { document.getElementById('suma-val').innerText = "0"; createNormalRows(); }
-                    if(d.type === 'FINAL_MODE') { document.getElementById('suma-val').innerText = "0"; createFinalRows(); }
+                    if(d.type === 'SETUP') { document.getElementById('suma-val').innerText = "0"; updateLayout('normal', d.count); }
+                    if(d.type === 'FINAL_MODE') { document.getElementById('suma-val').innerText = "0"; updateLayout('final', 5); }
                     if(d.type === 'REV') {
                         document.getElementById(`ans-${d.idx+1}`).innerText = d.t;
                         document.getElementById(`pts-${d.idx+1}`).innerText = d.p;
@@ -96,7 +90,8 @@
                         document.getElementById('suma-val').innerText = d.total;
                     }
                     if(d.type === 'X') {
-                        const el = document.getElementById(Math.random() > 0.5 ? 'x-left' : 'x-right');
+                        const side = Math.random() > 0.5 ? 'x-left' : 'x-right';
+                        const el = document.getElementById(side);
                         el.querySelector('.x-mark').innerText = "X".repeat(d.count);
                         el.style.display = 'flex';
                         setTimeout(() => el.style.display = 'none', 1500);
@@ -104,7 +99,7 @@
                 });
             });
         }
-        createNormalRows();
+        updateLayout('normal', 6);
     </script>
 </body>
 </html>
