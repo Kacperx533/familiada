@@ -2,181 +2,176 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA - DUŻE LITERY</title>
+    <title>FAMILIADA - TABLICA FINALNA</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root { 
             --yellow: #fefe00; 
             --grid-line: #1a1b21;
-            --bg-black: #0d0e12;
+            --bg-black: #111217;
         }
 
         body { 
             margin: 0; padding: 0; 
-            background: linear-gradient(90deg, #ff2d55 0%, #6383ff 50%, #7592ff 100%) fixed;
+            /* Gradient tła jak na zdjęciach */
+            background: linear-gradient(90deg, #f13171 0%, #6383ff 50%, #7592ff 100%) fixed;
             display: flex; justify-content: center; align-items: center; 
             height: 100vh; overflow: hidden;
             font-family: 'VT323', monospace;
         }
 
-        /* Tablica - powiększona */
-        .board-rectangle {
+        /* Główny prostokąt tablicy */
+        .main-container {
             position: relative;
-            width: 94vw; 
-            height: 85vh; /* Wyższa tablica */
+            width: 96vw;
+            height: 85vh;
             background-color: var(--bg-black);
+            /* Siatka kwadratów na całej powierzchni */
             background-image: 
-                linear-gradient(var(--grid-line) 3px, transparent 3px),
-                linear-gradient(90deg, var(--grid-line) 3px, transparent 2px);
-            background-size: 60px 60px; /* Większe oczka siatki */
-            
-            border-radius: 20px;
-            border: 12px solid #1a1a1c;
+                linear-gradient(var(--grid-line) 2px, transparent 2px),
+                linear-gradient(90deg, var(--grid-line) 2px, transparent 2px);
+            background-size: 55px 55px;
+            border-radius: 35px;
+            border: 10px solid #1a1a1c;
             box-shadow: 0 50px 100px rgba(0,0,0,0.9);
             display: flex;
-            padding: 20px;
+            padding: 40px;
             box-sizing: border-box;
         }
 
-        /* Kolumny na błędy X - bardzo duże */
+        /* Lewa strona - Odpowiedzi */
+        .answers-column {
+            flex: 4;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        /* Prawa strona - Miejsce na błędy X */
         .x-column {
-            width: 160px;
+            flex: 1;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             gap: 10px;
-            z-index: 5;
-        }
-
-        .x-mark {
-            font-size: 220px; /* Gigantyczny X */
-            color: var(--yellow);
-            font-family: 'Arial Black', sans-serif;
-            font-weight: bold;
-            line-height: 0.6;
-            display: none;
-            text-shadow: 0 0 40px rgba(254, 254, 0, 0.8);
-        }
-
-        /* Środkowa sekcja - ogromne litery */
-        .answers-grid {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            padding: 0 20px;
         }
 
         .row {
             display: flex;
             align-items: center;
-            height: 110px; /* Wyższy wiersz */
-            font-size: 95px; /* Bardzo duże litery */
+            height: 100px;
+            font-size: 90px;
             color: var(--yellow);
-            text-shadow: 4px 4px 0px rgba(0,0,0,1);
+            text-shadow: 3px 3px 0px rgba(0,0,0,0.8);
             margin-bottom: 15px;
-            font-weight: bold;
         }
 
         .num { width: 80px; }
-        .ans { flex-grow: 1; text-transform: uppercase; letter-spacing: 10px; }
+        .ans { flex-grow: 1; text-transform: uppercase; letter-spacing: 6px; }
         .pts { width: 140px; text-align: right; }
 
-        /* Suma */
-        .total-box {
-            position: absolute;
-            bottom: 30px;
-            right: 180px;
-            font-size: 90px;
+        /* Styl dla dużego X */
+        .x-mark {
+            font-size: 200px;
             color: var(--yellow);
+            font-family: 'Arial Black', sans-serif;
             font-weight: bold;
+            line-height: 0.7;
+            display: none;
+            text-shadow: 0 0 40px rgba(254, 254, 0, 0.7);
         }
 
-        #timer-display {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            font-size: 250px; color: var(--yellow); background: var(--bg-black);
-            padding: 30px 80px; border: 12px solid var(--yellow); display: none; z-index: 100;
+        /* Suma w dolnej części */
+        .suma-container {
+            position: absolute;
+            bottom: 40px;
+            right: 250px;
+            display: flex;
+            gap: 60px;
+            font-size: 100px;
+            color: var(--yellow);
+            letter-spacing: 5px;
         }
 
-        #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; display: flex; justify-content: center; align-items: center; }
-        button { padding: 30px 60px; font-size: 40px; cursor: pointer; background: var(--yellow); border: none; border-radius: 20px; font-weight: bold; }
+        #overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.95);
+            z-index: 1000; display: flex; justify-content: center; align-items: center;
+        }
+        button { 
+            padding: 25px 50px; font-size: 35px; cursor: pointer; 
+            background: var(--yellow); border: none; border-radius: 15px; font-weight: bold;
+        }
     </style>
 </head>
 <body>
 
     <div id="overlay">
-        <button onclick="startApp()">START</button>
+        <button onclick="startTablica()">URUCHOM TABLICĘ</button>
     </div>
 
-    <div class="board-rectangle">
-        <div id="timer-display">00</div>
-
-        <div class="x-column">
-            <div class="x-mark" id="xl1">X</div>
-            <div class="x-mark" id="xl2">X</div>
-            <div class="x-mark" id="xl3">X</div>
-        </div>
-
-        <div class="answers-grid" id="main-rows">
+    <div class="main-container">
+        <div class="answers-column" id="board-rows">
             </div>
 
         <div class="x-column">
-            <div class="x-mark" id="xr1">X</div>
-            <div class="x-mark" id="xr2">X</div>
-            <div class="x-mark" id="xr3">X</div>
+            <div class="x-mark" id="x1">X</div>
+            <div class="x-mark" id="x2">X</div>
+            <div class="x-mark" id="x3">X</div>
         </div>
 
-        <div class="total-box">SUMA <span id="suma-val">0</span></div>
+        <div class="suma-container">
+            <span>SUMA</span>
+            <span id="total-val">0</span>
+        </div>
     </div>
 
-    <audio id="snd-ok" src="ok.mp3"></audio>
-    <audio id="snd-zle" src="zle.mp3"></audio>
-    <audio id="snd-runda" src="runda.mp3"></audio>
+    <audio id="s-ok" src="ok.mp3"></audio>
+    <audio id="s-zle" src="zle.mp3"></audio>
+    <audio id="s-runda" src="runda.mp3"></audio>
 
     <script>
         let peer;
-        function startApp() {
+        function startTablica() {
             const id = Math.random().toString(36).substring(2,5).toUpperCase();
-            alert("KOD PANELU: " + id);
+            alert("KOD TWOJEJ TABLICY: " + id);
             peer = new Peer(id);
             
             peer.on('connection', conn => {
                 document.getElementById('overlay').style.display = 'none';
                 conn.on('data', data => {
                     if(data.type === 'SET') {
-                        let h = '';
+                        let html = '';
                         for(let i=1; i<=data.c; i++) {
-                            h += `<div class="row">
+                            html += `<div class="row">
                                 <div class="num">${i}</div>
-                                <div class="ans" id="a${i}">................</div>
+                                <div class="ans" id="a${i}">....................</div>
                                 <div class="pts" id="p${i}">--</div>
                             </div>`;
                         }
-                        document.getElementById('main-rows').innerHTML = h;
-                        document.getElementById('suma-val').innerText = "0";
-                        document.getElementById('snd-runda').play();
-                        resetAllX();
+                        document.getElementById('board-rows').innerHTML = html;
+                        document.getElementById('total-val').innerText = "0";
+                        document.getElementById('s-runda').play();
+                        clearX();
                     }
                     if(data.type === 'REV') {
                         document.getElementById('a'+(data.i+1)).innerText = data.t;
                         document.getElementById('p'+(data.i+1)).innerText = data.p;
-                        document.getElementById('suma-val').innerText = data.s;
-                        document.getElementById('snd-ok').play();
+                        document.getElementById('total-val').innerText = data.s;
+                        document.getElementById('s-ok').play();
                     }
                     if(data.type === 'X') {
-                        const prefix = data.side === 'L' ? 'xl' : 'xr';
-                        resetAllX(); // Czyścimy stare X przed pokazaniem nowych
+                        clearX();
                         for(let i=1; i<=data.count; i++) {
-                            document.getElementById(prefix+i).style.display = 'block';
+                            document.getElementById('x'+i).style.display = 'block';
                         }
-                        document.getElementById('snd-zle').play();
+                        document.getElementById('s-zle').play();
                     }
                 });
             });
         }
-        function resetAllX() {
+        function clearX() {
             document.querySelectorAll('.x-mark').forEach(el => el.style.display = 'none');
         }
     </script>
