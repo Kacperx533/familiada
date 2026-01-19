@@ -2,40 +2,38 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>PANEL STEROWANIA - FAMILIADA</title>
+    <title>PANEL STEROWANIA</title>
     <style>
-        body { font-family: sans-serif; background: #0f172a; color: white; display: grid; grid-template-columns: 320px 1fr 320px; gap: 10px; margin: 0; height: 100vh; }
-        .col { background: #1e293b; padding: 15px; overflow-y: auto; border-right: 1px solid #334155; }
-        .card { background: #0f172a; padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #334155; }
-        h2 { font-size: 14px; color: #fbbf24; text-transform: uppercase; margin-bottom: 10px; border-bottom: 1px solid #334155; padding-bottom: 5px; }
-        button { width: 100%; padding: 10px; margin: 4px 0; cursor: pointer; border-radius: 6px; border: none; font-weight: bold; }
-        .btn-blue { background: #3b82f6; color: white; }
-        .btn-green { background: #22c55e; color: white; }
-        .btn-red { background: #ef4444; color: white; }
-        .q-box { background: #1e293b; padding: 10px; margin-bottom: 8px; border-radius: 6px; cursor: pointer; border: 1px solid #334155; font-size: 13px; }
-        .q-box:hover { border-color: #fbbf24; }
-        input { background: #000; color: #fbbf24; border: 1px solid #334155; padding: 8px; width: 100%; box-sizing: border-box; font-size: 16px; }
-        .timer { font-size: 50px; text-align: center; color: #fbbf24; margin: 10px 0; font-family: monospace; }
+        body { font-family: 'Segoe UI', sans-serif; background: #111; color: white; display: grid; grid-template-columns: 300px 1fr 300px; gap: 10px; margin: 0; height: 100vh; }
+        .col { background: #222; padding: 15px; border-right: 1px solid #333; overflow-y: auto; }
+        .card { background: #111; padding: 15px; border-radius: 10px; margin-bottom: 10px; border: 1px solid #444; }
+        h2 { font-size: 14px; color: #fbbf24; margin-bottom: 10px; }
+        button { width: 100%; padding: 10px; margin: 3px 0; cursor: pointer; border-radius: 5px; border: none; font-weight: bold; background: #444; color: white; }
+        .btn-green { background: #22c55e !important; }
+        .btn-red { background: #ef4444 !important; }
+        .btn-blue { background: #3b82f6 !important; }
+        input { width: 100%; padding: 8px; background: #000; border: 1px solid #444; color: #fbbf24; box-sizing: border-box; }
+        .q-item { padding: 8px; background: #333; margin-bottom: 5px; border-radius: 5px; cursor: pointer; font-size: 12px; }
+        .q-item:hover { background: #444; }
     </style>
 </head>
 <body>
-
     <div class="col">
         <div class="card">
-            <h2>POŁĄCZENIE</h2>
-            <input type="text" id="target" placeholder="KOD Z TABLICY">
+            <h2>KOD Z TABLICY</h2>
+            <input type="text" id="target">
             <button onclick="connect()" class="btn-green">POŁĄCZ</button>
         </div>
         <div class="card">
             <h2>RUNDY</h2>
-            <button onclick="prepRunda(6)" class="btn-blue">RUNDA ZWYKŁA (6)</button>
-            <button onclick="prepFinal()" class="btn-blue" style="background:#fbbf24; color:black">FINAŁ (2x5)</button>
+            <button onclick="prepRunda(6)" class="btn-blue">NORMALNA (6)</button>
+            <button onclick="prepFinal()" class="btn-blue" style="background:#fbbf24 !important; color:black">FINAŁ (2x5)</button>
         </div>
         <div class="card">
-            <h2>DŹWIĘKI</h2>
-            <button onclick="play('intro')">CZOŁÓWKA.MP3</button>
-            <button onclick="play('runda')">RUNDA.MP3</button>
-            <div style="display:flex; gap:5px;">
+            <h2>MULTIMEDIA</h2>
+            <button onclick="play('intro')">INTRO (CZOLOWKA.MP3)</button>
+            <button onclick="play('runda')">RUNDA (RUNDA.MP3)</button>
+            <div style="display:flex; gap:5px">
                 <button onclick="sendX(1)" class="btn-red">X</button>
                 <button onclick="sendX(2)" class="btn-red">XX</button>
                 <button onclick="sendX(3)" class="btn-red">XXX</button>
@@ -43,29 +41,29 @@
         </div>
     </div>
 
-    <div class="col" style="background:#131c2f">
-        <div id="normal-ui">
-            <h2>KONTROLA RUNDY</h2>
-            <div id="inputs-list"></div>
+    <div class="col" style="background:#151515">
+        <div id="ui-normal">
+            <h2>HASŁA RUNDY</h2>
+            <div id="inputs-normal"></div>
         </div>
-        <div id="final-ui" style="display:none">
-            <h2>KONTROLA FINAŁU</h2>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <div id="f1-list"></div>
-                <div id="f2-list"></div>
+        <div id="ui-final" style="display:none">
+            <h2>HASŁA FINAŁU</h2>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px">
+                <div id="f1-inputs"></div>
+                <div id="f2-inputs"></div>
             </div>
         </div>
     </div>
 
     <div class="col">
         <div class="card">
-            <div class="timer" id="timer">00</div>
+            <h2 id="timer-display" style="font-size:40px; text-align:center">00</h2>
             <div style="display:flex; gap:5px">
                 <button onclick="startTimer(15)">15s</button>
                 <button onclick="startTimer(20)">20s</button>
             </div>
         </div>
-        <h2>BANK PYTAŃ (KLIKNIJ BY ZAŁADOWAĆ)</h2>
+        <h2>BANK PYTAŃ</h2>
         <div id="bank"></div>
     </div>
 
@@ -76,88 +74,72 @@
 
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script>
-        let conn, total = 0;
-        const peer = new Peer();
-
+        let conn, total = 0, peer = new Peer();
         const baza = [
-            { t: "normal", q: "Zwierzę na literę K", a: ["Kot", "Koń", "Krowa", "Kura", "Kaczka", "Kret"], p: [45, 20, 15, 10, 5, 5] },
-            { t: "normal", q: "Więcej niż jeden to...", a: ["Dwa", "Grupa", "Tłum", "Kilka", "Dużo", "Para"], p: [50, 15, 10, 10, 10, 5] },
-            { t: "final", q: "FINAŁ ZESTAW 1", a: ["Kawa", "Auto", "Dom", "Las", "Góra"], p: [40, 30, 20, 5, 5] }
+            { t: "normal", q: "Zwierzę na K", a: ["KOT","KOŃ","KROWA","KURA","KACZKA","KRET"], p:[40,20,15,10,10,5] },
+            { t: "final", q: "FINAŁ 1", a: ["KAWA","AUTO","DOM","LAS","GÓRA"], p:[30,25,20,15,10] }
         ];
 
-        function loadQ(idx) {
-            const data = baza[idx];
-            if(data.t === 'normal') {
-                prepRunda(data.a.length);
-                data.a.forEach((val, i) => {
-                    document.getElementById(`t${i}`).value = val;
-                    document.getElementById(`p${i}`).value = data.p[i];
-                });
-            } else {
-                prepFinal();
-                data.a.forEach((val, i) => {
-                    document.getElementById(`f1-t${i}`).value = val;
-                    document.getElementById(`f1-p${i}`).value = data.p[i];
-                });
-            }
+        function connect() {
+            conn = peer.connect(document.getElementById('target').value.toUpperCase());
+            conn.on('open', () => alert("Połączono!"));
         }
 
         function prepRunda(c) {
-            total = 0; send('SETUP', {count: c});
-            document.getElementById('normal-ui').style.display = 'block';
-            document.getElementById('final-ui').style.display = 'none';
-            const list = document.getElementById('inputs-list');
-            list.innerHTML = '';
-            for(let i=0; i<c; i++) {
-                list.innerHTML += `<div style="display:flex; gap:5px; margin-bottom:5px"><input id="t${i}"><input id="p${i}" type="number" style="width:60px"><button onclick="rev(${i})" class="btn-green">OK</button></div>`;
-            }
+            total = 0; if(conn) conn.send({type:'SETUP', count:c});
+            document.getElementById('ui-normal').style.display='block';
+            document.getElementById('ui-final').style.display='none';
+            const box = document.getElementById('inputs-normal'); box.innerHTML='';
+            for(let i=0; i<c; i++) box.innerHTML += `<div style="display:flex; gap:5px; margin-bottom:5px"><input id="t${i}"><input id="p${i}" type="number" style="width:60px"><button onclick="rev(${i})" class="btn-green">OK</button></div>`;
             play('runda');
         }
 
         function prepFinal() {
-            total = 0; send('FINAL_MODE');
-            document.getElementById('normal-ui').style.display = 'none';
-            document.getElementById('final-ui').style.display = 'block';
-            [1, 2].forEach(p => {
-                const list = document.getElementById(`f${p}-list`);
-                list.innerHTML = `<h3>GRACZ ${p}</h3>`;
-                for(let i=0; i<5; i++) {
-                    list.innerHTML += `<div style="margin-bottom:10px"><input id="f${p}-t${i}" placeholder="Hasło"><div style="display:flex; gap:5px; margin-top:2px"><input id="f${p}-p${i}" type="number"><button onclick="revF(${p},${i})" class="btn-green">OK</button></div></div>`;
-                }
+            total = 0; if(conn) conn.send({type:'FINAL_MODE'});
+            document.getElementById('ui-normal').style.display='none';
+            document.getElementById('ui-final').style.display='block';
+            [1,2].forEach(p => {
+                const box = document.getElementById(`f${p}-inputs`); box.innerHTML=`<h3>P${p}</h3>`;
+                for(let i=0; i<5; i++) box.innerHTML += `<div style="margin-bottom:8px"><input id="f${p}-t${i}"><div style="display:flex; gap:2px"><input id="f${p}-p${i}" type="number"><button onclick="revF(${p},${i})" class="btn-green">OK</button></div></div>`;
             });
             play('runda');
         }
 
-        function connect() {
-            conn = peer.connect(document.getElementById('target').value.toUpperCase());
-            conn.on('open', () => document.getElementById('timer').innerText = "OK");
-        }
-
         function rev(idx) {
-            const t = document.getElementById(`t${idx}`).value, p = parseInt(document.getElementById(`p${idx}`).value) || 0;
-            total += p; conn.send({ type: 'REV', idx, t, p, total }); play('ok');
+            const t = document.getElementById(`t${idx}`).value, p = parseInt(document.getElementById(`p${idx}`).value)||0;
+            total += p; conn.send({type:'REV', idx, t, p, total}); play('ok');
         }
 
-        function revF(player, idx) {
-            const t = document.getElementById(`f${player}-t${idx}`).value, p = parseInt(document.getElementById(`f${player}-p${idx}`).value) || 0;
-            total += p; conn.send({ type: 'REV_FINAL', player, idx, t, p, total }); play('ok');
+        function revF(p, idx) {
+            const t = document.getElementById(`f${p}-t${idx}`).value, val = parseInt(document.getElementById(`f${p}-p${idx}`).value)||0;
+            total += val; conn.send({type:'REV_FINAL', player:p, idx, t, p:val, total}); play('ok');
         }
 
-        function sendX(count) { conn.send({ type: 'X', count }); play('zle'); }
-        function send(type, extra = {}) { if(conn) conn.send({type, ...extra}); }
+        function loadQ(idx) {
+            const d = baza[idx];
+            if(d.t === 'normal') {
+                prepRunda(d.a.length);
+                d.a.forEach((v, i) => { document.getElementById(`t${i}`).value=v; document.getElementById(`p${i}`).value=d.p[i]; });
+            } else {
+                prepFinal();
+                d.a.forEach((v, i) => { document.getElementById(`f1-t${i}`).value=v; document.getElementById(`f1-p${i}`).value=d.p[i]; });
+            }
+        }
+
+        function sendX(count) { conn.send({type:'X', count}); play('zle'); }
         function play(id) { document.getElementById('snd-'+id).play(); }
-
-        function startTimer(sec) {
-            let t = sec; const el = document.getElementById('timer');
-            const interval = setInterval(() => {
-                t--; el.innerText = t < 10 ? '0' + t : t;
-                if(t <= 0) { clearInterval(interval); play('zle'); }
+        
+        function startTimer(s) {
+            let t = s; const el = document.getElementById('timer-display');
+            const int = setInterval(() => {
+                t--; el.innerText = t < 10 ? '0'+t : t;
+                if(t<=0) { clearInterval(int); play('zle'); }
             }, 1000);
         }
 
         const bank = document.getElementById('bank');
         baza.forEach((item, i) => {
-            bank.innerHTML += `<div class="q-box" onclick="loadQ(${i})"><b>${item.q}</b><br><small>${item.a.join(', ')}</small></div>`;
+            bank.innerHTML += `<div class="q-item" onclick="loadQ(${i})"><b>${item.q}</b></div>`;
         });
     </script>
 </body>
