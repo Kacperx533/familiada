@@ -2,204 +2,121 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA - LED MATRIX</title>
+    <title>FAMILIADA - TABLICA</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        :root { 
-            --led-yellow: #ffea00; 
-            --tile-dim: #1a1b20; /* Wyłączona dioda */
-            --bg-dark: #0a0a0c;
-        }
-
-        body { 
-            margin: 0; padding: 0; 
-            background: linear-gradient(90deg, #ff2a6d 0%, #3d6eff 100%) fixed;
-            display: flex; justify-content: center; align-items: center; 
-            height: 100vh; overflow: hidden;
-            font-family: 'VT323', monospace;
-        }
-
-        /* Obudowa tablicy */
-        .board-outer {
-            background-color: #121216;
-            padding: 15px;
-            border-radius: 25px;
-            box-shadow: 0 50px 100px rgba(0,0,0,0.7);
-            border: 4px solid #1e1e24;
-            position: relative;
-        }
-
-        /* Siatka LED - Gęste "oczka" */
-        .matrix-grid {
-            display: grid;
-            /* Tworzymy gęstą siatkę 34x18, aby uzyskać efekt drobnych punktów */
-            grid-template-columns: repeat(34, 25px);
-            grid-template-rows: repeat(18, 25px);
-            gap: 4px; /* Przerwy między diodami (siatka) */
-            background-color: #050505;
-            padding: 10px;
-            border-radius: 15px;
-        }
-
-        /* Pojedyncze oczko matrycy */
-        .led {
-            width: 25px;
-            height: 25px;
-            background-color: var(--tile-dim);
-            border-radius: 4px; /* Zaokrąglone rogi oczek LED */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: relative;
-        }
-
-        /* Świecący znak na matrycy */
-        .active-char {
-            color: var(--led-yellow);
-            font-size: 38px; /* Rozmiar dopasowany do oczka */
-            line-height: 1;
-            text-shadow: 0 0 12px rgba(255, 234, 0, 0.7);
-            font-weight: bold;
-            z-index: 2;
-            /* Rozciągnięcie jak na starych ekranach */
-            transform: scale(1.1, 1.3);
-        }
-
-        /* Specjalny Styl dla X (Błędów) */
-        .x-block {
-            grid-column: span 2;
-            grid-row: span 3;
-            position: relative;
-            display: none; /* Domyślnie ukryte */
-        }
+        :root { --led: #f4ff00; }
+        html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: 'VT323', monospace; background: linear-gradient(90deg, #ff2d55 0%, #6383ff 50%, #7592ff 100%) fixed !important; }
         
-        .x-line {
-            position: absolute;
-            background-color: var(--led-yellow);
-            box-shadow: 0 0 15px var(--led-yellow);
-            border-radius: 10px;
-            width: 15%; height: 100%;
-            left: 42.5%;
+        #vid { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 100; display: none; object-fit: cover; }
+        
+        .board { 
+            width: 85vw; height: 75vh; background: #111; border: 10px solid #333; border-radius: 40px; 
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+            display: flex; flex-direction: column; padding: 0 140px; box-sizing: border-box; 
+            box-shadow: 0 0 100px rgba(0,0,0,0.9); z-index: 10; 
         }
-        .x-l1 { transform: rotate(45deg); }
-        .x-l2 { transform: rotate(-45deg); }
 
-        /* Panel startowy */
-        #init-layer { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 100; display: flex; justify-content: center; align-items: center; }
-        button { padding: 20px 40px; font-size: 24px; cursor: pointer; background: var(--led-yellow); border: none; border-radius: 10px; font-family: 'VT323'; }
+        #rows { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; }
+        .row { display: flex; align-items: center; font-size: 8.5vh; color: var(--led); height: 10vh; }
+        .ans { flex-grow: 1; text-transform: uppercase; }
+        .pts { width: 100px; text-align: right; }
+        
+        .f-row { display: grid; grid-template-columns: 1fr 80px 80px 1fr; gap: 20px; font-size: 7vh; color: var(--led); height: 9.5vh; align-items: center; }
+        .footer { position: absolute; bottom: 40px; right: 100px; font-size: 9vh; color: var(--led); }
+
+        /* PIONOWE X */
+        .x-mark { 
+            position: absolute; top: 50%; transform: translateY(-50%);
+            font-size: 18vh; color: #ff0000; display: none; 
+            font-weight: bold; text-shadow: 0 0 30px #000; z-index: 200;
+            line-height: 0.9; text-align: center;
+        }
+        #x-l { left: 30px; } 
+        #x-r { right: 30px; }
+
+        #timer-display { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 25vh; color: var(--led); background: #000; padding: 20px 50px; border: 5px solid var(--led); display: none; z-index: 500; }
+        #setup { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; }
     </style>
 </head>
 <body>
+    <video id="vid" src="czolowka.mp4"></video>
+    <audio id="snd-runda" src="runda.mp3"></audio>
+    <audio id="snd-final" src="final.mp3"></audio>
+    <audio id="snd-intro" src="intro.mp3"></audio>
+    <audio id="snd-powtorzenie" src="powtorzenie.mp3"></audio>
+    <audio id="snd-ok" src="ok.mp3"></audio>
+    <audio id="snd-zle" src="zle.mp3"></audio>
 
-<div id="init-layer">
-    <button onclick="bootMatrix()">URUCHOM MATRYCĘ LED</button>
-</div>
+    <div id="setup">
+        <h1 id="code-info" style="font-size: 40px;">TABLICA FAMILIADA</h1>
+        <button onclick="init()" style="padding: 20px 50px; font-size: 25px; cursor: pointer;">URUCHOM TABLICĘ</button>
+    </div>
 
-<div class="board-outer">
-    <div class="matrix-grid" id="main-matrix">
-        </div>
-</div>
+    <div class="board">
+        <div id="x-l" class="x-mark"></div>
+        <div id="timer-display">00:00</div>
+        <div id="rows"></div>
+        <div class="footer">SUMA <span id="suma">0</span></div>
+        <div id="x-r" class="x-mark"></div>
+    </div>
 
-<audio id="s-ok" src="ok.mp3"></audio>
-<audio id="s-err" src="zle.mp3"></audio>
-
-<script>
-    const matrix = document.getElementById('main-matrix');
-    const cols = 34;
-    const rows = 18;
-
-    // 1. Generujemy tło matrycy (puste oczka)
-    function buildGrid() {
-        matrix.innerHTML = '';
-        for (let r = 0; r < rows; r++) {
-            for (let c = 0; c < cols; c++) {
-                const led = document.createElement('div');
-                led.className = 'led';
-                led.id = `led-${r}-${c}`;
-                matrix.appendChild(led);
-            }
+    <script>
+        let peer, tInt;
+        function playS(id) { const s = document.getElementById('snd-'+id); if(s){ s.currentTime=0; s.play(); } }
+        function stopAll() { 
+            document.querySelectorAll('audio').forEach(a=>{a.pause(); a.currentTime=0;}); 
+            clearInterval(tInt); 
+            document.getElementById('timer-display').style.display='none'; 
+            document.getElementById('x-l').style.display='none';
+            document.getElementById('x-r').style.display='none';
         }
-        // Wstawiamy X-y w stałe miejsca na siatce (prawa strona)
-        insertX(2, 'x1');
-        insertX(6, 'x2');
-        insertX(10, 'x3');
-    }
-
-    function insertX(row, id) {
-        const xBox = document.createElement('div');
-        xBox.className = 'x-block';
-        xBox.id = id;
-        xBox.style.gridRow = `${row + 1} / span 3`;
-        xBox.style.gridColumn = `31 / span 2`;
-        xBox.innerHTML = '<div class="x-line x-l1"></div><div class="x-line x-l2"></div>';
-        matrix.appendChild(xBox);
-    }
-
-    // 2. Funkcja do "zapalania" znaku w konkretnym oczku
-    function setLed(r, c, char) {
-        const target = document.getElementById(`led-${r}-${c}`);
-        if (target) {
-            target.innerHTML = char ? `<span class="active-char">${char}</span>` : '';
-        }
-    }
-
-    // 3. Renderowanie całego wiersza (numer, tekst, punkty)
-    function renderRow(rowIndex, num, text, points) {
-        const r = 3 + (rowIndex * 2); // Odstępy pionowe
         
-        // Numer (kolumna 4)
-        setLed(r, 4, num);
-
-        // Tekst (od kolumny 6)
-        const fullText = text.toUpperCase().padEnd(20, '.');
-        for (let i = 0; i < 20; i++) {
-            setLed(r, 6 + i, fullText[i]);
+        function runTimer(sec) {
+            clearInterval(tInt);
+            const d = document.getElementById('timer-display'); d.style.display='block';
+            let t = sec;
+            tInt = setInterval(() => {
+                t--;
+                let m = Math.floor(t/60), s = t%60;
+                d.innerText = (m>0?m+":":"")+(s<10?"0"+s:s);
+                if(t<=0){ clearInterval(tInt); playS('zle'); setTimeout(()=>d.style.display='none', 2000); }
+            }, 1000);
         }
 
-        // Punkty (kolumny 27-28)
-        const pStr = points.toString().padStart(2, '-');
-        setLed(r, 27, pStr[0]);
-        setLed(r, 28, pStr[1]);
-    }
-
-    function renderSuma(val) {
-        const sTxt = "SUMA";
-        for(let i=0; i<4; i++) setLed(15, 20+i, sTxt[i]);
-        const vStr = val.toString().padStart(1, '0');
-        setLed(15, 25, vStr[0]);
-        if(vStr[1]) setLed(15, 26, vStr[1]);
-    }
-
-    function bootMatrix() {
-        const code = Math.random().toString(36).substring(2,5).toUpperCase();
-        alert("TWÓJ KOD: " + code);
-        const peer = new Peer(code);
-        
-        peer.on('connection', conn => {
-            document.getElementById('init-layer').style.display = 'none';
-            conn.on('data', data => {
-                if(data.type === 'SET') {
-                    buildGrid();
-                    for(let i=0; i<data.c; i++) renderRow(i, i+1, "", "--");
-                    renderSuma(0);
-                }
-                if(data.type === 'REV') {
-                    renderRow(data.i, data.i+1, data.t, data.p);
-                    renderSuma(data.s);
-                    document.getElementById('s-ok').play();
-                }
-                if(data.type === 'X') {
-                    for(let i=1; i<=3; i++) {
-                        document.getElementById('x'+i).style.display = (i <= data.count) ? 'block' : 'none';
+        function init() {
+            const id = Math.random().toString(36).substring(2,5).toUpperCase();
+            document.getElementById('code-info').innerText = "KOD PANELU: " + id;
+            peer = new Peer(id);
+            peer.on('connection', c => {
+                document.getElementById('setup').style.display='none';
+                c.on('data', d => {
+                    if(d.type==='SET'){ 
+                        document.getElementById('rows').innerHTML='';
+                        for(let i=1;i<=d.c;i++) document.getElementById('rows').innerHTML+=`<div class="row"><div style="width:60px">${i}</div><div class="ans" id="a${i}">................</div><div class="pts" id="p${i}">--</div></div>`;
+                        document.getElementById('suma').innerText="0"; playS('runda');
+                        document.getElementById('x-l').style.display='none'; document.getElementById('x-r').style.display='none';
                     }
-                    document.getElementById('s-err').play();
-                }
+                    if(d.type==='FIN'){ 
+                        document.getElementById('rows').innerHTML='';
+                        for(let i=1;i<=5;i++) document.getElementById('rows').innerHTML+=`<div class="f-row"><div id="f1a${i}">........</div><div id="f1p${i}">░░</div><div id="f2p${i}">░░</div><div id="f2a${i}" style="text-align:right">........</div></div>`;
+                        document.getElementById('suma').innerText="0"; playS('final');
+                    }
+                    if(d.type==='REV'){ document.getElementById('a'+(d.i+1)).innerText=d.t; document.getElementById('p'+(d.i+1)).innerText=d.p; document.getElementById('suma').innerText=d.s; playS('ok'); }
+                    if(d.type==='R_A'){ document.getElementById(`f${d.pl}a${d.i+1}`).innerText=d.t; }
+                    if(d.type==='R_P'){ document.getElementById(`f${d.pl}p${d.i+1}`).innerText=d.p; document.getElementById('suma').innerText=d.s; playS('ok'); }
+                    if(d.type==='X'){ 
+                        const el=document.getElementById(d.s==='L'?'x-l':'x-r'); 
+                        el.innerHTML = "X<br>".repeat(d.c); // Pionowe ustawienie
+                        el.style.display='block'; playS('zle'); 
+                    }
+                    if(d.type==='SND'){ if(d.f==='stop') stopAll(); else playS(d.f); }
+                    if(d.type==='T_START') runTimer(d.s);
+                    if(d.type==='VID'){ const v=document.getElementById('vid'); v.style.display='block'; v.play(); v.onended=()=>v.style.display='none'; }
+                });
             });
-        });
-    }
-
-    buildGrid(); // Startowa siatka
-</script>
+        }
+    </script>
 </body>
 </html>
