@@ -6,97 +6,47 @@
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        :root {
-            --led-yellow: #f4ff00;
-            --bg-grid: #1a1a24;
-        }
+        :root { --led-yellow: #f4ff00; --bg-grid: #1a1a24; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: 'VT323', monospace; background: linear-gradient(90deg, #ff2d55 0%, #6383ff 50%, #7592ff 100%); display: flex; justify-content: center; align-items: center; }
+        
+        #setup { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; text-align: center; }
+        #display-code { font-size: 180px; color: var(--led-yellow); text-shadow: 0 0 30px rgba(244, 255, 0, 0.6); margin: 10px 0; }
+        .setup-btn { padding: 15px 40px; font-size: 24px; cursor: pointer; border: none; font-weight: bold; border-radius: 10px; font-family: 'VT323', monospace; margin: 10px; }
+        .btn-green { background: #2ecc71; color: white; }
+        .btn-red { background: #e74c3c; color: white; }
 
-        body, html {
-            margin: 0; padding: 0; width: 100%; height: 100%;
-            overflow: hidden; font-family: 'VT323', monospace;
-            background: linear-gradient(90deg, #ff2d55 0%, #6383ff 50%, #7592ff 100%);
-            display: flex; justify-content: center; align-items: center;
-        }
-
-        /* EKRAN STARTOWY / SETUP */
-        #setup {
-            position: fixed; inset: 0; background: #000; z-index: 2000;
-            display: flex; flex-direction: column; align-items: center; justify-content: center; color: white;
-            transition: opacity 0.5s;
-        }
-
-        #display-code {
-            font-size: 150px; color: var(--led-yellow);
-            text-shadow: 0 0 30px rgba(244, 255, 0, 0.6);
-            margin: 20px 0;
-        }
-
-        .start-btn {
-            padding: 20px 60px; font-size: 28px; cursor: pointer;
-            background: var(--led-yellow); border: none; font-weight: bold;
-            border-radius: 15px; font-family: 'VT323', monospace;
-        }
-
-        /* TABLICA */
-        .board-container {
-            width: 90vw; height: 80vh; background-color: #22222b;
-            border-radius: 40px; padding: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-            display: flex; justify-content: center; align-items: center;
-        }
-
-        .led-matrix {
-            width: 100%; height: 100%; background-color: #0f0f13;
-            border-radius: 20px; position: relative; display: flex;
-            flex-direction: column; justify-content: center; padding: 0 5%;
-            box-sizing: border-box;
-            background-image: linear-gradient(var(--bg-grid) 2px, transparent 2px),
-                              linear-gradient(90deg, var(--bg-grid) 2px, transparent 2px);
-            background-size: 45px 45px;
-        }
-
-        .row {
-            display: flex; align-items: center; height: 10vh; font-size: 9vh;
-            color: var(--led-yellow); text-shadow: 0 0 10px rgba(244, 255, 0, 0.5);
-            border-bottom: 1px solid #1a1a24;
-        }
-
+        .board-container { width: 92vw; height: 85vh; background-color: #22222b; border-radius: 40px; padding: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; }
+        .led-matrix { width: 100%; height: 100%; background-color: #0f0f13; border-radius: 20px; position: relative; display: flex; flex-direction: column; justify-content: center; padding: 0 5%; box-sizing: border-box; background-image: linear-gradient(var(--bg-grid) 2px, transparent 2px), linear-gradient(90deg, var(--bg-grid) 2px, transparent 2px); background-size: 45px 45px; }
+        
+        .row { display: flex; align-items: center; height: 11vh; font-size: 10vh; color: var(--led-yellow); text-shadow: 0 0 10px rgba(244, 255, 0, 0.5); border-bottom: 1px solid #1a1a24; }
         .num { width: 6vw; color: var(--led-yellow); }
         .ans { flex-grow: 1; letter-spacing: 2px; text-transform: uppercase; }
         .pts { width: 10vw; text-align: right; }
+        .board-footer { position: absolute; bottom: 5%; right: 8%; display: flex; align-items: center; gap: 30px; font-size: 10vh; color: var(--led-yellow); }
 
-        .board-footer {
-            position: absolute; bottom: 5%; right: 8%;
-            display: flex; align-items: center; gap: 30px;
-            font-size: 9vh; color: var(--led-yellow);
-        }
-
-        /* X (BŁĄD) */
-        .x-container {
-            position: absolute; width: 180px; height: 180px;
-            display: none; justify-content: center; align-items: center; z-index: 10;
-        }
-        .x-container.left { left: 2%; top: 15%; }
-        .x-container.right { right: 2%; top: 15%; }
-        .x-mark { color: #ff3333; font-size: 180px; font-weight: bold; font-family: Arial; text-shadow: 0 0 20px red; }
+        .x-container { position: absolute; width: 200px; height: 200px; display: none; justify-content: center; align-items: center; z-index: 100; }
+        .x-container.left { left: 5%; top: 20%; }
+        .x-container.right { right: 5%; top: 20%; }
+        .x-mark { color: #ff3333; font-size: 200px; font-weight: bold; font-family: Arial; text-shadow: 0 0 30px red; }
     </style>
 </head>
 <body>
 
     <div id="setup">
-        <div style="font-size: 40px;">KOD TWOJEJ TABLICY:</div>
-        <div id="display-code">---</div>
-        <button class="start-btn" id="init-btn" onclick="startApp()">POKAŻ KOD I URUCHOM</button>
-        <div id="loading-msg" style="margin-top:20px; color:#666; display:none;">Inicjalizacja systemu...</div>
+        <div id="setup-content">
+            <div style="font-size: 40px;">KOD POŁĄCZENIA:</div>
+            <div id="display-code">---</div>
+            <button class="setup-btn btn-green" id="gen-btn" onclick="generateID()">GENERUJ KOD</button>
+            <button class="setup-btn btn-red" id="close-btn" onclick="closeSetup()" style="display:none;">ZAMKNIJ I GRAJ</button>
+            <p id="conn-status" style="color: #666;">Oczekiwanie na generowanie...</p>
+        </div>
     </div>
 
     <div class="board-container">
         <div class="led-matrix">
             <div id="x-left" class="x-container left"><div class="x-mark">X</div></div>
             <div id="board-rows"></div>
-            <div class="board-footer">
-                <span>SUMA</span>
-                <span id="suma-val">0</span>
-            </div>
+            <div class="board-footer"><span>SUMA</span> <span id="suma-val">0</span></div>
             <div id="x-right" class="x-container right"><div class="x-mark">X</div></div>
         </div>
     </div>
@@ -105,60 +55,47 @@
         let peer;
         const rowsContainer = document.getElementById('board-rows');
 
-        function createRows() {
+        function createRows(count = 6) {
             rowsContainer.innerHTML = '';
-            for(let i=1; i<=6; i++) {
-                rowsContainer.innerHTML += `
-                    <div class="row">
-                        <div class="num">${i}</div>
-                        <div class="ans" id="ans-${i}">....................</div>
-                        <div class="pts" id="pts-${i}">--</div>
-                    </div>`;
+            for(let i=1; i<=count; i++) {
+                rowsContainer.innerHTML += `<div class="row"><div class="num">${i}</div><div class="ans" id="ans-${i}">....................</div><div class="pts" id="pts-${i}">--</div></div>`;
             }
         }
         createRows();
 
-        function startApp() {
-            const btn = document.getElementById('init-btn');
-            const msg = document.getElementById('loading-msg');
-            btn.style.display = 'none';
-            msg.style.display = 'block';
-
+        function generateID() {
             const id = Math.random().toString(36).substring(2, 5).toUpperCase();
             document.getElementById('display-code').innerText = id;
+            document.getElementById('gen-btn').style.display = 'none';
+            document.getElementById('close-btn').style.display = 'inline-block';
+            document.getElementById('conn-status').innerText = "Wpisz ten kod w panelu sterowania.";
 
             peer = new Peer(id);
-            
-            peer.on('open', () => {
-                console.log('Połączono, ID:', id);
-                setTimeout(() => {
-                    document.getElementById('setup').style.opacity = '0';
-                    setTimeout(() => { document.getElementById('setup').style.display = 'none'; }, 500);
-                }, 4000); 
-            });
-
             peer.on('connection', conn => {
-                conn.on('data', d => {
-                    if(d.type === 'SETUP') {
-                        document.getElementById('suma-val').innerText = "0";
-                        createRows();
-                    }
-                    if(d.type === 'REV') {
-                        document.getElementById(`ans-${d.idx+1}`).innerText = d.t;
-                        document.getElementById(`pts-${d.idx+1}`).innerText = d.p;
-                        let s = document.getElementById('suma-val');
-                        s.innerText = (parseInt(s.innerText) || 0) + parseInt(d.p);
-                    }
-                    if(d.type === 'X') {
-                        const side = (d.count === 1) ? 'x-left' : 'x-right';
-                        const el = document.getElementById(side);
-                        const xText = el.querySelector('.x-mark');
-                        xText.innerText = "X".repeat(d.count);
-                        el.style.display = 'flex';
-                        setTimeout(() => el.style.display = 'none', 2000);
-                    }
-                });
+                document.getElementById('conn-status').innerText = "POŁĄCZONO! Możesz zamknąć to okno.";
+                document.getElementById('conn-status').style.color = "#2ecc71";
+                conn.on('data', d => handleData(d));
             });
+        }
+
+        function closeSetup() { document.getElementById('setup').style.display = 'none'; }
+
+        function handleData(d) {
+            if(d.type === 'SETUP') { document.getElementById('suma-val').innerText = "0"; createRows(6); }
+            if(d.type === 'FINAL_MODE') { document.getElementById('suma-val').innerText = "0"; createRows(5); }
+            if(d.type === 'REV') {
+                document.getElementById(`ans-${d.idx+1}`).innerText = d.t;
+                document.getElementById(`pts-${d.idx+1}`).innerText = d.p;
+                let s = document.getElementById('suma-val');
+                s.innerText = (parseInt(s.innerText) || 0) + parseInt(d.p);
+            }
+            if(d.type === 'X') {
+                const side = (Math.random() > 0.5) ? 'x-left' : 'x-right';
+                const el = document.getElementById(side);
+                el.querySelector('.x-mark').innerText = "X".repeat(d.count);
+                el.style.display = 'flex';
+                setTimeout(() => el.style.display = 'none', 2000);
+            }
         }
     </script>
 </body>
