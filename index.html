@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA - STUDIO TV</title>
+    <title>FAMILIADA - TABLICA LED</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
@@ -11,83 +11,72 @@
         body, html { 
             margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; 
             font-family: 'VT323', monospace; 
-            /* MOCNIEJSZE I BARDZIEJ WIDOCZNE TŁO */
-            background: linear-gradient(-45deg, #ff1744, #712eff, #3d5afe, #ff1744);
-            background-size: 400% 400%;
-            animation: gradientBG 15s ease infinite;
+            /* POWRÓT DO ORYGINALNEGO TŁA */
+            background: linear-gradient(90deg, #ff2d55 0%, #6383ff 50%, #7592ff 100%);
             display: flex; justify-content: center; align-items: center; 
         }
 
-        @keyframes gradientBG {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
         .board-container { 
-            width: 96vw; height: 90vh; 
-            background-color: rgba(26, 26, 36, 0.9); 
-            border-radius: 40px; padding: 15px; 
-            box-shadow: 0 0 100px rgba(0,0,0,0.8);
-            border: 5px solid #444;
+            /* ZMNIEJSZONA WIELKOŚĆ TABLICY */
+            width: 85vw; height: 80vh; 
+            background-color: #1a1a24; 
+            border-radius: 30px; padding: 10px; 
+            box-shadow: 0 20px 80px rgba(0,0,0,0.6);
+            border: 6px solid #333;
             display: flex; justify-content: center; align-items: center; position: relative;
         }
         
         .led-matrix { 
             width: 100%; height: 100%; background-color: #050508; 
-            border-radius: 25px; position: relative; 
+            border-radius: 20px; position: relative; 
             display: flex; flex-direction: column; 
-            padding: 0 50px; box-sizing: border-box; 
-            /* EFEKT SIATKI LED */
-            background-image: radial-gradient(rgba(244, 255, 0, 0.05) 1px, transparent 1px);
-            background-size: 10px 10px;
+            padding: 0 40px; box-sizing: border-box; 
+            background-image: radial-gradient(rgba(244, 255, 0, 0.03) 1px, transparent 1px);
+            background-size: 12px 12px;
         }
         
-        /* UKŁAD RUNDY NORMALNEJ */
         #board-rows { display: flex; flex-direction: column; width: 100%; height: 100%; justify-content: center; }
         
-        /* UKŁAD FINAŁU - MAKSYMALNIE ROZSUNIĘTY */
+        /* FINAŁ - KOLUMNY PO LEWEJ I PRAWEJ */
         .final-grid { 
             display: flex !important; 
             flex-direction: row !important;
             justify-content: space-between !important; 
-            align-items: center;
-            height: 100%;
             width: 100%;
         }
 
-        .final-column { width: 42%; }
+        .final-column { width: 45%; }
 
         .row { 
-            display: flex; align-items: center; width: 100%; height: 10vh; 
-            font-size: 9vh; color: var(--led-yellow); 
-            text-shadow: 0 0 15px rgba(244, 255, 0, 0.7); 
+            display: flex; align-items: center; width: 100%; height: 9vh; 
+            font-size: 8vh; color: var(--led-yellow); 
+            text-shadow: 0 0 12px rgba(244, 255, 0, 0.6); 
             border-bottom: 2px solid #1a1a24;
         }
         
-        .num { width: 70px; margin-right: 40px; color: var(--led-yellow); }
-        .ans { flex-grow: 1; letter-spacing: 4px; text-transform: uppercase; }
-        .pts { width: 110px; text-align: right; margin-left: 20px; border-left: 2px solid #1a1a24; }
+        .num { width: 60px; margin-right: 40px; color: var(--led-yellow); }
+        .ans { flex-grow: 1; letter-spacing: 3px; text-transform: uppercase; }
+        .pts { width: 90px; text-align: right; margin-left: 20px; }
         
-        .board-footer { position: absolute; bottom: 3%; right: 5%; font-size: 11vh; color: var(--led-yellow); }
+        .board-footer { position: absolute; bottom: 3%; right: 5%; font-size: 9vh; color: var(--led-yellow); }
 
-        /* ŻÓŁTY X LED */
+        /* ŻÓŁTY TABLICOWY X */
         .x-container { position: absolute; display: none; z-index: 999; top: 50%; transform: translateY(-50%); }
-        .x-container.left { left: 30px; }
-        .x-container.right { right: 30px; }
+        .x-container.left { left: -100px; } /* Wysunięty lekko poza matrycę */
+        .x-container.right { right: -100px; }
         .x-mark { 
-            color: var(--led-yellow); font-size: 260px; font-weight: bold; 
-            text-shadow: 0 0 40px var(--led-yellow); 
-            border: 15px solid var(--led-yellow); padding: 10px 50px; 
-            border-radius: 30px; background: rgba(0,0,0,0.8); 
+            color: var(--led-yellow); font-size: 220px; font-weight: bold; 
+            text-shadow: 0 0 30px var(--led-yellow); 
+            border: 12px solid var(--led-yellow); padding: 5px 40px; 
+            border-radius: 20px; background: #050508; 
         }
     </style>
 </head>
 <body>
-    <div id="setup">
-        <div id="display-code" style="font-size: 100px;">---</div>
-        <button onclick="initPeer()" style="padding:20px 50px; font-size:30px; cursor:pointer; font-family:'VT323'; background:var(--led-yellow); border:none; border-radius:10px;">GENERUJ KOD</button>
-        <button onclick="document.getElementById('setup').style.display='none'" style="margin-top:20px; color:white; background:none; border:none; cursor:pointer;">[ ZAMKNIJ ]</button>
+    <div id="setup" style="position:fixed; inset:0; background:black; z-index:2000; display:flex; flex-direction:column; align-items:center; justify-content:center; color:white;">
+        <div id="display-code" style="font-size:120px; color:var(--led-yellow);">---</div>
+        <button onclick="initPeer()" style="padding:15px 40px; font-size:24px; cursor:pointer; background:var(--led-yellow); border:none; border-radius:10px; font-family:'VT323';">GENERUJ KOD</button>
+        <button onclick="document.getElementById('setup').style.display='none'" style="margin-top:20px; background:none; border:1px solid white; color:white; cursor:pointer; padding:5px 15px;">ZAMKNIJ</button>
     </div>
 
     <div class="board-container">
@@ -126,7 +115,7 @@
             peer = new Peer(id);
             peer.on('connection', conn => {
                 conn.on('data', d => {
-                    if(d.type === 'SETUP') { document.getElementById('suma-val').innerText = "0"; updateLayout('normal', d.count); }
+                    if(d.type === 'SETUP') { document.getElementById('suma-val').innerText = "0"; updateLayout('normal', d.count || 6); }
                     if(d.type === 'FINAL_MODE') { document.getElementById('suma-val').innerText = "0"; updateLayout('final', 5); }
                     if(d.type === 'REV') {
                         document.getElementById(`ans-${d.idx+1}`).innerText = d.t;
@@ -143,7 +132,7 @@
                         const el = document.getElementById(side);
                         el.querySelector('.x-mark').innerText = "X".repeat(d.count);
                         el.style.display = 'block';
-                        setTimeout(() => el.style.display = 'none', 2000);
+                        setTimeout(() => el.style.display = 'none', 1500);
                     }
                 });
             });
