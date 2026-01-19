@@ -4,143 +4,119 @@
     <meta charset="UTF-8">
     <title>PANEL STEROWANIA</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #111; color: white; display: grid; grid-template-columns: 300px 1fr 300px; gap: 10px; margin: 0; height: 100vh; }
-        .col { background: #222; padding: 15px; border-right: 1px solid #333; overflow-y: auto; }
-        .card { background: #111; padding: 15px; border-radius: 10px; margin-bottom: 10px; border: 1px solid #444; }
-        h2 { font-size: 14px; color: #fbbf24; margin-bottom: 10px; }
-        button { width: 100%; padding: 10px; margin: 3px 0; cursor: pointer; border-radius: 5px; border: none; font-weight: bold; background: #444; color: white; }
-        .btn-green { background: #22c55e !important; }
-        .btn-red { background: #ef4444 !important; }
-        .btn-blue { background: #3b82f6 !important; }
-        input { width: 100%; padding: 8px; background: #000; border: 1px solid #444; color: #fbbf24; box-sizing: border-box; }
-        .q-item { padding: 8px; background: #333; margin-bottom: 5px; border-radius: 5px; cursor: pointer; font-size: 12px; }
+        body { font-family: sans-serif; background: #111; color: white; display: grid; grid-template-columns: 280px 1fr 280px; gap: 10px; margin: 0; height: 100vh; }
+        .col { background: #222; padding: 15px; overflow-y: auto; border-right: 1px solid #444; }
+        .card { background: #000; padding: 10px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #333; }
+        button { width: 100%; padding: 8px; margin: 2px 0; cursor: pointer; font-weight: bold; border-radius: 4px; border: none; }
+        .btn-green { background: #22c55e; color: white; }
+        .btn-red { background: #ef4444; color: white; }
+        .btn-blue { background: #3b82f6; color: white; }
+        .q-item { padding: 8px; background: #333; margin-bottom: 5px; cursor: pointer; font-size: 13px; border-radius: 4px; }
         .q-item:hover { background: #444; }
+        input { width: 100%; padding: 5px; background: #111; color: #fbbf24; border: 1px solid #444; }
+        .sciaga { font-size: 12px; color: #aaa; line-height: 1.4; }
     </style>
 </head>
 <body>
+
     <div class="col">
-        <div class="card">
-            <h2>KOD Z TABLICY</h2>
-            <input type="text" id="target">
-            <button onclick="connect()" class="btn-green">POŁĄCZ</button>
-        </div>
-        <div class="card">
-            <h2>RUNDY</h2>
-            <button onclick="prepRunda(6)" class="btn-blue">NORMALNA (6)</button>
-            <button onclick="prepFinal()" class="btn-blue" style="background:#fbbf24 !important; color:black">FINAŁ (2x5)</button>
-        </div>
-        <div class="card">
-            <h2>MULTIMEDIA</h2>
-            <button onclick="play('intro')">INTRO (CZOLOWKA.MP3)</button>
-            <button onclick="play('runda')">RUNDA (RUNDA.MP3)</button>
-            <div style="display:flex; gap:5px">
-                <button onclick="sendX(1)" class="btn-red">X</button>
-                <button onclick="sendX(2)" class="btn-red">XX</button>
-                <button onclick="sendX(3)" class="btn-red">XXX</button>
-            </div>
-        </div>
+        <h2>RUNDY ZWYKŁE</h2>
+        <div id="bank-normal"></div>
+        <hr>
+        <h2>FINAŁY</h2>
+        <div id="bank-final"></div>
     </div>
 
     <div class="col" style="background:#151515">
-        <div id="ui-normal">
-            <h2>HASŁA RUNDY</h2>
+        <div class="card">
+            <input type="text" id="target" placeholder="KOD TABLICY">
+            <button onclick="connect()" class="btn-green">POŁĄCZ</button>
+        </div>
+        
+        <div id="ctrl-normal">
+            <h3>KONTROLA RUNDY</h3>
             <div id="inputs-normal"></div>
         </div>
-        <div id="ui-final" style="display:none">
-            <h2>HASŁA FINAŁU</h2>
+
+        <div id="ctrl-final" style="display:none">
+            <h3>KONTROLA FINAŁU</h3>
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px">
                 <div id="f1-inputs"></div>
                 <div id="f2-inputs"></div>
             </div>
         </div>
+
+        <div class="card" style="margin-top:20px">
+            <h3>BŁĘDY (X)</h3>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:5px">
+                <button onclick="sendX('L',1)" class="btn-red">LEWY X</button>
+                <button onclick="sendX('R',1)" class="btn-red">PRAWY X</button>
+                <button onclick="sendX('L',2)" class="btn-red">LEWY XX</button>
+                <button onclick="sendX('R',2)" class="btn-red">PRAWY XX</button>
+            </div>
+        </div>
     </div>
 
     <div class="col">
-        <div class="card">
-            <h2 id="timer-display" style="font-size:40px; text-align:center">00</h2>
-            <div style="display:flex; gap:5px">
-                <button onclick="startTimer(15)">15s</button>
-                <button onclick="startTimer(20)">20s</button>
-            </div>
-        </div>
-        <h2>BANK PYTAŃ</h2>
-        <div id="bank"></div>
+        <h2>ŚCIĄGA (FINAŁ)</h2>
+        <div id="sciaga-content" class="sciaga">Wybierz zestaw finałowy...</div>
+        <hr>
+        <button onclick="startTimer(15)" class="btn-blue">START 15s</button>
+        <button onclick="startTimer(20)" class="btn-blue">START 20s</button>
+        <h1 id="timer" style="text-align:center; font-size:50px">00</h1>
     </div>
 
-    <audio id="snd-intro" src="czolowka.mp3"></audio>
-    <audio id="snd-runda" src="runda.mp3"></audio>
     <audio id="snd-ok" src="ok.mp3"></audio>
     <audio id="snd-zle" src="zle.mp3"></audio>
 
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script>
         let conn, total = 0, peer = new Peer();
-        const baza = [
-            { t: "normal", q: "Zwierzę na K", a: ["KOT","KOŃ","KROWA","KURA","KACZKA","KRET"], p:[40,20,15,10,10,5] },
-            { t: "final", q: "FINAŁ 1", a: ["KAWA","AUTO","DOM","LAS","GÓRA"], p:[30,25,20,15,10] }
+        const zestawyNormal = [
+            { q: "Co pijemy rano?", a: ["KAWA","HERBATA","WODA","SOK"], p: [45,30,15,10] },
+            { q: "Zwierzę na K", a: ["KOT","KOŃ","KROWA","KURA"], p: [50,20,20,10] }
+        ];
+        const zestawyFinal = [
+            { q: "ZESTAW ŚWIĄTECZNY", a: ["PIERNIK","KEKS","KARP","CHOINKA","BARTOSZ"], p: [40,25,15,10,10] }
         ];
 
-        function connect() {
-            conn = peer.connect(document.getElementById('target').value.toUpperCase());
-            conn.on('open', () => alert("Połączono!"));
-        }
+        function connect() { conn = peer.connect(document.getElementById('target').value.toUpperCase()); }
 
-        function prepRunda(c) {
-            total = 0; if(conn) conn.send({type:'SETUP', count:c});
-            document.getElementById('ui-normal').style.display='block';
-            document.getElementById('ui-final').style.display='none';
+        function loadNormal(idx) {
+            const z = zestawyNormal[idx]; total = 0; conn.send({type:'SETUP', count:z.a.length});
+            document.getElementById('ctrl-normal').style.display='block';
+            document.getElementById('ctrl-final').style.display='none';
             const box = document.getElementById('inputs-normal'); box.innerHTML='';
-            for(let i=0; i<c; i++) box.innerHTML += `<div style="display:flex; gap:5px; margin-bottom:5px"><input id="t${i}"><input id="p${i}" type="number" style="width:60px"><button onclick="rev(${i})" class="btn-green">OK</button></div>`;
-            play('runda');
-        }
-
-        function prepFinal() {
-            total = 0; if(conn) conn.send({type:'FINAL_MODE'});
-            document.getElementById('ui-normal').style.display='none';
-            document.getElementById('ui-final').style.display='block';
-            [1,2].forEach(p => {
-                const box = document.getElementById(`f${p}-inputs`); box.innerHTML=`<h3>P${p}</h3>`;
-                for(let i=0; i<5; i++) box.innerHTML += `<div style="margin-bottom:8px"><input id="f${p}-t${i}"><div style="display:flex; gap:2px"><input id="f${p}-p${i}" type="number"><button onclick="revF(${p},${i})" class="btn-green">OK</button></div></div>`;
+            z.a.forEach((ans, i) => {
+                box.innerHTML += `<div style="display:flex; gap:5px; margin-bottom:5px"><input id="t${i}" value="${ans}"><input id="p${i}" value="${z.p[i]}" style="width:50px"><button onclick="revN(${i})" class="btn-green">OK</button></div>`;
             });
-            play('runda');
         }
 
-        function rev(idx) {
-            const t = document.getElementById(`t${idx}`).value, p = parseInt(document.getElementById(`p${idx}`).value)||0;
-            total += p; conn.send({type:'REV', idx, t, p, total}); play('ok');
+        function loadFinal(idx) {
+            const z = zestawyFinal[idx]; total = 0; conn.send({type:'FINAL_MODE'});
+            document.getElementById('ctrl-normal').style.display='none';
+            document.getElementById('ctrl-final').style.display='block';
+            document.getElementById('sciaga-content').innerHTML = z.a.map((v,i)=>`<b>${i+1}. ${v}</b> (${z.p[i]} pkt)`).join('<br>');
+            [1,2].forEach(p => {
+                const box = document.getElementById(`f${p}-inputs`); box.innerHTML=`<h4>GRACZ ${p}</h4>`;
+                for(let i=0; i<5; i++) box.innerHTML += `<div style="margin-bottom:10px"><input id="f${p}-t${i}"><div style="display:flex; gap:2px"><button onclick="revFA(${p},${i})" class="btn-blue">ODP</button><input id="f${p}-p${i}" style="width:40px"><button onclick="revFP(${p},${i})" class="btn-green">PKT</button></div></div>`;
+            });
         }
 
-        function revF(p, idx) {
-            const t = document.getElementById(`f${p}-t${idx}`).value, val = parseInt(document.getElementById(`f${p}-p${idx}`).value)||0;
-            total += val; conn.send({type:'REV_FINAL', player:p, idx, t, p:val, total}); play('ok');
-        }
-
-        function loadQ(idx) {
-            const d = baza[idx];
-            if(d.t === 'normal') {
-                prepRunda(d.a.length);
-                d.a.forEach((v, i) => { document.getElementById(`t${i}`).value=v; document.getElementById(`p${i}`).value=d.p[i]; });
-            } else {
-                prepFinal();
-                d.a.forEach((v, i) => { document.getElementById(`f1-t${i}`).value=v; document.getElementById(`f1-p${i}`).value=d.p[i]; });
-            }
-        }
-
-        function sendX(count) { conn.send({type:'X', count}); play('zle'); }
-        function play(id) { document.getElementById('snd-'+id).play(); }
+        function revN(i) { const t = document.getElementById(`t${i}`).value, p = parseInt(document.getElementById(`p${i}`).value); total+=p; conn.send({type:'REV', idx:i, t, p, total}); document.getElementById('snd-ok').play(); }
+        function revFA(p, i) { conn.send({type:'REV_ANS', player:p, idx:i, t: document.getElementById(`f${p}-t${i}`).value}); }
+        function revFP(p, i) { const val = parseInt(document.getElementById(`f${p}-p${i}`).value)||0; total+=val; conn.send({type:'REV_PTS', player:p, idx:i, p:val, total}); document.getElementById('snd-ok').play(); }
         
+        function sendX(side, count) { conn.send({type:'X', side, count}); document.getElementById('snd-zle').play(); }
+
         function startTimer(s) {
-            let t = s; const el = document.getElementById('timer-display');
-            const int = setInterval(() => {
-                t--; el.innerText = t < 10 ? '0'+t : t;
-                if(t<=0) { clearInterval(int); play('zle'); }
-            }, 1000);
+            let t = s; const el = document.getElementById('timer');
+            const int = setInterval(() => { t--; el.innerText = t<10?'0'+t:t; if(t<=0){ clearInterval(int); document.getElementById('snd-zle').play(); } }, 1000);
         }
 
-        const bank = document.getElementById('bank');
-        baza.forEach((item, i) => {
-            bank.innerHTML += `<div class="q-item" onclick="loadQ(${i})"><b>${item.q}</b></div>`;
-        });
+        const bN = document.getElementById('bank-normal'), bF = document.getElementById('bank-final');
+        zestawyNormal.forEach((z, i) => bN.innerHTML += `<div class="q-item" onclick="loadNormal(${i})">${z.q}</div>`);
+        zestawyFinal.forEach((z, i) => bF.innerHTML += `<div class="q-item" onclick="loadFinal(${i})">${z.q}</div>`);
     </script>
 </body>
 </html>
