@@ -2,89 +2,68 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA - FINAL BOARD</title>
+    <title>FAMILIADA - TABLICA LED</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root { --led-yellow: #f4ff00; }
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: 'VT323', monospace; background: linear-gradient(90deg, #ff2d55 0%, #6383ff 50%, #7592ff 100%); display: flex; justify-content: center; align-items: center; }
 
-        .board-outer { width: 90vw; height: 80vh; background-color: #1a1a24; border-radius: 40px; padding: 15px; box-shadow: 0 30px 100px rgba(0,0,0,0.8); border: 8px solid #2a2a35; display: flex; justify-content: center; align-items: center; position: relative; }
+        .board-outer { width: 92vw; height: 82vh; background-color: #1a1a24; border-radius: 40px; padding: 10px; box-shadow: 0 30px 100px rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center; position: relative; }
         
-        .led-matrix { width: 100%; height: 100%; background-color: #050508; border-radius: 25px; position: relative; display: flex; flex-direction: column; padding: 0 60px; box-sizing: border-box; background-image: radial-gradient(rgba(244, 255, 0, 0.03) 1px, transparent 1px); background-size: 12px 12px; }
+        .led-matrix { width: 100%; height: 100%; background-color: #050508; border-radius: 25px; position: relative; display: flex; flex-direction: column; padding: 0 100px; box-sizing: border-box; }
         
         #board-rows { display: flex; flex-direction: column; width: 100%; height: 100%; justify-content: center; }
 
-        /* UKŁAD FINAŁOWY ZE ZDJĘĆ */
-        .final-row { display: grid; grid-template-columns: 1fr 60px 60px 1fr; gap: 15px; align-items: center; height: 10vh; font-size: 8vh; color: var(--led-yellow); }
+        /* FINAŁ: Odpowiedź | Pkt | Pkt | Odpowiedź */
+        .final-row { display: grid; grid-template-columns: 1fr 80px 80px 1fr; gap: 10px; align-items: center; height: 10vh; font-size: 8vh; color: var(--led-yellow); }
         .f-ans-l { text-align: left; text-transform: uppercase; }
         .f-ans-r { text-align: right; text-transform: uppercase; }
-        .f-pts { text-align: center; width: 60px; }
-        .dots-pattern { font-size: 4vh; color: rgba(244, 255, 0, 0.3); }
+        .f-pts { text-align: center; }
 
-        /* UKŁAD NORMALNY */
+        /* RUNDA ZWYKŁA */
         .row { display: flex; align-items: center; width: 100%; height: 10vh; font-size: 9vh; color: var(--led-yellow); }
         .num { width: 60px; margin-right: 40px; }
-        .ans { flex-grow: 1; letter-spacing: 2px; text-transform: uppercase; }
+        .ans { flex-grow: 1; text-transform: uppercase; }
         .pts { width: 100px; text-align: right; }
 
-        .board-footer { position: absolute; bottom: 5%; right: 15%; font-size: 10vh; color: var(--led-yellow); display: flex; gap: 40px; }
+        .board-footer { position: absolute; bottom: 5%; right: 10%; font-size: 10vh; color: var(--led-yellow); }
 
-        /* ŻÓŁTY X JAK NA ZDJĘCIU */
-        .x-container { position: absolute; display: none; z-index: 1000; top: 20%; }
-        .x-container.left { left: 40px; }
-        .x-container.right { right: 40px; }
-        .x-mark { color: var(--led-yellow); font-size: 180px; font-weight: bold; text-shadow: 0 0 30px var(--led-yellow); line-height: 0.8; text-align: center; border: 8px solid var(--led-yellow); padding: 20px; background: #050508; }
-
-        .hidden-pts { color: var(--led-yellow); letter-spacing: -2px; opacity: 0.8; }
+        /* X BEZ RAMKI - PO OBU STRONACH */
+        .x-container { position: absolute; display: none; z-index: 1000; top: 20%; color: var(--led-yellow); font-size: 220px; font-weight: bold; text-shadow: 0 0 40px var(--led-yellow); }
+        .x-left { left: 40px; }
+        .x-right { right: 40px; }
     </style>
 </head>
 <body>
     <div id="setup" style="position:fixed; inset:0; background:black; z-index:2000; display:flex; flex-direction:column; align-items:center; justify-content:center; color:white;">
-        <div id="display-code" style="font-size:120px; color:var(--led-yellow);">---</div>
-        <button onclick="initPeer()" style="padding:15px 40px; font-size:24px; cursor:pointer; background:var(--led-yellow); border:none; border-radius:10px; font-family:'VT323';">START SYSTEM</button>
+        <div id="display-code" style="font-size:100px; color:var(--led-yellow);">---</div>
+        <button onclick="initPeer()" style="padding:20px; font-size:24px; cursor:pointer;">URUCHOM TABLICĘ</button>
     </div>
 
     <div class="board-outer">
         <div class="led-matrix">
-            <div id="x-left" class="x-container left"><div class="x-mark">X</div></div>
+            <div id="x-l" class="x-container x-left">X</div>
             <div id="board-rows"></div>
-            <div class="board-footer">
-                <span>SUMA</span>
-                <span id="suma-val">0</span>
-            </div>
-            <div id="x-right" class="x-container right"><div class="x-mark">X</div></div>
+            <div class="board-footer">SUMA <span id="suma-val">0</span></div>
+            <div id="x-r" class="x-container x-right">X</div>
         </div>
     </div>
 
     <script>
         let peer;
-        const pattern = "░░"; // Wzór kropek dla punktów
-
         function updateLayout(mode, rowsCount) {
-            document.getElementById('x-left').style.display = 'none';
-            document.getElementById('x-right').style.display = 'none';
+            document.getElementById('x-l').style.display = 'none';
+            document.getElementById('x-r').style.display = 'none';
             const container = document.getElementById('board-rows');
             container.innerHTML = '';
-
             if(mode === 'normal') {
                 for(let i=1; i<=rowsCount; i++) {
-                    container.innerHTML += `
-                        <div class="row">
-                            <div class="num">${i}</div>
-                            <div class="ans" id="ans-${i}">.........................</div>
-                            <div class="pts" id="pts-${i}">--</div>
-                        </div>`;
+                    container.innerHTML += `<div class="row"><div class="num">${i}</div><div class="ans" id="ans-${i}">....................</div><div class="pts" id="pts-${i}">--</div></div>`;
                 }
             } else {
                 for(let i=1; i<=5; i++) {
-                    container.innerHTML += `
-                        <div class="final-row">
-                            <div class="f-ans-l" id="f1-ans-${i}">................</div>
-                            <div class="f-pts" id="f1-pts-${i}"><span class="hidden-pts">${pattern}</span></div>
-                            <div class="f-pts" id="f2-pts-${i}"><span class="hidden-pts">${pattern}</span></div>
-                            <div class="f-ans-r" id="f2-ans-${i}">................</div>
-                        </div>`;
+                    container.innerHTML += `<div class="final-row"><div class="f-ans-l" id="f1-ans-${i}">..........</div><div class="f-pts" id="f1-pts-${i}">░░</div><div class="f-pts" id="f2-pts-${i}">░░</div><div class="f-ans-r" id="f2-ans-${i}">..........</div></div>`;
                 }
             }
         }
@@ -96,22 +75,14 @@
             peer.on('connection', conn => {
                 document.getElementById('setup').style.display = 'none';
                 conn.on('data', d => {
-                    if(d.type === 'SETUP') { document.getElementById('suma-val').innerText = "0"; updateLayout('normal', d.count || 6); }
+                    if(d.type === 'SETUP') { document.getElementById('suma-val').innerText = "0"; updateLayout('normal', d.count); }
                     if(d.type === 'FINAL_MODE') { document.getElementById('suma-val').innerText = "0"; updateLayout('final', 5); }
-                    if(d.type === 'REV') {
-                        document.getElementById(`ans-${d.idx+1}`).innerText = d.t;
-                        document.getElementById(`pts-${d.idx+1}`).innerText = d.p;
-                        document.getElementById('suma-val').innerText = d.total;
-                    }
-                    if(d.type === 'REV_FINAL') {
-                        document.getElementById(`f${d.player}-ans-${d.idx+1}`).innerText = d.t;
-                        document.getElementById(`f${d.player}-pts-${d.idx+1}`).innerText = d.p;
-                        document.getElementById('suma-val').innerText = d.total;
-                    }
+                    if(d.type === 'REV') { document.getElementById(`ans-${d.idx+1}`).innerText = d.t; document.getElementById(`pts-${d.idx+1}`).innerText = d.p; document.getElementById('suma-val').innerText = d.total; }
+                    if(d.type === 'REV_ANS') document.getElementById(`f${d.player}-ans-${d.idx+1}`).innerText = d.t;
+                    if(d.type === 'REV_PTS') { document.getElementById(`f${d.player}-pts-${d.idx+1}`).innerText = d.p; document.getElementById('suma-val').innerText = d.total; }
                     if(d.type === 'X') {
-                        const side = (d.count === 1) ? 'x-left' : 'x-right';
-                        const el = document.getElementById(side);
-                        el.querySelector('.x-mark').innerText = "X".repeat(d.count);
+                        const el = document.getElementById(d.side === 'L' ? 'x-l' : 'x-r');
+                        el.innerText = "X".repeat(d.count);
                         el.style.display = 'block';
                     }
                 });
