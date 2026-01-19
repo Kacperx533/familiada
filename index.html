@@ -2,91 +2,114 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA - TABLICA LED</title>
+    <title>FAMILIADA - TABLICA FULLSCREEN</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root {
             --led-yellow: #f4ff00;
-            --led-dim: #222;
         }
 
-        body {
+        /* Usunięcie domyślnych marginesów przeglądarki */
+        body, html {
             margin: 0;
-            height: 100vh;
-            background-color: #111; /* Ciemne tło studia */
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            overflow: hidden;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-family: 'VT323', monospace;
         }
 
-        /* CZARNA TABLICA LED */
+        /* TABLICA NA CAŁY EKRAN */
         .board {
-            width: 900px;
-            height: 550px;
+            width: 100vw;
+            height: 100vh;
             background-color: #050505;
-            border: 8px solid #222;
-            border-radius: 40px;
             position: relative;
-            padding: 40px;
             box-sizing: border-box;
+            padding: 5vh 8vw; /* Proporcjonalne odstępy */
             
-            /* EFEKT SIATKI LED - Małe punkciki w tle */
+            /* EFEKT SIATKI LED */
             background-image: 
-                radial-gradient(circle, #1a1a1a 1px, transparent 1px),
                 radial-gradient(circle, #1a1a1a 1px, transparent 1px);
-            background-size: 6px 6px;
-            box-shadow: inset 0 0 100px #000;
-            overflow: hidden;
+            background-size: 5px 5px;
+            
+            /* Delikatne zaokrąglenie rogów przy krawędziach ekranu */
+            border: 10px solid #111;
+            border-radius: 0; 
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
 
-        /* UKŁAD WIERSZY */
+        /* WIERSZE DOPASOWANE DO WYSOKOŚCI EKRANU */
         .row {
             display: flex;
             align-items: center;
-            height: 75px;
-            font-size: 75px;
+            height: 12vh; /* Wiersze zajmują 12% wysokości ekranu */
+            font-size: 11vh; /* Rozmiar czcionki zależny od ekranu */
             color: var(--led-yellow);
-            text-shadow: 0 0 12px rgba(244, 255, 0, 0.4);
+            text-shadow: 0 0 15px rgba(244, 255, 0, 0.5);
+            font-family: 'VT323', monospace;
             border-bottom: 2px solid #0d0d0d;
         }
 
-        .num { width: 50px; color: #1a1a1a; } /* Numerki są prawie niewidoczne jak w oryginale */
-        .ans { flex-grow: 1; letter-spacing: 3px; }
-        .pts { width: 100px; text-align: right; }
+        .num { width: 8vw; color: #1a1a1a; }
+        .ans { flex-grow: 1; letter-spacing: 5px; text-transform: uppercase; }
+        .pts { width: 12vw; text-align: right; }
 
-        /* DOLNY LICZNIK "SUMA" WEWNĄTRZ TABLICY */
+        /* STOPKA Z SUMĄ W PRAWYM DOLNYM ROGU */
         .board-footer {
             position: absolute;
-            bottom: 30px;
-            right: 60px;
+            bottom: 4vh;
+            right: 8vw;
             display: flex;
             align-items: center;
-            gap: 30px;
-            font-size: 65px;
+            gap: 40px;
+            font-size: 8vh;
             color: var(--led-yellow);
         }
 
-        /* EFEKT "X" (BŁĄD) */
+        /* NAKŁADKA DLA BŁĘDÓW (X) */
         #x-overlay {
-            position: absolute;
+            position: fixed;
             inset: 0;
             display: none;
             justify-content: center;
             align-items: center;
-            background: rgba(0,0,0,0.8);
-            z-index: 100;
+            background: rgba(0,0,0,0.85);
+            z-index: 1000;
         }
         .x-mark {
             color: #ff0000;
-            font-size: 400px;
+            font-size: 70vh;
             font-family: Arial, sans-serif;
             font-weight: bold;
+        }
+
+        /* EKRAN KONFIGURACJI */
+        #setup { 
+            position: fixed; 
+            inset: 0; 
+            background: #000; 
+            z-index: 2000; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            color: white; 
         }
     </style>
 </head>
 <body>
+
+    <div id="setup">
+        <div id="code" style="font-size: 80px; color: var(--led-yellow); margin-bottom: 20px;">----</div>
+        <button onclick="init()" style="padding: 20px 60px; font-size: 24px; cursor: pointer; background: var(--led-yellow); border: none; font-weight: bold;">ODPAL TABLICĘ</button>
+    </div>
 
     <div class="board">
         <div id="board-rows">
@@ -96,16 +119,15 @@
             <span>SUMA</span>
             <span id="suma-val">0</span>
         </div>
-
-        <div id="x-overlay"><div class="x-mark" id="x-text">X</div></div>
     </div>
+
+    <div id="x-overlay"><div class="x-mark" id="x-text">X</div></div>
 
     <script>
         let peer;
         const rowsContainer = document.getElementById('board-rows');
 
-        // Tworzenie pustych wierszy na starcie
-        function createEmptyBoard() {
+        function createRows() {
             rowsContainer.innerHTML = '';
             for(let i=1; i<=6; i++) {
                 rowsContainer.innerHTML += `
@@ -117,20 +139,36 @@
             }
         }
 
-        createEmptyBoard();
+        createRows();
 
         function init() {
-            // Tutaj możesz dokleić swoją logikę PeerJS do sterowania
-            // d.type === 'REV' -> odkrywa odpowiedź
-            // d.type === 'X' -> pokazuje czerwony X
-        }
-
-        // Przykład pokazania X
-        function showX(count) {
-            const overlay = document.getElementById('x-overlay');
-            document.getElementById('x-text').innerText = "X".repeat(count);
-            overlay.style.display = 'flex';
-            setTimeout(() => overlay.style.display = 'none', 1500);
+            const id = Math.random().toString(36).substring(2, 5).toUpperCase();
+            document.getElementById('code').innerText = id;
+            document.getElementById('setup').style.display = 'none';
+            
+            peer = new Peer(id);
+            peer.on('open', () => {
+                peer.on('connection', conn => {
+                    conn.on('data', d => {
+                        if(d.type.startsWith('SETUP')) {
+                            document.getElementById('suma-val').innerText = "0";
+                            createRows();
+                        }
+                        if(d.type === 'REV') {
+                            document.getElementById(`ans-${d.idx+1}`).innerText = d.t;
+                            document.getElementById(`pts-${d.idx+1}`).innerText = d.p;
+                            let s = document.getElementById('suma-val');
+                            s.innerText = parseInt(s.innerText) + parseInt(d.p);
+                        }
+                        if(d.type === 'X') {
+                            const overlay = document.getElementById('x-overlay');
+                            document.getElementById('x-text').innerText = "X".repeat(d.count);
+                            overlay.style.display = 'flex';
+                            setTimeout(() => overlay.style.display = 'none', 1500);
+                        }
+                    });
+                });
+            });
         }
     </script>
 </body>
