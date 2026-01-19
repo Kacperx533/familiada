@@ -2,131 +2,82 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA - PANEL STEROWANIA</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <title>PANEL STEROWANIA</title>
     <style>
-        body { font-family: 'Roboto', sans-serif; background: #1a1a1a; color: white; margin: 20px; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .card { background: #2d2d2d; padding: 20px; border-radius: 10px; border: 1px solid #444; }
-        input, button { padding: 10px; margin: 5px 0; border-radius: 5px; border: none; width: 100%; box-sizing: border-box; }
-        button { cursor: pointer; font-weight: bold; background: #444; color: white; transition: 0.2s; }
-        button:hover { background: #666; }
-        .btn-red { background: #c61d1d; }
-        .btn-blue { background: #1d60c6; }
-        .btn-yellow { background: #f4ff00; color: black; }
-        .btn-x { background: #ff3333; font-size: 20px; }
-        h2 { margin-top: 0; color: #f4ff00; border-bottom: 1px solid #444; padding-bottom: 10px; }
-        .row-ctrl { display: flex; gap: 10px; align-items: center; margin-bottom: 5px; }
-        .row-ctrl input[type="text"] { flex: 3; }
-        .row-ctrl input[type="number"] { flex: 1; }
-        .status { color: #00ff00; font-weight: bold; text-align: center; margin-bottom: 10px; }
+        body { font-family: sans-serif; background: #111; color: white; padding: 20px; }
+        .box { background: #222; padding: 20px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #333; }
+        input, button { padding: 10px; margin: 5px; border-radius: 5px; border: none; }
+        button { cursor: pointer; background: #444; color: white; font-weight: bold; }
+        button:hover { background: #555; }
+        .yellow { background: #f4ff00; color: #000; }
+        .red { background: #ff3333; color: white; }
+        .row { display: flex; align-items: center; background: #2a2a2a; margin-bottom: 5px; padding: 5px; border-radius: 5px; }
+        input[type="text"] { flex: 2; }
+        input[type="number"] { width: 60px; }
     </style>
 </head>
 <body>
 
-    <div class="card" style="max-width: 400px; margin: 0 auto 20px auto;">
+    <div class="box">
         <h2>POŁĄCZENIE</h2>
-        <input type="text" id="targetId" placeholder="Wpisz ID z tablicy (np. ABC)">
-        <button onclick="connect()" class="btn-yellow">POŁĄCZ Z TABLICĄ</button>
-        <div id="status" class="status" style="color: red;">Brak połączenia</div>
+        <input type="text" id="target" placeholder="KOD Z TABLICY">
+        <button onclick="connect()" class="yellow">POŁĄCZ</button>
+        <span id="stat" style="color: red; margin-left: 10px;">Brak połączenia</span>
     </div>
 
-    <div class="grid">
-        <div class="card">
-            <h2>RUNDA ZWYKŁA</h2>
-            <button onclick="sendSetup()" style="background: #555;">NOWE PYTANIE (RESET)</button>
-            <div id="inputs">
-                </div>
-            <div style="display: flex; gap: 10px; margin-top: 15px;">
-                <button onclick="sendX(1)" class="btn-x">X</button>
-                <button onclick="sendX(2)" class="btn-x">XX</button>
-                <button onclick="sendX(3)" class="btn-x">XXX</button>
-            </div>
-        </div>
-
-        <div class="card">
-            <h2>PUNKTY DRUŻYN</h2>
-            <div style="display: flex; gap: 20px;">
-                <div>
-                    <p>DRUŻYNA LEWA</p>
-                    <input type="number" id="scoreL" value="0" onchange="syncScores()">
-                </div>
-                <div>
-                    <p>DRUŻYNA PRAWA</p>
-                    <input type="number" id="scoreR" value="0" onchange="syncScores()">
-                </div>
-            </div>
-
-            <h2 style="margin-top: 30px;">FINAŁ</h2>
-            <p>Gracz 1:</p>
-            <button onclick="finalSound('think')" class="btn-blue">MUZYKA MYŚLENIA</button>
-            <button onclick="finalSound('correct')" class="btn-yellow">DŹWIĘK TRAFIENIA</button>
-            <button onclick="finalSound('wrong')" class="btn-red">DŹWIĘK BŁĘDU (0 pkt)</button>
-            <hr>
-            <button onclick="sendFinalReset()" style="background: #8e44ad;">TRYB FINAŁOWY (TABLICA)</button>
+    <div class="box">
+        <h2>RUNDA</h2>
+        <button onclick="send('SETUP')">RESET TABLICY (NOWE PYTANIE)</button>
+        <div id="inputs"></div>
+        <div style="margin-top: 15px;">
+            <button onclick="sendX(1)" class="red">X (BŁĄD)</button>
+            <button onclick="sendX(2)" class="red">XX</button>
+            <button onclick="sendX(3)" class="red">XXX</button>
         </div>
     </div>
 
-    <audio id="snd-x" src="https://www.soundboard.com/handler/Downloadaudio.ashx?id=156711"></audio>
-    <audio id="snd-correct" src="https://www.soundboard.com/handler/Downloadaudio.ashx?id=156710"></audio>
+    <audio id="snd-x" src="https://www.myinstants.com/media/sounds/familiada-x.mp3"></audio>
+    <audio id="snd-ok" src="https://www.myinstants.com/media/sounds/familiada-poprawna.mp3"></audio>
 
     <script>
         let conn;
         const peer = new Peer();
+        const ins = document.getElementById('inputs');
+
+        for(let i=0; i<6; i++) {
+            ins.innerHTML += `<div class="row">
+                <span>${i+1}</span>
+                <input type="text" id="t${i}" placeholder="Hasło">
+                <input type="number" id="p${i}" placeholder="Pkt">
+                <button onclick="reveal(${i})">ODKRYJ</button>
+            </div>`;
+        }
 
         function connect() {
-            const id = document.getElementById('targetId').value.toUpperCase();
+            const id = document.getElementById('target').value.toUpperCase();
             conn = peer.connect(id);
             conn.on('open', () => {
-                document.getElementById('status').innerText = "POŁĄCZONO!";
-                document.getElementById('status').style.color = "#00ff00";
+                document.getElementById('stat').innerText = "POŁĄCZONO!";
+                document.getElementById('stat').style.color = "lime";
             });
         }
 
-        // Generowanie pól haseł
-        const inputsDiv = document.getElementById('inputs');
-        for(let i=0; i<6; i++) {
-            inputsDiv.innerHTML += `
-                <div class="row-ctrl">
-                    <span>${i+1}</span>
-                    <input type="text" id="t-${i}" placeholder="Hasło">
-                    <input type="number" id="p-${i}" placeholder="Pkt">
-                    <button onclick="reveal(${i})" style="width: 80px;">ODKRYJ</button>
-                </div>`;
-        }
-
-        function sendSetup() {
-            conn.send({ type: 'SETUP' });
-        }
+        function send(type) { if(conn) conn.send({type}); }
 
         function reveal(idx) {
-            const t = document.getElementById(`t-${idx}`).value;
-            const p = document.getElementById(`p-${idx}`).value;
-            conn.send({ type: 'REV', idx, t, p });
-            document.getElementById('snd-correct').play();
+            const t = document.getElementById(`t${idx}`).value;
+            const p = document.getElementById(`p${idx}`).value;
+            if(conn) {
+                conn.send({ type: 'REV', idx, t, p });
+                document.getElementById('snd-ok').play();
+            }
         }
 
         function sendX(count) {
-            conn.send({ type: 'X', count });
-            document.getElementById('snd-x').play();
-        }
-
-        function syncScores() {
-            const l = document.getElementById('scoreL').value;
-            const r = document.getElementById('scoreR').value;
-            conn.send({ type: 'SCORE_SYNC', l, r });
-        }
-
-        function finalSound(type) {
-            // Logika dźwięków finału
-            if(type === 'correct') document.getElementById('snd-correct').play();
-            if(type === 'wrong') document.getElementById('snd-x').play();
-        }
-
-        function sendFinalReset() {
-            // Wysyła sygnał czyszczenia tablicy pod finał (np. tylko 5 wierszy)
-            conn.send({ type: 'SETUP_FINAL' });
+            if(conn) {
+                conn.send({ type: 'X', count });
+                document.getElementById('snd-x').play();
+            }
         }
     </script>
 </body>
