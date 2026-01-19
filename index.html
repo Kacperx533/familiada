@@ -9,8 +9,8 @@
 <style>
 :root{
     --led:#f4ff00;
-    --red:#d32f2f;
-    --blue:#1976d2;
+    --red:#c62828;
+    --blue:#1565c0;
 }
 
 body{
@@ -19,98 +19,105 @@ body{
     background:#000;
     font-family:'VT323', monospace;
     overflow:hidden;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
 }
 
-/* TŁO */
+/* TŁO STUDIA */
 .background{
     position:absolute;
     inset:0;
     display:flex;
     z-index:1;
 }
-.bg-l{flex:1;background:var(--red);}
-.bg-r{flex:1;background:var(--blue);}
+.bg-l{
+    flex:1;
+    background:linear-gradient(#8e0000,#c62828 40%, #8e0000);
+}
+.bg-r{
+    flex:1;
+    background:linear-gradient(#002f6c,#1565c0 40%, #002f6c);
+}
 .background::after{
     content:"";
     position:absolute;
     left:50%;
     top:0;
-    width:6px;
+    width:10px;
     height:100%;
-    background:#000;
+    background:linear-gradient(#000,#222,#000);
 }
 
-/* GÓRNY ŁUK */
+/* GÓRNA BELKA */
 .top-rainbow-arch{
     position:relative;
-    z-index:10;
     width:100%;
-    height:230px;
-    margin-top:20px;
+    height:340px;
+    z-index:10;
     display:flex;
     justify-content:center;
 }
 
 .black-bar{
     position:absolute;
-    width:120%;
-    height:260px;
-    background:#000;
-    border-radius:0 0 180px 180px;
-    border-bottom:4px solid #1a1a1a;
-    box-shadow:0 15px 50px rgba(0,0,0,.9);
-    display:flex;
-    justify-content:center;
+    top:-70px;
+    width:135%;
+    height:380px;
+    background:linear-gradient(#000,#050505);
+    border-radius:0 0 260px 260px;
+    box-shadow:
+        0 25px 90px rgba(0,0,0,.95),
+        inset 0 -6px 20px rgba(255,255,255,.05);
 }
 
+/* NEONY */
 .inner-rainbow-lines{
     position:absolute;
-    top:20px;
-    width:85%;
-    height:220px;
-    pointer-events:none;
+    top:150px;
+    width:92%;
+    height:180px;
 }
 
 .line{
     position:absolute;
-    width:42%;
+    width:44%;
     height:100%;
-    border-bottom:3px solid;
-    border-radius:0 0 160px 160px;
+    border-bottom:4px solid;
+    border-radius:0 0 240px 240px;
 }
 
 .line-red{
     left:2%;
-    border-color:#ff3333;
-    filter:drop-shadow(0 0 10px #ff0000);
+    border-color:#ff3b3b;
+    filter:drop-shadow(0 0 15px #ff0000);
 }
 .line-blue{
     right:2%;
-    border-color:#33aaff;
-    filter:drop-shadow(0 0 10px #0066ff);
+    border-color:#40a9ff;
+    filter:drop-shadow(0 0 15px #0088ff);
 }
 
 /* SUMA */
 .suma-display{
     position:absolute;
-    top:160px;
-    background:#050505;
+    top:235px;
+    background:radial-gradient(#000,#050505);
     border:3px solid var(--led);
-    width:140px;
-    height:70px;
+    width:160px;
+    height:80px;
     display:flex;
     align-items:center;
     justify-content:flex-end;
-    padding-right:12px;
-    box-shadow:inset 0 0 15px rgba(244,255,0,.4);
+    padding-right:15px;
+    box-shadow:
+        0 0 30px rgba(244,255,0,.6),
+        inset 0 0 20px rgba(244,255,0,.3);
 }
+
 #suma-val{
-    font-size:72px;
+    font-size:82px;
     color:var(--led);
-    text-shadow:0 0 10px var(--led);
+    text-shadow:
+        0 0 8px var(--led),
+        0 0 18px var(--led);
 }
 
 /* SCENA */
@@ -119,58 +126,68 @@ body{
     z-index:50;
     display:flex;
     align-items:center;
-    gap:35px;
-    margin-top:-40px;
+    gap:55px;
+    margin-top:-50px;
 }
 
+/* PUNKTY DRUŻYN */
 .team-box{
     width:170px;
-    height:100px;
-    background:#000;
+    height:95px;
+    background:radial-gradient(#000,#050505);
     border:3px solid #eee;
-    border-radius:10px;
+    border-radius:14px;
     display:flex;
     align-items:center;
     justify-content:flex-end;
     padding-right:15px;
+    font-size:96px;
     color:var(--led);
-    font-size:100px;
-    box-shadow:inset 0 0 15px #000;
-    text-shadow:0 0 8px var(--led);
+    box-shadow:
+        0 0 25px rgba(0,0,0,.9),
+        inset 0 0 18px rgba(255,255,255,.05);
+    text-shadow:
+        0 0 10px var(--led),
+        0 0 18px rgba(244,255,0,.6);
 }
 
+/* TABLICA */
 .board-main{
-    width:900px;
-    height:500px;
-    background:#000;
-    border:5px solid #1c1c1c;
-    border-radius:35px;
-    padding:30px 50px;
-    box-shadow:inset 0 0 30px #000,0 0 25px rgba(0,0,0,.9);
+    width:780px;
+    height:440px;
+    background:linear-gradient(#000,#050505);
+    border-radius:30px;
+    border:4px solid #222;
+    padding:25px 45px;
+    box-shadow:
+        0 25px 70px rgba(0,0,0,.95),
+        inset 0 0 45px rgba(0,0,0,1);
 }
 
+/* WIERSZE */
 .row{
     display:flex;
     align-items:center;
-    height:70px;
-    font-size:72px;
+    height:66px;
+    font-size:68px;
     border-bottom:1px solid #111;
 }
+
 .num{
-    width:60px;
+    width:55px;
     color:#222;
 }
-.ans{
-    flex:1;
+
+.ans,.pts{
     color:var(--led);
-    letter-spacing:2px;
-    text-shadow:0 0 6px var(--led);
+    text-shadow:
+        0 0 6px var(--led),
+        0 0 14px rgba(244,255,0,.7);
 }
+
 .pts{
-    width:100px;
+    width:95px;
     text-align:right;
-    color:var(--led);
-    text-shadow:0 0 6px var(--led);
 }
 
 /* X */
@@ -180,14 +197,13 @@ body{
     display:none;
     align-items:center;
     justify-content:center;
-    background:rgba(0,0,0,.95);
+    background:radial-gradient(rgba(0,0,0,.7),#000);
     z-index:1000;
 }
 .x-text{
     font-size:600px;
     color:red;
-    font-weight:bold;
-    font-family:Arial;
+    text-shadow:0 0 40px red;
 }
 
 /* SETUP */
@@ -200,7 +216,6 @@ body{
     flex-direction:column;
     align-items:center;
     justify-content:center;
-    color:white;
 }
 </style>
 </head>
@@ -235,9 +250,7 @@ body{
 
 <div class="stage">
     <div class="team-box"><span id="score-L">0</span></div>
-    <div class="board-main">
-        <div id="board-content"></div>
-    </div>
+    <div class="board-main"><div id="board-content"></div></div>
     <div class="team-box"><span id="score-R">0</span></div>
 </div>
 
@@ -271,9 +284,10 @@ function init(){
                 s.innerText=parseInt(s.innerText)+parseInt(d.p);
             }
             if(d.type==="X"){
-                document.getElementById('x-overlay').style.display='flex';
+                const o=document.getElementById('x-overlay');
                 document.getElementById('x-val').innerText="X".repeat(d.count);
-                setTimeout(()=>document.getElementById('x-overlay').style.display='none',1200);
+                o.style.display='flex';
+                setTimeout(()=>o.style.display='none',1200);
             }
             if(d.type==="SCORE_SYNC"){
                 document.getElementById('score-L').innerText=d.l;
