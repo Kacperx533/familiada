@@ -2,139 +2,204 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA - LED MATRIX 100x50</title>
+    <title>FAMILIADA - LED MATRIX</title>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root { 
-            --led-on: #ffea00; 
-            --led-off: #121214;
-            --bg-color: #08080a;
+            --led-yellow: #ffea00; 
+            --tile-dim: #1a1b20; /* Wyłączona dioda */
+            --bg-dark: #0a0a0c;
         }
 
         body { 
-            margin: 0; background: linear-gradient(90deg, #ff2d6b, #5d82ff);
-            height: 100vh; display: flex; justify-content: center; align-items: center;
-            font-family: sans-serif; overflow: hidden;
+            margin: 0; padding: 0; 
+            background: linear-gradient(90deg, #ff2a6d 0%, #3d6eff 100%) fixed;
+            display: flex; justify-content: center; align-items: center; 
+            height: 100vh; overflow: hidden;
+            font-family: 'VT323', monospace;
         }
 
-        /* Rama tablicy */
-        .board-container {
-            background: #000;
+        /* Obudowa tablicy */
+        .board-outer {
+            background-color: #121216;
+            padding: 15px;
+            border-radius: 25px;
+            box-shadow: 0 50px 100px rgba(0,0,0,0.7);
+            border: 4px solid #1e1e24;
+            position: relative;
+        }
+
+        /* Siatka LED - Gęste "oczka" */
+        .matrix-grid {
+            display: grid;
+            /* Tworzymy gęstą siatkę 34x18, aby uzyskać efekt drobnych punktów */
+            grid-template-columns: repeat(34, 25px);
+            grid-template-rows: repeat(18, 25px);
+            gap: 4px; /* Przerwy między diodami (siatka) */
+            background-color: #050505;
             padding: 10px;
-            border-radius: 20px;
-            box-shadow: 0 0 50px rgba(0,0,0,0.5);
-            border: 8px solid #1a1a1d;
+            border-radius: 15px;
         }
 
-        /* Płótno siatki LED */
-        canvas {
-            background-color: var(--bg-color);
-            display: block;
-            image-rendering: pixelated; /* Ostrość punktów */
+        /* Pojedyncze oczko matrycy */
+        .led {
+            width: 25px;
+            height: 25px;
+            background-color: var(--tile-dim);
+            border-radius: 4px; /* Zaokrąglone rogi oczek LED */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
         }
 
-        #controls { position: fixed; bottom: 10px; display: flex; gap: 10px; }
-        button { padding: 10px 20px; cursor: pointer; border-radius: 5px; border: none; font-weight: bold; }
+        /* Świecący znak na matrycy */
+        .active-char {
+            color: var(--led-yellow);
+            font-size: 38px; /* Rozmiar dopasowany do oczka */
+            line-height: 1;
+            text-shadow: 0 0 12px rgba(255, 234, 0, 0.7);
+            font-weight: bold;
+            z-index: 2;
+            /* Rozciągnięcie jak na starych ekranach */
+            transform: scale(1.1, 1.3);
+        }
+
+        /* Specjalny Styl dla X (Błędów) */
+        .x-block {
+            grid-column: span 2;
+            grid-row: span 3;
+            position: relative;
+            display: none; /* Domyślnie ukryte */
+        }
+        
+        .x-line {
+            position: absolute;
+            background-color: var(--led-yellow);
+            box-shadow: 0 0 15px var(--led-yellow);
+            border-radius: 10px;
+            width: 15%; height: 100%;
+            left: 42.5%;
+        }
+        .x-l1 { transform: rotate(45deg); }
+        .x-l2 { transform: rotate(-45deg); }
+
+        /* Panel startowy */
+        #init-layer { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 100; display: flex; justify-content: center; align-items: center; }
+        button { padding: 20px 40px; font-size: 24px; cursor: pointer; background: var(--led-yellow); border: none; border-radius: 10px; font-family: 'VT323'; }
     </style>
 </head>
 <body>
 
-    <div class="board-container">
-        <canvas id="ledCanvas"></canvas>
-    </div>
+<div id="init-layer">
+    <button onclick="bootMatrix()">URUCHOM MATRYCĘ LED</button>
+</div>
 
-    <div id="controls">
-        <button onclick="testShow()">TEST (NAPISY + X)</button>
-        <button onclick="location.reload()">RESTART</button>
-    </div>
+<div class="board-outer">
+    <div class="matrix-grid" id="main-matrix">
+        </div>
+</div>
 
-    <script>
-        const canvas = document.getElementById('ledCanvas');
-        const ctx = canvas.getContext('2d');
+<audio id="s-ok" src="ok.mp3"></audio>
+<audio id="s-err" src="zle.mp3"></audio>
 
-        // Rozdzielczość siatki LED
-        const cols = 120; 
-        const rows = 60;
-        const cellSize = 8; // Wielkość pojedynczej diody
+<script>
+    const matrix = document.getElementById('main-matrix');
+    const cols = 34;
+    const rows = 18;
 
-        canvas.width = cols * cellSize;
-        canvas.height = rows * cellSize;
-
-        function drawLED(x, y, state = false) {
-            ctx.fillStyle = state ? '#ffea00' : '#121214';
-            // Rysowanie diody z małym marginesem (efekt siatki)
-            ctx.beginPath();
-            ctx.roundRect(x * cellSize + 1, y * cellSize + 1, cellSize - 2, cellSize - 2, 2);
-            ctx.fill();
-            if(state) {
-                ctx.shadowBlur = 10;
-                ctx.shadowColor = '#ffea00';
-            } else {
-                ctx.shadowBlur = 0;
+    // 1. Generujemy tło matrycy (puste oczka)
+    function buildGrid() {
+        matrix.innerHTML = '';
+        for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) {
+                const led = document.createElement('div');
+                led.className = 'led';
+                led.id = `led-${r}-${c}`;
+                matrix.appendChild(led);
             }
         }
+        // Wstawiamy X-y w stałe miejsca na siatce (prawa strona)
+        insertX(2, 'x1');
+        insertX(6, 'x2');
+        insertX(10, 'x3');
+    }
 
-        // Czyść tablicę
-        function clearBoard() {
-            for (let y = 0; y < rows; y++) {
-                for (let x = 0; x < cols; x++) {
-                    drawLED(x, y, false);
+    function insertX(row, id) {
+        const xBox = document.createElement('div');
+        xBox.className = 'x-block';
+        xBox.id = id;
+        xBox.style.gridRow = `${row + 1} / span 3`;
+        xBox.style.gridColumn = `31 / span 2`;
+        xBox.innerHTML = '<div class="x-line x-l1"></div><div class="x-line x-l2"></div>';
+        matrix.appendChild(xBox);
+    }
+
+    // 2. Funkcja do "zapalania" znaku w konkretnym oczku
+    function setLed(r, c, char) {
+        const target = document.getElementById(`led-${r}-${c}`);
+        if (target) {
+            target.innerHTML = char ? `<span class="active-char">${char}</span>` : '';
+        }
+    }
+
+    // 3. Renderowanie całego wiersza (numer, tekst, punkty)
+    function renderRow(rowIndex, num, text, points) {
+        const r = 3 + (rowIndex * 2); // Odstępy pionowe
+        
+        // Numer (kolumna 4)
+        setLed(r, 4, num);
+
+        // Tekst (od kolumny 6)
+        const fullText = text.toUpperCase().padEnd(20, '.');
+        for (let i = 0; i < 20; i++) {
+            setLed(r, 6 + i, fullText[i]);
+        }
+
+        // Punkty (kolumny 27-28)
+        const pStr = points.toString().padStart(2, '-');
+        setLed(r, 27, pStr[0]);
+        setLed(r, 28, pStr[1]);
+    }
+
+    function renderSuma(val) {
+        const sTxt = "SUMA";
+        for(let i=0; i<4; i++) setLed(15, 20+i, sTxt[i]);
+        const vStr = val.toString().padStart(1, '0');
+        setLed(15, 25, vStr[0]);
+        if(vStr[1]) setLed(15, 26, vStr[1]);
+    }
+
+    function bootMatrix() {
+        const code = Math.random().toString(36).substring(2,5).toUpperCase();
+        alert("TWÓJ KOD: " + code);
+        const peer = new Peer(code);
+        
+        peer.on('connection', conn => {
+            document.getElementById('init-layer').style.display = 'none';
+            conn.on('data', data => {
+                if(data.type === 'SET') {
+                    buildGrid();
+                    for(let i=0; i<data.c; i++) renderRow(i, i+1, "", "--");
+                    renderSuma(0);
                 }
-            }
-        }
-
-        // Renderowanie tekstu jako mozaiki LED
-        function drawText(text, startX, startY) {
-            ctx.font = "bold 40px 'Courier New'"; // Używamy fontu monospaced do mapowania
-            ctx.fillStyle = "white";
-            
-            // Tymczasowy canvas do pobrania danych o pikselach tekstu
-            const tempCanvas = document.createElement('canvas');
-            const tempCtx = tempCanvas.getContext('2d');
-            tempCanvas.width = cols;
-            tempCanvas.height = rows;
-            tempCtx.font = "bold 12px Arial"; // Skala mapowania
-            tempCtx.fillText(text.toUpperCase(), startX, startY);
-            
-            const imgData = tempCtx.getImageData(0, 0, cols, rows).data;
-
-            for (let i = 0; i < imgData.length; i += 4) {
-                if (imgData[i + 3] > 128) {
-                    const pixelIdx = i / 4;
-                    const x = pixelIdx % cols;
-                    const y = Math.floor(pixelIdx / cols);
-                    drawLED(x, y, true);
+                if(data.type === 'REV') {
+                    renderRow(data.i, data.i+1, data.t, data.p);
+                    renderSuma(data.s);
+                    document.getElementById('s-ok').play();
                 }
-            }
-        }
+                if(data.type === 'X') {
+                    for(let i=1; i<=3; i++) {
+                        document.getElementById('x'+i).style.display = (i <= data.count) ? 'block' : 'none';
+                    }
+                    document.getElementById('s-err').play();
+                }
+            });
+        });
+    }
 
-        // Rysowanie dużego X
-        function drawBigX(startX, startY) {
-            for(let i=0; i<8; i++) {
-                drawLED(startX + i, startY + i, true);
-                drawLED(startX + 7 - i, startY + i, true);
-                // Grubszy X
-                drawLED(startX + i + 1, startY + i, true);
-                drawLED(startX + 7 - i - 1, startY + i, true);
-            }
-        }
-
-        function testShow() {
-            clearBoard();
-            // Numeracja i kropki
-            drawText("1 ........................ --", 10, 15);
-            drawText("2 ........................ --", 10, 25);
-            drawText("3 KOT                      23", 10, 35);
-            
-            // Napis SUMA
-            drawText("SUMA  23", 70, 55);
-
-            // Czerwone/Żółte X błędu po prawej
-            drawBigX(105, 10);
-            drawBigX(105, 22);
-            drawBigX(105, 34);
-        }
-
-        clearBoard();
-    </script>
+    buildGrid(); // Startowa siatka
+</script>
 </body>
 </html>
