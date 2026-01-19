@@ -2,19 +2,21 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>PANEL STEROWANIA</title>
+    <title>PANEL KONTROLNY - FAMILIADA</title>
     <style>
-        body { font-family: sans-serif; background: #111; color: white; display: grid; grid-template-columns: 280px 1fr 280px; gap: 10px; margin: 0; height: 100vh; }
-        .col { background: #222; padding: 15px; overflow-y: auto; border-right: 1px solid #444; }
-        .card { background: #000; padding: 10px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #333; }
-        button { width: 100%; padding: 8px; margin: 2px 0; cursor: pointer; font-weight: bold; border-radius: 4px; border: none; }
+        body { font-family: sans-serif; background: #1a1a1a; color: white; display: grid; grid-template-columns: 320px 1fr 320px; gap: 10px; margin: 0; height: 100vh; }
+        .col { background: #2a2a2a; padding: 15px; overflow-y: auto; border-right: 1px solid #444; }
+        h2 { font-size: 16px; color: #fbbf24; border-bottom: 1px solid #444; padding-bottom: 5px; }
+        .card { background: #111; padding: 12px; border-radius: 8px; margin-bottom: 10px; }
+        button { width: 100%; padding: 10px; margin: 3px 0; cursor: pointer; font-weight: bold; border-radius: 4px; border: none; transition: 0.2s; }
         .btn-green { background: #22c55e; color: white; }
         .btn-red { background: #ef4444; color: white; }
         .btn-blue { background: #3b82f6; color: white; }
-        .q-item { padding: 8px; background: #333; margin-bottom: 5px; cursor: pointer; font-size: 13px; border-radius: 4px; }
+        .btn-gold { background: #fbbf24; color: black; }
+        .q-item { padding: 10px; background: #333; margin-bottom: 5px; cursor: pointer; font-size: 13px; border-radius: 4px; border-left: 4px solid #fbbf24; }
         .q-item:hover { background: #444; }
-        input { width: 100%; padding: 5px; background: #111; color: #fbbf24; border: 1px solid #444; }
-        .sciaga { font-size: 12px; color: #aaa; line-height: 1.4; }
+        input { width: 100%; padding: 6px; background: #000; color: #fbbf24; border: 1px solid #444; margin: 4px 0; }
+        .sciaga { font-size: 13px; color: #fbbf24; line-height: 1.6; background: #000; padding: 10px; border-radius: 5px; }
     </style>
 </head>
 <body>
@@ -27,63 +29,97 @@
         <div id="bank-final"></div>
     </div>
 
-    <div class="col" style="background:#151515">
+    <div class="col">
         <div class="card">
-            <input type="text" id="target" placeholder="KOD TABLICY">
-            <button onclick="connect()" class="btn-green">POŁĄCZ</button>
+            <input type="text" id="target" placeholder="KOD Z TABLICY">
+            <button onclick="connect()" class="btn-green">POŁĄCZ Z TABLICĄ</button>
+        </div>
+
+        <div class="card">
+            <h2>MULTIMEDIA</h2>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:5px">
+                <button onclick="playMedia('video')" class="btn-gold">CZOŁÓWKA (MP4)</button>
+                <button onclick="playMedia('intro')" class="btn-gold">INTRO (MP3)</button>
+                <button onclick="playMedia('powtorzenie')" class="btn-gold">POWTÓRZENIE</button>
+            </div>
         </div>
         
         <div id="ctrl-normal">
-            <h3>KONTROLA RUNDY</h3>
+            <h2>EDYCJA RUNDY</h2>
             <div id="inputs-normal"></div>
         </div>
 
         <div id="ctrl-final" style="display:none">
-            <h3>KONTROLA FINAŁU</h3>
+            <h2>EDYCJA FINAŁU</h2>
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px">
                 <div id="f1-inputs"></div>
                 <div id="f2-inputs"></div>
             </div>
         </div>
 
-        <div class="card" style="margin-top:20px">
-            <h3>BŁĘDY (X)</h3>
+        <div class="card">
+            <h2>BŁĘDY (X)</h2>
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:5px">
-                <button onclick="sendX('L',1)" class="btn-red">LEWY X</button>
-                <button onclick="sendX('R',1)" class="btn-red">PRAWY X</button>
-                <button onclick="sendX('L',2)" class="btn-red">LEWY XX</button>
-                <button onclick="sendX('R',2)" class="btn-red">PRAWY XX</button>
+                <button onclick="sendX('L',1)" class="btn-red">L: X</button>
+                <button onclick="sendX('R',1)" class="btn-red">R: X</button>
+                <button onclick="sendX('L',2)" class="btn-red">L: XX</button>
+                <button onclick="sendX('R',2)" class="btn-red">R: XX</button>
+                <button onclick="sendX('L',3)" class="btn-red">L: XXX</button>
+                <button onclick="sendX('R',3)" class="btn-red">R: XXX</button>
             </div>
         </div>
     </div>
 
     <div class="col">
-        <h2>ŚCIĄGA (FINAŁ)</h2>
-        <div id="sciaga-content" class="sciaga">Wybierz zestaw finałowy...</div>
+        <h2>ŚCIĄGA DLA PROWADZĄCEGO</h2>
+        <div id="sciaga-content" class="sciaga">Zaladuj zestaw...</div>
         <hr>
-        <button onclick="startTimer(15)" class="btn-blue">START 15s</button>
-        <button onclick="startTimer(20)" class="btn-blue">START 20s</button>
-        <h1 id="timer" style="text-align:center; font-size:50px">00</h1>
+        <div class="card">
+            <h1 id="timer" style="text-align:center; font-size:60px; margin: 10px 0;">00</h1>
+            <button onclick="startTimer(15)" class="btn-blue">TIMER 15s</button>
+            <button onclick="startTimer(20)" class="btn-blue">TIMER 20s</button>
+        </div>
     </div>
 
+    <audio id="snd-intro" src="intro.mp3"></audio>
+    <audio id="snd-powtorzenie" src="powtorzenie.mp3"></audio>
     <audio id="snd-ok" src="ok.mp3"></audio>
     <audio id="snd-zle" src="zle.mp3"></audio>
 
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script>
         let conn, total = 0, peer = new Peer();
-        const zestawyNormal = [
-            { q: "Co pijemy rano?", a: ["KAWA","HERBATA","WODA","SOK"], p: [45,30,15,10] },
-            { q: "Zwierzę na K", a: ["KOT","KOŃ","KROWA","KURA"], p: [50,20,20,10] }
-        ];
-        const zestawyFinal = [
-            { q: "ZESTAW ŚWIĄTECZNY", a: ["PIERNIK","KEKS","KARP","CHOINKA","BARTOSZ"], p: [40,25,15,10,10] }
+        
+        // ROZBUDOWANA BAZA PYTAŃ
+        const bNormal = [
+            { q: "Więcej niż jedno zwierzę?", a: ["STADO","KLUCZ","PARA","WATAHA","ŁAWICA"], p:[40,25,15,10,10] },
+            { q: "Przedmiot w szkolnym piórniku?", a: ["DŁUGOPIS","OŁÓWEK","GUMKA","LINIJKA","CYRKIEL"], p:[35,25,20,10,10] },
+            { q: "Co pijemy rano do śniadania?", a: ["KAWA","HERBATA","SOK","MLEKO","WODA"], p:[45,30,12,8,5] },
+            { q: "Dyscyplina olimpijska?", a: ["BIEGANIE","PŁYWANIE","SIATKÓWKA","TENIS","SKOKI"], p:[30,25,20,15,10] },
+            { q: "Warzywo do zupy jarzynowej?", a: ["MARCHEW","PIETRUSZKA","SELER","POR","ZIEMNIAK"], p:[40,20,15,15,10] },
+            { q: "Coś, co ma koła?", a: ["SAMOCHÓD","ROWER","MOTOCYKL","WÓZEK","TRAKTOR"], p:[50,20,15,10,5] }
         ];
 
-        function connect() { conn = peer.connect(document.getElementById('target').value.toUpperCase()); }
+        const bFinal = [
+            { q: "FINAŁ: ŚWIĘTA", a: ["CHOINKA","KARP","PIEROGI","Mikołaj","Sianko"], p:[42,28,15,10,5] },
+            { q: "FINAŁ: MIASTA", a: ["WARSZAWA","KRAKÓW","WROCŁAW","GDAŃSK","POZNAŃ"], p:[38,24,18,12,8] },
+            { q: "FINAŁ: OWOCE", a: ["JABŁKO","BANAN","TRUSKAWKA","ARBUZ","GRUSZKA"], p:[35,30,15,12,8] }
+        ];
+
+        function connect() { 
+            const id = document.getElementById('target').value.toUpperCase();
+            conn = peer.connect(id); 
+            conn.on('open', () => alert("POŁĄCZONO!"));
+        }
+
+        function playMedia(type) {
+            if(type === 'video') { if(conn) conn.send({type:'VIDEO'}); }
+            else { document.getElementById('snd-'+type).play(); }
+        }
 
         function loadNormal(idx) {
-            const z = zestawyNormal[idx]; total = 0; conn.send({type:'SETUP', count:z.a.length});
+            const z = bNormal[idx]; total = 0; 
+            if(conn) conn.send({type:'SETUP', count:z.a.length});
             document.getElementById('ctrl-normal').style.display='block';
             document.getElementById('ctrl-final').style.display='none';
             const box = document.getElementById('inputs-normal'); box.innerHTML='';
@@ -93,20 +129,20 @@
         }
 
         function loadFinal(idx) {
-            const z = zestawyFinal[idx]; total = 0; conn.send({type:'FINAL_MODE'});
+            const z = bFinal[idx]; total = 0; 
+            if(conn) conn.send({type:'FINAL_MODE'});
             document.getElementById('ctrl-normal').style.display='none';
             document.getElementById('ctrl-final').style.display='block';
-            document.getElementById('sciaga-content').innerHTML = z.a.map((v,i)=>`<b>${i+1}. ${v}</b> (${z.p[i]} pkt)`).join('<br>');
+            document.getElementById('sciaga-content').innerHTML = z.a.map((v,i)=>`<b>${i+1}. ${v}</b> (${z.p[i]})`).join('<br>');
             [1,2].forEach(p => {
                 const box = document.getElementById(`f${p}-inputs`); box.innerHTML=`<h4>GRACZ ${p}</h4>`;
-                for(let i=0; i<5; i++) box.innerHTML += `<div style="margin-bottom:10px"><input id="f${p}-t${i}"><div style="display:flex; gap:2px"><button onclick="revFA(${p},${i})" class="btn-blue">ODP</button><input id="f${p}-p${i}" style="width:40px"><button onclick="revFP(${p},${i})" class="btn-green">PKT</button></div></div>`;
+                for(let i=0; i<5; i++) box.innerHTML += `<div style="margin-bottom:8px"><input id="f${p}-t${i}"><div style="display:flex; gap:2px"><button onclick="revFA(${p},${i})" class="btn-blue">ODP</button><input id="f${p}-p${i}" style="width:40px"><button onclick="revFP(${p},${i})" class="btn-green">PKT</button></div></div>`;
             });
         }
 
         function revN(i) { const t = document.getElementById(`t${i}`).value, p = parseInt(document.getElementById(`p${i}`).value); total+=p; conn.send({type:'REV', idx:i, t, p, total}); document.getElementById('snd-ok').play(); }
         function revFA(p, i) { conn.send({type:'REV_ANS', player:p, idx:i, t: document.getElementById(`f${p}-t${i}`).value}); }
         function revFP(p, i) { const val = parseInt(document.getElementById(`f${p}-p${i}`).value)||0; total+=val; conn.send({type:'REV_PTS', player:p, idx:i, p:val, total}); document.getElementById('snd-ok').play(); }
-        
         function sendX(side, count) { conn.send({type:'X', side, count}); document.getElementById('snd-zle').play(); }
 
         function startTimer(s) {
@@ -115,8 +151,8 @@
         }
 
         const bN = document.getElementById('bank-normal'), bF = document.getElementById('bank-final');
-        zestawyNormal.forEach((z, i) => bN.innerHTML += `<div class="q-item" onclick="loadNormal(${i})">${z.q}</div>`);
-        zestawyFinal.forEach((z, i) => bF.innerHTML += `<div class="q-item" onclick="loadFinal(${i})">${z.q}</div>`);
+        bNormal.forEach((z, i) => bN.innerHTML += `<div class="q-item" onclick="loadNormal(${i})">${z.q}</div>`);
+        bFinal.forEach((z, i) => bF.innerHTML += `<div class="q-item" onclick="loadFinal(${i})">${z.q}</div>`);
     </script>
 </body>
 </html>
