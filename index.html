@@ -1,220 +1,288 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-    <meta charset="UTF-8">
-    <title>FAMILIADA - Rainbow Studio</title>
-    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-    <style>
-        :root {
-            --led-yellow: #f4ff00;
-            --fam-red: #d32f2f;
-            --fam-blue: #1976d2;
-        }
+<meta charset="UTF-8">
+<title>FAMILIADA – Rainbow Studio</title>
+<link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 
-        body {
-            margin: 0;
-            height: 100vh;
-            background-color: #000;
-            font-family: 'VT323', monospace;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
+<style>
+:root{
+    --led:#f4ff00;
+    --red:#d32f2f;
+    --blue:#1976d2;
+}
 
-        /* 1. TŁO PODZIELONE PIONOWO */
-        .background {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            z-index: 1;
-        }
-        .bg-l { flex: 1; background: var(--fam-red); }
-        .bg-r { flex: 1; background: var(--fam-blue); }
+body{
+    margin:0;
+    height:100vh;
+    background:#000;
+    font-family:'VT323', monospace;
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+}
 
-        /* 2. CZARNY PAS JAK TĘCZA */
-        .top-rainbow-arch {
-            position: relative;
-            z-index: 10;
-            width: 100%;
-            height: 280px;
-            display: flex;
-            justify-content: center;
-            margin-top: 30px;
-        }
+/* TŁO */
+.background{
+    position:absolute;
+    inset:0;
+    display:flex;
+    z-index:1;
+}
+.bg-l{flex:1;background:var(--red);}
+.bg-r{flex:1;background:var(--blue);}
+.background::after{
+    content:"";
+    position:absolute;
+    left:50%;
+    top:0;
+    width:6px;
+    height:100%;
+    background:#000;
+}
 
-        .black-bar {
-            position: absolute;
-            width: 115%;
-            height: 400px;
-            background: #000;
-            /* Wygięcie paska w łuk/tęczę */
-            border-radius: 50% 50% 0 0; 
-            border-top: 5px solid #1a1a1a;
-            display: flex;
-            justify-content: center;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.7);
-        }
+/* GÓRNY ŁUK */
+.top-rainbow-arch{
+    position:relative;
+    z-index:10;
+    width:100%;
+    height:230px;
+    margin-top:20px;
+    display:flex;
+    justify-content:center;
+}
 
-        /* 3. PASKI WEWNĄTRZ CZARNEGO PASA (WYGIĘTE) */
-        .inner-rainbow-lines {
-            position: absolute;
-            top: 45px;
-            width: 85%;
-            height: 300px;
-            pointer-events: none;
-        }
+.black-bar{
+    position:absolute;
+    width:120%;
+    height:260px;
+    background:#000;
+    border-radius:0 0 180px 180px;
+    border-bottom:4px solid #1a1a1a;
+    box-shadow:0 15px 50px rgba(0,0,0,.9);
+    display:flex;
+    justify-content:center;
+}
 
-        .line {
-            position: absolute;
-            width: 42%;
-            height: 100%;
-            border-top: 5px solid;
-            /* To samo wygięcie co czarny pas */
-            border-radius: 50% 50% 0 0;
-        }
+.inner-rainbow-lines{
+    position:absolute;
+    top:20px;
+    width:85%;
+    height:220px;
+    pointer-events:none;
+}
 
-        .line-red {
-            left: 2%;
-            border-color: #ff3333;
-            filter: drop-shadow(0 0 10px #ff0000);
-        }
+.line{
+    position:absolute;
+    width:42%;
+    height:100%;
+    border-bottom:3px solid;
+    border-radius:0 0 160px 160px;
+}
 
-        .line-blue {
-            right: 2%;
-            border-color: #33aaff;
-            filter: drop-shadow(0 0 10px #0066ff);
-        }
+.line-red{
+    left:2%;
+    border-color:#ff3333;
+    filter:drop-shadow(0 0 10px #ff0000);
+}
+.line-blue{
+    right:2%;
+    border-color:#33aaff;
+    filter:drop-shadow(0 0 10px #0066ff);
+}
 
-        /* LICZNIK SUMA - NA SZCZYCIE ŁUKU */
-        .suma-display {
-            position: relative;
-            margin-top: 20px;
-            background: #000;
-            border: 3px solid var(--led-yellow);
-            width: 150px;
-            height: 80px;
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            padding-right: 15px;
-            z-index: 20;
-            box-shadow: 0 0 15px rgba(244,255,0,0.3) inset;
-        }
-        #suma-val { color: var(--led-yellow); font-size: 90px; line-height: 1; }
+/* SUMA */
+.suma-display{
+    position:absolute;
+    top:160px;
+    background:#050505;
+    border:3px solid var(--led);
+    width:140px;
+    height:70px;
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    padding-right:12px;
+    box-shadow:inset 0 0 15px rgba(244,255,0,.4);
+}
+#suma-val{
+    font-size:72px;
+    color:var(--led);
+    text-shadow:0 0 10px var(--led);
+}
 
-        /* 4. SCENA: TABLICA I WYNIKI DRUŻYN */
-        .stage {
-            position: relative;
-            z-index: 50;
-            display: flex;
-            align-items: center;
-            gap: 40px;
-            margin-top: -60px; /* Podciągnięcie pod łuk */
-        }
+/* SCENA */
+.stage{
+    position:relative;
+    z-index:50;
+    display:flex;
+    align-items:center;
+    gap:35px;
+    margin-top:-40px;
+}
 
-        .team-box {
-            width: 180px;
-            height: 110px;
-            background: #000;
-            border: 4px solid #fff; /* Biała ramka jak na rysunku */
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            padding-right: 15px;
-            color: var(--led-yellow);
-            font-size: 110px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.8);
-        }
+.team-box{
+    width:170px;
+    height:100px;
+    background:#000;
+    border:3px solid #eee;
+    border-radius:10px;
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    padding-right:15px;
+    color:var(--led);
+    font-size:100px;
+    box-shadow:inset 0 0 15px #000;
+    text-shadow:0 0 8px var(--led);
+}
 
-        .board-main {
-            width: 900px;
-            height: 520px;
-            background: #000;
-            border: 4px solid #333;
-            border-radius: 90px; /* Zaokrąglona tablica */
-            padding: 35px 55px;
-            box-shadow: inset 0 0 60px #000;
-        }
+.board-main{
+    width:900px;
+    height:500px;
+    background:#000;
+    border:5px solid #1c1c1c;
+    border-radius:35px;
+    padding:30px 50px;
+    box-shadow:inset 0 0 30px #000,0 0 25px rgba(0,0,0,.9);
+}
 
-        .row { display: flex; align-items: center; height: 85px; font-size: 85px; border-bottom: 2px solid #0d0d0d; }
-        .num { width: 60px; color: #1a1a1a; }
-        .ans { flex-grow: 1; color: var(--led-yellow); letter-spacing: 2px; }
-        .pts { width: 100px; text-align: right; color: var(--led-yellow); }
+.row{
+    display:flex;
+    align-items:center;
+    height:70px;
+    font-size:72px;
+    border-bottom:1px solid #111;
+}
+.num{
+    width:60px;
+    color:#222;
+}
+.ans{
+    flex:1;
+    color:var(--led);
+    letter-spacing:2px;
+    text-shadow:0 0 6px var(--led);
+}
+.pts{
+    width:100px;
+    text-align:right;
+    color:var(--led);
+    text-shadow:0 0 6px var(--led);
+}
 
-        #x-overlay { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.95); z-index: 1000; }
-        .x-text { font-size: 600px; color: red; font-weight: bold; font-family: Arial; }
-        #setup { position: fixed; inset: 0; background: #000; z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; }
-    </style>
+/* X */
+#x-overlay{
+    position:fixed;
+    inset:0;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    background:rgba(0,0,0,.95);
+    z-index:1000;
+}
+.x-text{
+    font-size:600px;
+    color:red;
+    font-weight:bold;
+    font-family:Arial;
+}
+
+/* SETUP */
+#setup{
+    position:fixed;
+    inset:0;
+    background:#000;
+    z-index:2000;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    color:white;
+}
+</style>
 </head>
+
 <body>
 
-    <div id="setup">
-        <div id="code" style="font-size: 80px; color: var(--led-yellow);">----</div>
-        <button onclick="init()" style="padding: 20px 50px; font-size: 26px; cursor: pointer; background: var(--led-yellow); border: none; font-weight: bold; margin-top: 20px;">START TRANSMISJI</button>
-    </div>
+<div id="setup">
+    <div id="code" style="font-size:80px;color:var(--led);">----</div>
+    <button onclick="init()" style="padding:20px 50px;font-size:26px;background:var(--led);border:none;font-weight:bold;cursor:pointer;margin-top:20px;">
+        START TRANSMISJI
+    </button>
+</div>
 
-    <div class="background">
-        <div class="bg-l"></div>
-        <div class="bg-r"></div>
-    </div>
+<div class="background">
+    <div class="bg-l"></div>
+    <div class="bg-r"></div>
+</div>
 
-    <div class="top-rainbow-arch">
-        <div class="black-bar">
-            <div class="inner-rainbow-lines">
-                <div class="line line-red"></div>
-                <div class="line line-blue"></div>
-            </div>
-            <div class="suma-display">
-                <span id="suma-val">0</span>
-            </div>
+<div class="top-rainbow-arch">
+    <div class="black-bar">
+        <div class="inner-rainbow-lines">
+            <div class="line line-red"></div>
+            <div class="line line-blue"></div>
+        </div>
+        <div class="suma-display">
+            <span id="suma-val">0</span>
         </div>
     </div>
+</div>
 
-    <div id="x-overlay"><div class="x-text" id="x-val">X</div></div>
+<div id="x-overlay"><div class="x-text" id="x-val">X</div></div>
 
-    <div class="stage">
-        <div class="team-box"><span id="score-L">0</span></div>
-        <div class="board-main"><div id="board-content"></div></div>
-        <div class="team-box"><span id="score-R">0</span></div>
+<div class="stage">
+    <div class="team-box"><span id="score-L">0</span></div>
+    <div class="board-main">
+        <div id="board-content"></div>
     </div>
+    <div class="team-box"><span id="score-R">0</span></div>
+</div>
 
-    <script>
-        let peer;
-        function init() {
-            const id = Math.random().toString(36).substring(2, 5).toUpperCase();
-            document.getElementById('code').innerText = id;
-            document.getElementById('setup').style.display = 'none';
-            peer = new Peer(id);
-            peer.on('open', () => {
-                peer.on('connection', conn => {
-                    conn.on('data', d => {
-                        if(d.type.startsWith('SETUP')) {
-                            document.getElementById('suma-val').innerText = "0";
-                            let h = "";
-                            for(let i=1; i<=6; i++) h += `<div class="row"><div class="num">${i}</div><div class="ans" id="ans-${i}">..........</div><div class="pts" id="pts-${i}"></div></div>`;
-                            document.getElementById('board-content').innerHTML = h;
-                        }
-                        if(d.type === 'REV') {
-                            document.getElementById(`ans-${d.idx+1}`).innerText = d.t;
-                            document.getElementById(`pts-${d.idx+1}`).innerText = d.p;
-                            let s = document.getElementById('suma-val');
-                            s.innerText = parseInt(s.innerText) + parseInt(d.p);
-                        }
-                        if(d.type === 'X') {
-                            document.getElementById('x-overlay').style.display = 'flex';
-                            document.getElementById('x-val').innerText = "X".repeat(d.count);
-                            setTimeout(() => document.getElementById('x-overlay').style.display = 'none', 1200);
-                        }
-                        if(d.type === 'SCORE_SYNC') {
-                            document.getElementById('score-L').innerText = d.l;
-                            document.getElementById('score-R').innerText = d.r;
-                        }
-                    });
-                });
-            });
-        }
-    </script>
+<script>
+let peer;
+
+function init(){
+    const id=Math.random().toString(36).substring(2,5).toUpperCase();
+    document.getElementById('code').innerText=id;
+    document.getElementById('setup').style.display='none';
+
+    peer=new Peer(id);
+    peer.on('connection',conn=>{
+        conn.on('data',d=>{
+            if(d.type.startsWith('SETUP')){
+                document.getElementById('suma-val').innerText="0";
+                let h="";
+                for(let i=1;i<=6;i++){
+                    h+=`<div class="row">
+                        <div class="num">${i}</div>
+                        <div class="ans" id="ans-${i}">..........</div>
+                        <div class="pts" id="pts-${i}"></div>
+                    </div>`;
+                }
+                document.getElementById('board-content').innerHTML=h;
+            }
+            if(d.type==="REV"){
+                document.getElementById(`ans-${d.idx+1}`).innerText=d.t;
+                document.getElementById(`pts-${d.idx+1}`).innerText=d.p;
+                const s=document.getElementById('suma-val');
+                s.innerText=parseInt(s.innerText)+parseInt(d.p);
+            }
+            if(d.type==="X"){
+                document.getElementById('x-overlay').style.display='flex';
+                document.getElementById('x-val').innerText="X".repeat(d.count);
+                setTimeout(()=>document.getElementById('x-overlay').style.display='none',1200);
+            }
+            if(d.type==="SCORE_SYNC"){
+                document.getElementById('score-L').innerText=d.l;
+                document.getElementById('score-R').innerText=d.r;
+            }
+        });
+    });
+}
+</script>
+
 </body>
 </html>
