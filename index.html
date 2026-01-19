@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA - TABLICA Z RAMKĄ</title>
+    <title>FAMILIADA - TABLICA OBŁA</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
@@ -10,7 +10,7 @@
             --yellow: #fefe00; 
             --grid-line: #1a1b21;
             --bg-black: #0d0e12;
-            --frame-color: #1d1e24; /* Kolor ramki */
+            --frame-color: #1a1b21;
         }
 
         body { 
@@ -21,85 +21,88 @@
             font-family: 'VT323', monospace;
         }
 
-        /* Zewnętrzna, gruba obudowa (Ramka) */
-        .outer-shell {
+        /* Główna obudowa - Kształt zaokrąglonej pigułki */
+        .board-frame {
             background-color: var(--frame-color);
-            padding: 25px; /* Grubość ramki */
-            border-radius: 45px; /* Mocno zaokrąglone rogi jak na zdjęciu */
-            box-shadow: 
-                0 40px 100px rgba(0,0,0,0.8), /* Cień pod tablicą */
-                inset 0 0 15px rgba(255,255,255,0.05); /* Delikatny połysk na krawędzi */
-            border: 2px solid #2a2b33;
+            padding: 35px; /* Bardzo gruba ramka */
+            border-radius: 120px; /* Ekstremalne zaokrąglenie boków */
+            box-shadow: 0 50px 100px rgba(0,0,0,0.8);
+            border: 4px solid #2a2b33;
+            width: 95vw;
+            max-width: 1300px;
+            box-sizing: border-box;
         }
 
-        /* Wewnętrzny ekran (Czarny obszar z siatką) */
-        .inner-screen {
-            position: relative;
-            width: 90vw;
-            max-width: 1250px;
-            height: 80vh;
+        /* Wnętrze tablicy - również zaokrąglone */
+        .screen-content {
             background-color: var(--bg-black);
-            /* Siatka */
             background-image: 
                 linear-gradient(var(--grid-line) 2px, transparent 2px),
                 linear-gradient(90deg, var(--grid-line) 2px, transparent 2px);
             background-size: 50px 50px;
-            border-radius: 25px;
+            border-radius: 85px; /* Zaokrąglenie dopasowane do ramki */
+            height: 75vh;
+            position: relative;
             display: flex;
-            padding: 40px;
+            padding: 50px 80px; /* Większy margines boczny ze względu na łuki */
             box-sizing: border-box;
-            /* Efekt wklęsłego ekranu */
-            box-shadow: inset 0 0 30px #000;
-            overflow: hidden;
+            box-shadow: inset 0 0 50px #000;
         }
 
-        .answers-part { flex: 4; display: flex; flex-direction: column; justify-content: center; }
-        .x-part { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .answers-side { flex: 5; display: flex; flex-direction: column; justify-content: center; }
+        .x-side { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; }
 
-        .row { display: flex; align-items: center; height: 95px; font-size: 85px; color: var(--yellow); margin-bottom: 10px; }
-        .num { width: 70px; }
+        .row { display: flex; align-items: center; height: 100px; font-size: 90px; color: var(--yellow); margin-bottom: 10px; }
+        .num { width: 80px; }
         .ans { flex-grow: 1; text-transform: uppercase; letter-spacing: 5px; }
-        .pts { width: 130px; text-align: right; }
+        .pts { width: 140px; text-align: right; }
 
-        .x-big { font-size: 190px; color: var(--yellow); font-family: 'Arial Black', sans-serif; font-weight: bold; display: none; line-height: 0.7; text-shadow: 0 0 30px var(--yellow); }
+        .x-big { font-size: 200px; color: var(--yellow); font-family: 'Arial Black', sans-serif; display: none; text-shadow: 0 0 40px var(--yellow); }
 
-        .suma-label { position: absolute; bottom: 40px; right: 260px; font-size: 85px; color: var(--yellow); }
+        .suma-final { 
+            position: absolute; 
+            bottom: 50px; 
+            right: 200px; 
+            font-size: 90px; 
+            color: var(--yellow); 
+            font-weight: bold;
+        }
 
         #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 1000; display: flex; justify-content: center; align-items: center; }
-        button { padding: 25px 50px; font-size: 30px; cursor: pointer; background: var(--yellow); border: none; border-radius: 15px; font-weight: bold; color: black; }
+        button { padding: 30px 60px; font-size: 40px; cursor: pointer; background: var(--yellow); border: none; border-radius: 20px; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div id="overlay">
-        <button onclick="start()">POŁĄCZ TABLICĘ</button>
+        <button onclick="init()">START GRY</button>
     </div>
 
-    <div class="outer-shell">
-        <div class="inner-screen">
-            <div class="answers-part" id="rows-container">
+    <div class="board-frame">
+        <div class="screen-content">
+            <div class="answers-side" id="rows-output">
                 </div>
 
-            <div class="x-part">
+            <div class="x-side">
                 <div class="x-big" id="x1">X</div>
                 <div class="x-big" id="x2">X</div>
                 <div class="x-big" id="x3">X</div>
             </div>
 
-            <div class="suma-label">
-                SUMA <span id="val-total" style="margin-left: 50px;">0</span>
+            <div class="suma-final">
+                SUMA <span id="suma-total" style="margin-left: 40px;">0</span>
             </div>
         </div>
     </div>
 
-    <audio id="s-ok" src="ok.mp3"></audio>
-    <audio id="s-zle" src="zle.mp3"></audio>
+    <audio id="snd-ok" src="ok.mp3"></audio>
+    <audio id="snd-zle" src="zle.mp3"></audio>
 
     <script>
         let peer;
-        function start() {
+        function init() {
             const id = Math.random().toString(36).substring(2,5).toUpperCase();
-            alert("KOD PANELU: " + id);
+            alert("KOD: " + id);
             peer = new Peer(id);
             peer.on('connection', conn => {
                 document.getElementById('overlay').style.display = 'none';
@@ -109,20 +112,20 @@
                         for(let i=1; i<=data.c; i++) {
                             html += `<div class="row"><div class="num">${i}</div><div class="ans" id="a${i}">................</div><div class="pts" id="p${i}">--</div></div>`;
                         }
-                        document.getElementById('rows-container').innerHTML = html;
-                        document.getElementById('val-total').innerText = "0";
+                        document.getElementById('rows-output').innerHTML = html;
+                        document.getElementById('suma-total').innerText = "0";
                         resetX();
                     }
                     if(data.type === 'REV') {
                         document.getElementById('a'+(data.i+1)).innerText = data.t;
                         document.getElementById('p'+(data.i+1)).innerText = data.p;
-                        document.getElementById('val-total').innerText = data.s;
-                        document.getElementById('s-ok').play();
+                        document.getElementById('suma-total').innerText = data.s;
+                        document.getElementById('snd-ok').play();
                     }
                     if(data.type === 'X') {
                         resetX();
                         for(let i=1; i<=data.count; i++) document.getElementById('x'+i).style.display = 'block';
-                        document.getElementById('s-zle').play();
+                        document.getElementById('snd-zle').play();
                     }
                 });
             });
