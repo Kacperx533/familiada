@@ -2,192 +2,139 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA - FINAL GRID</title>
-    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <title>FAMILIADA - LED MATRIX 100x50</title>
     <style>
         :root { 
-            --led-yellow: #ffea00; 
-            --tile-bg: #22242a; /* Kolor tych kafelków ze screena */
-            --board-bg: #15161a; /* Ciemne tło między kafelkami */
+            --led-on: #ffea00; 
+            --led-off: #121214;
+            --bg-color: #08080a;
         }
 
         body { 
-            margin: 0; padding: 0; 
-            background: linear-gradient(90deg, #ff2d6b 0%, #5d82ff 100%) fixed;
-            display: flex; justify-content: center; align-items: center; 
-            height: 100vh; overflow: hidden;
-            font-family: 'VT323', monospace;
+            margin: 0; background: linear-gradient(90deg, #ff2d6b, #5d82ff);
+            height: 100vh; display: flex; justify-content: center; align-items: center;
+            font-family: sans-serif; overflow: hidden;
         }
 
-        /* Główna czarna rama */
-        .outer-frame {
-            background-color: #1a1c22;
-            padding: 20px;
-            border-radius: 40px;
-            box-shadow: 0 50px 100px rgba(0,0,0,0.8);
-            width: 92vw;
-            height: 82vh;
-            display: flex;
-            box-sizing: border-box;
-        }
-
-        /* Siatka kafelków */
-        .led-matrix {
-            flex-grow: 1;
-            background-color: var(--board-bg);
-            display: grid;
-            /* 28 kolumn, 14 wierszy dla idealnych proporcji kafelka */
-            grid-template-columns: repeat(28, 1fr);
-            grid-template-rows: repeat(14, 1fr);
-            gap: 3px; 
-            padding: 5px;
+        /* Rama tablicy */
+        .board-container {
+            background: #000;
+            padding: 10px;
             border-radius: 20px;
-            position: relative;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            border: 8px solid #1a1a1d;
         }
 
-        .tile {
-            background-color: var(--tile-bg);
-            border-radius: 6px; /* Zaokrąglone rogi kafelka ze zdjęcia */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: relative;
+        /* Płótno siatki LED */
+        canvas {
+            background-color: var(--bg-color);
+            display: block;
+            image-rendering: pixelated; /* Ostrość punktów */
         }
 
-        /* Litery i Cyfry */
-        .char {
-            color: var(--led-yellow);
-            font-size: 7.5vh; 
-            font-weight: bold;
-            line-height: 0.8;
-            /* Rozciągnięcie góra-dół jak na screenach */
-            transform: scale(1.2, 1.5);
-            text-shadow: 0 0 10px rgba(255, 234, 0, 0.4);
-            user-select: none;
-        }
-
-        /* X - Błędy (Specyficzny kształt segmentowy) */
-        .x-segment-box {
-            grid-column: span 2;
-            grid-row: span 3;
-            position: relative;
-            display: none;
-        }
-        .x-part {
-            position: absolute;
-            background-color: var(--led-yellow);
-            box-shadow: 0 0 15px var(--led-yellow);
-            border-radius: 10px;
-        }
-        .x-p1 { width: 20%; height: 100%; left: 40%; transform: rotate(45deg); }
-        .x-p2 { width: 20%; height: 100%; left: 40%; transform: rotate(-45deg); }
-
-        #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 100; display: flex; justify-content: center; align-items: center; }
-        button { padding: 25px 50px; font-size: 25px; cursor: pointer; background: var(--led-yellow); border: none; border-radius: 15px; font-weight: bold; }
+        #controls { position: fixed; bottom: 10px; display: flex; gap: 10px; }
+        button { padding: 10px 20px; cursor: pointer; border-radius: 5px; border: none; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <div id="overlay">
-        <button onclick="startBoard()">URUCHOM TABLICĘ</button>
+    <div class="board-container">
+        <canvas id="ledCanvas"></canvas>
     </div>
 
-    <div class="outer-frame">
-        <div class="led-matrix" id="matrix">
-            </div>
+    <div id="controls">
+        <button onclick="testShow()">TEST (NAPISY + X)</button>
+        <button onclick="location.reload()">RESTART</button>
     </div>
-
-    <audio id="snd-ok" src="ok.mp3"></audio>
-    <audio id="snd-err" src="zle.mp3"></audio>
 
     <script>
-        const matrix = document.getElementById('matrix');
-        const rows = 14;
-        const cols = 28;
+        const canvas = document.getElementById('ledCanvas');
+        const ctx = canvas.getContext('2d');
 
-        // Budowa siatki kafelków
-        for(let r=0; r<rows; r++) {
-            for(let c=0; c<cols; c++) {
-                const t = document.createElement('div');
-                t.className = 'tile';
-                t.id = `r${r}c${c}`;
-                matrix.appendChild(t);
+        // Rozdzielczość siatki LED
+        const cols = 120; 
+        const rows = 60;
+        const cellSize = 8; // Wielkość pojedynczej diody
+
+        canvas.width = cols * cellSize;
+        canvas.height = rows * cellSize;
+
+        function drawLED(x, y, state = false) {
+            ctx.fillStyle = state ? '#ffea00' : '#121214';
+            // Rysowanie diody z małym marginesem (efekt siatki)
+            ctx.beginPath();
+            ctx.roundRect(x * cellSize + 1, y * cellSize + 1, cellSize - 2, cellSize - 2, 2);
+            ctx.fill();
+            if(state) {
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = '#ffea00';
+            } else {
+                ctx.shadowBlur = 0;
             }
         }
 
-        // Dodanie kontenerów na X (w stałych miejscach po prawej)
-        function injectX(id, row) {
-            const xCont = document.createElement('div');
-            xCont.className = 'x-segment-box';
-            xCont.id = id;
-            xCont.style.gridRow = `${row} / span 3`;
-            xCont.style.gridColumn = `26 / span 2`;
-            xCont.innerHTML = '<div class="x-part x-p1"></div><div class="x-part x-p2"></div>';
-            matrix.appendChild(xCont);
-        }
-        injectX('x1', 2);
-        injectX('x2', 6);
-        injectX('x3', 10);
-
-        function startBoard() {
-            const code = Math.random().toString(36).substring(2,5).toUpperCase();
-            alert("KOD: " + code);
-            const peer = new Peer(code);
-            
-            peer.on('connection', conn => {
-                document.getElementById('overlay').style.display = 'none';
-                conn.on('data', data => {
-                    if(data.type === 'SET') {
-                        clearBoard();
-                        for(let i=0; i<data.c; i++) renderRow(2+(i*2), i+1, "", "--");
-                        renderSuma(0);
-                    }
-                    if(data.type === 'REV') {
-                        renderRow(2+(data.i*2), data.i+1, data.t, data.p);
-                        renderSuma(data.s);
-                        document.getElementById('snd-ok').play();
-                    }
-                    if(data.type === 'X') {
-                        for(let i=1; i<=3; i++) document.getElementById('x'+i).style.display = (i<=data.count) ? 'block' : 'none';
-                        document.getElementById('snd-err').play();
-                    }
-                });
-            });
-        }
-
-        function renderRow(row, num, text, pts) {
-            // Czyścimy wiersz przed rysowaniem
-            for(let c=2; c<25; c++) document.getElementById(`r${row}c${c}`).innerHTML = '';
-            
-            // Numer
-            document.getElementById(`r${row}c${2}`).innerHTML = `<span class="char">${num}</span>`;
-            
-            // Tekst lub kropki
-            const displayTxt = text ? text.toUpperCase() : "....................";
-            for(let i=0; i<displayTxt.length; i++) {
-                const target = document.getElementById(`r${row}c${4+i}`);
-                if(target) target.innerHTML = `<span class="char">${displayTxt[i]}</span>`;
-            }
-
-            // Punkty
-            const pStr = pts.toString().padStart(2, '-');
-            document.getElementById(`r${row}c${23}`).innerHTML = `<span class="char">${pStr[0]}</span>`;
-            document.getElementById(`r${row}c${24}`).innerHTML = `<span class="char">${pStr[1]}</span>`;
-        }
-
-        function renderSuma(val) {
-            const sTxt = "SUMA";
-            for(let i=0; i<4; i++) document.getElementById(`r${12}c${18+i}`).innerHTML = `<span class="char">${sTxt[i]}</span>`;
-            const vStr = val.toString().padStart(2, '0');
-            document.getElementById(`r${12}c${23}`).innerHTML = `<span class="char">${vStr[0]}</span>`;
-            document.getElementById(`r${12}c${24}`).innerHTML = `<span class="char">${vStr[1]}</span>`;
-        }
-
+        // Czyść tablicę
         function clearBoard() {
-            document.querySelectorAll('.tile').forEach(t => t.innerHTML = '');
-            for(let i=1; i<=3; i++) document.getElementById('x'+i).style.display = 'none';
+            for (let y = 0; y < rows; y++) {
+                for (let x = 0; x < cols; x++) {
+                    drawLED(x, y, false);
+                }
+            }
         }
+
+        // Renderowanie tekstu jako mozaiki LED
+        function drawText(text, startX, startY) {
+            ctx.font = "bold 40px 'Courier New'"; // Używamy fontu monospaced do mapowania
+            ctx.fillStyle = "white";
+            
+            // Tymczasowy canvas do pobrania danych o pikselach tekstu
+            const tempCanvas = document.createElement('canvas');
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCanvas.width = cols;
+            tempCanvas.height = rows;
+            tempCtx.font = "bold 12px Arial"; // Skala mapowania
+            tempCtx.fillText(text.toUpperCase(), startX, startY);
+            
+            const imgData = tempCtx.getImageData(0, 0, cols, rows).data;
+
+            for (let i = 0; i < imgData.length; i += 4) {
+                if (imgData[i + 3] > 128) {
+                    const pixelIdx = i / 4;
+                    const x = pixelIdx % cols;
+                    const y = Math.floor(pixelIdx / cols);
+                    drawLED(x, y, true);
+                }
+            }
+        }
+
+        // Rysowanie dużego X
+        function drawBigX(startX, startY) {
+            for(let i=0; i<8; i++) {
+                drawLED(startX + i, startY + i, true);
+                drawLED(startX + 7 - i, startY + i, true);
+                // Grubszy X
+                drawLED(startX + i + 1, startY + i, true);
+                drawLED(startX + 7 - i - 1, startY + i, true);
+            }
+        }
+
+        function testShow() {
+            clearBoard();
+            // Numeracja i kropki
+            drawText("1 ........................ --", 10, 15);
+            drawText("2 ........................ --", 10, 25);
+            drawText("3 KOT                      23", 10, 35);
+            
+            // Napis SUMA
+            drawText("SUMA  23", 70, 55);
+
+            // Czerwone/Żółte X błędu po prawej
+            drawBigX(105, 10);
+            drawBigX(105, 22);
+            drawBigX(105, 34);
+        }
+
+        clearBoard();
     </script>
 </body>
 </html>
