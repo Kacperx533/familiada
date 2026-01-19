@@ -2,175 +2,222 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA - TABLICA FINALNA</title>
+    <title>FAMILIADA - TABLICA INTERAKTYWNA</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root { 
             --yellow: #fefe00; 
             --grid-line: #1a1b21;
-            --bg-black: #0d0e12;
+            --bg-black: #111217;
         }
 
         body { 
             margin: 0; padding: 0; 
-            background: linear-gradient(to right, #ff2d55 0%, #6383ff 50%, #7592ff 100%) fixed;
+            /* Gradient tła dokładnie jak na Twoich zdjęciach */
+            background: linear-gradient(90deg, #ff2d55 0%, #6383ff 50%, #7592ff 100%) fixed;
             display: flex; justify-content: center; align-items: center; 
             height: 100vh; overflow: hidden;
             font-family: 'VT323', monospace;
         }
 
-        .board-main {
+        /* Zaokrąglona czarna tablica */
+        .main-board {
             position: relative;
-            width: 95vw;
-            max-width: 1300px;
-            height: 85vh;
+            width: 90vw;
+            max-width: 1100px;
+            height: 75vh;
             background-color: var(--bg-black);
+            /* Siatka kwadratów na całej powierzchni */
             background-image: 
                 linear-gradient(var(--grid-line) 2px, transparent 2px),
                 linear-gradient(90deg, var(--grid-line) 2px, transparent 2px);
-            background-size: 50px 50px;
-            border-radius: 40px;
-            border: 15px solid #1a1a1c;
-            box-shadow: 0 50px 100px rgba(0,0,0,0.9);
+            background-size: 40px 40px;
+            border-radius: 30px;
+            box-shadow: 0 40px 80px rgba(0,0,0,0.8);
             display: flex;
-            padding: 40px;
+            padding: 50px;
             box-sizing: border-box;
+            border: 4px solid #1a1a1c;
         }
 
-        .answers-container { flex-grow: 1; display: flex; flex-direction: column; padding-top: 20px; }
+        /* Kontener na odpowiedzi */
+        .content-area {
+            flex: 3;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+        }
 
-        .row { display: flex; align-items: center; height: 90px; font-size: 85px; color: var(--yellow); text-shadow: 3px 3px 0px rgba(0,0,0,0.8); margin-bottom: 10px; z-index: 2; }
-        .num { width: 70px; }
-        .ans { flex-grow: 1; text-transform: uppercase; letter-spacing: 6px; }
-        .pts { width: 120px; text-align: right; margin-right: 40px; }
+        .row {
+            display: flex;
+            align-items: center;
+            height: 70px;
+            font-size: 60px;
+            color: var(--yellow);
+            text-shadow: 0 0 10px rgba(254, 254, 0, 0.4);
+            margin-bottom: 5px;
+        }
 
-        /* FINAŁ - 2 KOLUMNY */
-        .f-row { display: grid; grid-template-columns: 1fr 80px 80px 1fr; gap: 20px; font-size: 65px; color: var(--yellow); height: 80px; align-items: center; z-index: 2; }
+        .num { width: 60px; }
+        .ans { flex-grow: 1; text-transform: uppercase; letter-spacing: 4px; }
+        .pts { width: 100px; text-align: right; }
 
-        .x-column { width: 180px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 15px; z-index: 2; }
-        .x-large { font-size: 180px; color: var(--yellow); font-family: 'Arial Black', sans-serif; font-weight: bold; display: none; text-shadow: 0 0 40px rgba(254, 254, 0, 0.7); }
+        /* Panel na X (po prawej) */
+        .x-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-end;
+            padding-right: 20px;
+        }
 
-        .total-area { position: absolute; bottom: 40px; right: 60px; font-size: 85px; color: var(--yellow); z-index: 2; }
+        .x-symbol {
+            font-size: 140px;
+            color: var(--yellow);
+            font-family: 'Arial Black', sans-serif;
+            font-weight: bold;
+            line-height: 0.8;
+            display: none; /* Domyślnie ukryte */
+            text-shadow: 0 0 30px rgba(254, 254, 0, 0.6);
+        }
 
-        /* STOPER NA ŚRODKU */
+        /* Sekcja SUMA */
+        .suma-box {
+            position: absolute;
+            bottom: 40px;
+            right: 80px;
+            font-size: 65px;
+            color: var(--yellow);
+            display: flex;
+            gap: 40px;
+        }
+
+        /* Stoper */
         #timer-display {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            font-size: 200px; color: var(--yellow); background: var(--bg-black);
-            padding: 20px 60px; border: 8px solid var(--yellow); display: none; z-index: 100;
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 150px;
+            color: var(--yellow);
+            background: var(--bg-black);
+            padding: 10px 40px;
+            border: 6px solid var(--yellow);
+            display: none;
+            z-index: 100;
         }
 
-        #setup-screen { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 1000; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; }
+        #overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.9);
+            z-index: 1000; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; color: white;
+        }
         button { padding: 20px 40px; font-size: 25px; cursor: pointer; background: var(--yellow); border: none; border-radius: 10px; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <div id="setup-screen">
-        <h1 id="status-msg">TABLICA FAMILIADA</h1>
+    <div id="overlay">
+        <h1 id="msg">TABLICA GOTOWA</h1>
         <button onclick="startApp()">URUCHOM TABLICĘ</button>
     </div>
 
-    <div class="board-main">
+    <div class="main-board">
         <div id="timer-display">00:00</div>
-        <div class="answers-container" id="rows-box"></div>
-        <div class="x-column">
-            <div class="x-large" id="x1">X</div>
-            <div class="x-large" id="x2">X</div>
-            <div class="x-large" id="x3">X</div>
+        
+        <div class="content-area" id="answers">
+            </div>
+
+        <div class="x-area">
+            <div class="x-symbol" id="x1">X</div>
+            <div class="x-symbol" id="x2">X</div>
+            <div class="x-symbol" id="x3">X</div>
         </div>
-        <div class="total-area">SUMA <span id="suma-total">0</span></div>
+
+        <div class="suma-box">
+            <span>SUMA</span>
+            <span id="total">0</span>
+        </div>
     </div>
 
-    <audio id="snd-runda" src="runda.mp3"></audio>
-    <audio id="snd-final" src="final.mp3"></audio>
     <audio id="snd-ok" src="ok.mp3"></audio>
     <audio id="snd-zle" src="zle.mp3"></audio>
+    <audio id="snd-runda" src="runda.mp3"></audio>
+    <audio id="snd-final" src="final.mp3"></audio>
 
     <script>
         let peer, tInt;
 
-        function playS(id) { 
-            const s = document.getElementById('snd-' + id);
-            if(s) { s.currentTime = 0; s.play(); }
-        }
-
-        function runTimer(sec) {
-            clearInterval(tInt);
-            const d = document.getElementById('timer-display');
-            d.style.display = 'block';
-            let t = sec;
-            tInt = setInterval(() => {
-                t--;
-                let m = Math.floor(t/60), s = t%60;
-                d.innerText = (m > 0 ? m + ":" : "") + (s < 10 ? "0" + s : s);
-                if(t <= 0) { 
-                    clearInterval(tInt); 
-                    playS('zle'); 
-                    setTimeout(() => d.style.display = 'none', 3000); 
-                }
-            }, 1000);
-        }
-
         function startApp() {
             const id = Math.random().toString(36).substring(2,5).toUpperCase();
-            document.getElementById('status-msg').innerText = "KOD PANELU: " + id;
+            document.getElementById('msg').innerText = "KOD PANELU: " + id;
             peer = new Peer(id);
             
             peer.on('connection', conn => {
-                document.getElementById('setup-screen').style.display = 'none';
+                document.getElementById('overlay').style.display = 'none';
                 conn.on('data', data => {
-                    // ZWYKŁA RUNDA
+                    // RUNDA
                     if(data.type === 'SET') {
                         let html = '';
                         for(let i=1; i<=data.c; i++) {
-                            html += `<div class="row"><div class="num">${i}</div><div class="ans" id="ans${i}">................</div><div class="pts" id="pts${i}">--</div></div>`;
+                            html += `<div class="row">
+                                <div class="num">${i}</div>
+                                <div class="ans" id="a${i}">....................</div>
+                                <div class="pts" id="p${i}">--</div>
+                            </div>`;
                         }
-                        document.getElementById('rows-box').innerHTML = html;
-                        document.getElementById('suma-total').innerText = "0";
-                        playS('runda');
+                        document.getElementById('answers').innerHTML = html;
+                        document.getElementById('total').innerText = "0";
+                        document.getElementById('snd-runda').play();
                         resetX();
                     }
-                    // FINAŁ
-                    if(data.type === 'FIN') {
-                        let html = '';
-                        for(let i=1; i<=5; i++) {
-                            html += `<div class="f-row"><div id="f1a${i}">........</div><div id="f1p${i}">░░</div><div id="f2p${i}">░░</div><div id="f2a${i}" style="text-align:right">........</div></div>`;
-                        }
-                        document.getElementById('rows-box').innerHTML = html;
-                        document.getElementById('suma-total').innerText = "0";
-                        playS('final');
-                    }
-                    // ODSŁANIANIE (Runda i Finał)
+                    // ODSŁANIANIE
                     if(data.type === 'REV') {
-                        document.getElementById('ans'+(data.i+1)).innerText = data.t;
-                        document.getElementById('pts'+(data.i+1)).innerText = data.p;
-                        document.getElementById('suma-total').innerText = data.s;
-                        playS('ok');
+                        document.getElementById('a'+(data.i+1)).innerText = data.t;
+                        document.getElementById('p'+(data.i+1)).innerText = data.p;
+                        document.getElementById('total').innerText = data.s;
+                        document.getElementById('snd-ok').play();
                     }
-                    if(data.type === 'R_A') { document.getElementById(`f${data.pl}a${data.i+1}`).innerText = data.t; }
-                    if(data.type === 'R_P') { 
-                        document.getElementById(`f${data.pl}p${data.i+1}`).innerText = data.p; 
-                        document.getElementById('suma-total').innerText = data.s;
-                        playS('ok'); 
-                    }
-                    // BŁĘDY I STOPER
+                    // BŁĘDY (X)
                     if(data.type === 'X') {
                         resetX();
-                        for(let i=1; i<=data.count; i++) document.getElementById('x'+i).style.display = 'block';
-                        playS('zle');
+                        for(let i=1; i<=data.count; i++) {
+                            document.getElementById('x'+i).style.display = 'block';
+                        }
+                        document.getElementById('snd-zle').play();
                     }
-                    if(data.type === 'T_START') { runTimer(data.s); }
-                    if(data.type === 'SND' && data.f === 'stop') {
-                        clearInterval(tInt);
-                        document.getElementById('timer-display').style.display = 'none';
-                        document.querySelectorAll('audio').forEach(a => {a.pause(); a.currentTime=0;});
+                    // STOPER
+                    if(data.type === 'T_START') {
+                        startTimer(data.s);
+                    }
+                    if(data.type === 'FIN') {
+                        document.getElementById('snd-final').play();
+                        // Tutaj można dodać układ finałowy
                     }
                 });
             });
         }
 
-        function resetX() { document.querySelectorAll('.x-large').forEach(el => el.style.display = 'none'); }
+        function startTimer(sec) {
+            clearInterval(tInt);
+            const display = document.getElementById('timer-display');
+            display.style.display = 'block';
+            let time = sec;
+            tInt = setInterval(() => {
+                time--;
+                display.innerText = time;
+                if(time <= 0) {
+                    clearInterval(tInt);
+                    document.getElementById('snd-zle').play();
+                    setTimeout(() => display.style.display = 'none', 2000);
+                }
+            }, 1000);
+        }
+
+        function resetX() {
+            document.querySelectorAll('.x-symbol').forEach(el => el.style.display = 'none');
+        }
     </script>
 </body>
 </html>
