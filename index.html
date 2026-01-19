@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA - TABLICA OBŁA</title>
+    <title>FAMILIADA - TABLICA POZIOMA</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
@@ -21,116 +21,163 @@
             font-family: 'VT323', monospace;
         }
 
-        /* Główna obudowa - Kształt zaokrąglonej pigułki */
+        /* Ramka - prostokąt w poziomie */
         .board-frame {
             background-color: var(--frame-color);
-            padding: 35px; /* Bardzo gruba ramka */
-            border-radius: 120px; /* Ekstremalne zaokrąglenie boków */
-            box-shadow: 0 50px 100px rgba(0,0,0,0.8);
+            padding: 30px; 
+            border-radius: 40px; /* Zaokrąglone rogi prostokąta */
+            box-shadow: 0 40px 100px rgba(0,0,0,0.8);
             border: 4px solid #2a2b33;
-            width: 95vw;
-            max-width: 1300px;
+            width: 96vw; /* Szeroki prostokąt */
+            max-width: 1400px;
             box-sizing: border-box;
         }
 
-        /* Wnętrze tablicy - również zaokrąglone */
+        /* Wnętrze - prostokątny ekran z siatką */
         .screen-content {
             background-color: var(--bg-black);
             background-image: 
                 linear-gradient(var(--grid-line) 2px, transparent 2px),
                 linear-gradient(90deg, var(--grid-line) 2px, transparent 2px);
             background-size: 50px 50px;
-            border-radius: 85px; /* Zaokrąglenie dopasowane do ramki */
-            height: 75vh;
+            border-radius: 20px;
+            height: 70vh; /* Proporcje prostokąta w poziomie */
             position: relative;
             display: flex;
-            padding: 50px 80px; /* Większy margines boczny ze względu na łuki */
+            padding: 40px 60px;
             box-sizing: border-box;
-            box-shadow: inset 0 0 50px #000;
+            box-shadow: inset 0 0 40px #000;
         }
 
-        .answers-side { flex: 5; display: flex; flex-direction: column; justify-content: center; }
-        .x-side { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        /* Odpowiedzi po lewej */
+        .answers-side {
+            flex: 4;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
 
-        .row { display: flex; align-items: center; height: 100px; font-size: 90px; color: var(--yellow); margin-bottom: 10px; }
-        .num { width: 80px; }
+        /* Błędy po prawej */
+        .x-side {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .row {
+            display: flex;
+            align-items: center;
+            height: 90px;
+            font-size: 85px;
+            color: var(--yellow);
+            text-shadow: 3px 3px 0px rgba(0,0,0,0.8);
+            margin-bottom: 15px;
+        }
+
+        .num { width: 70px; }
         .ans { flex-grow: 1; text-transform: uppercase; letter-spacing: 5px; }
-        .pts { width: 140px; text-align: right; }
+        .pts { width: 130px; text-align: right; }
 
-        .x-big { font-size: 200px; color: var(--yellow); font-family: 'Arial Black', sans-serif; display: none; text-shadow: 0 0 40px var(--yellow); }
+        .x-big {
+            font-size: 180px;
+            color: var(--yellow);
+            font-family: 'Arial Black', sans-serif;
+            font-weight: bold;
+            display: none;
+            line-height: 0.7;
+            text-shadow: 0 0 30px rgba(254, 254, 0, 0.6);
+        }
 
-        .suma-final { 
-            position: absolute; 
-            bottom: 50px; 
-            right: 200px; 
-            font-size: 90px; 
-            color: var(--yellow); 
+        .suma-area {
+            position: absolute;
+            bottom: 40px;
+            right: 250px;
+            font-size: 85px;
+            color: var(--yellow);
             font-weight: bold;
         }
 
-        #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 1000; display: flex; justify-content: center; align-items: center; }
-        button { padding: 30px 60px; font-size: 40px; cursor: pointer; background: var(--yellow); border: none; border-radius: 20px; font-weight: bold; }
+        #overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.95);
+            z-index: 1000; display: flex; justify-content: center; align-items: center;
+        }
+        button { 
+            padding: 25px 50px; font-size: 35px; cursor: pointer; 
+            background: var(--yellow); border: none; border-radius: 15px; font-weight: bold;
+        }
     </style>
 </head>
 <body>
 
     <div id="overlay">
-        <button onclick="init()">START GRY</button>
+        <button onclick="connectTablica()">URUCHOM TABLICĘ</button>
     </div>
 
     <div class="board-frame">
         <div class="screen-content">
-            <div class="answers-side" id="rows-output">
+            <div class="answers-side" id="rows-box">
                 </div>
 
             <div class="x-side">
-                <div class="x-big" id="x1">X</div>
-                <div class="x-big" id="x2">X</div>
-                <div class="x-big" id="x3">X</div>
+                <div class="x-mark x-big" id="x1">X</div>
+                <div class="x-mark x-big" id="x2">X</div>
+                <div class="x-mark x-big" id="x3">X</div>
             </div>
 
-            <div class="suma-final">
-                SUMA <span id="suma-total" style="margin-left: 40px;">0</span>
+            <div class="suma-area">
+                SUMA <span id="suma-val" style="margin-left: 50px;">0</span>
             </div>
         </div>
     </div>
 
-    <audio id="snd-ok" src="ok.mp3"></audio>
-    <audio id="snd-zle" src="zle.mp3"></audio>
+    <audio id="s-ok" src="ok.mp3"></audio>
+    <audio id="s-zle" src="zle.mp3"></audio>
 
     <script>
         let peer;
-        function init() {
+        function connectTablica() {
             const id = Math.random().toString(36).substring(2,5).toUpperCase();
-            alert("KOD: " + id);
+            alert("KOD TWOJEJ TABLICY: " + id);
             peer = new Peer(id);
+            
             peer.on('connection', conn => {
                 document.getElementById('overlay').style.display = 'none';
                 conn.on('data', data => {
                     if(data.type === 'SET') {
-                        let html = '';
+                        let h = '';
                         for(let i=1; i<=data.c; i++) {
-                            html += `<div class="row"><div class="num">${i}</div><div class="ans" id="a${i}">................</div><div class="pts" id="p${i}">--</div></div>`;
+                            h += `<div class="row">
+                                <div class="num">${i}</div>
+                                <div class="ans" id="a${i}">................</div>
+                                <div class="pts" id="p${i}">--</div>
+                            </div>`;
                         }
-                        document.getElementById('rows-output').innerHTML = html;
-                        document.getElementById('suma-total').innerText = "0";
+                        document.getElementById('rows-box').innerHTML = h;
+                        document.getElementById('suma-val').innerText = "0";
                         resetX();
                     }
                     if(data.type === 'REV') {
                         document.getElementById('a'+(data.i+1)).innerText = data.t;
                         document.getElementById('p'+(data.i+1)).innerText = data.p;
-                        document.getElementById('suma-total').innerText = data.s;
-                        document.getElementById('snd-ok').play();
+                        document.getElementById('suma-val').innerText = data.s;
+                        document.getElementById('s-ok').play();
                     }
                     if(data.type === 'X') {
                         resetX();
-                        for(let i=1; i<=data.count; i++) document.getElementById('x'+i).style.display = 'block';
-                        document.getElementById('snd-zle').play();
+                        for(let i=1; i<=data.count; i++) {
+                            document.getElementById('x'+i).style.display = 'block';
+                        }
+                        document.getElementById('s-zle').play();
                     }
                 });
             });
         }
-        function resetX() { document.querySelectorAll('.x-big').forEach(x => x.style.display = 'none'); }
+        function resetX() {
+            document.querySelectorAll('.x-mark').forEach(x => x.style.display = 'none');
+        }
     </script>
 </body>
 </html>
