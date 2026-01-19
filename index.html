@@ -9,7 +9,7 @@
         :root { 
             --led-on: #f4ff00; 
             --led-off: #1a1a10;
-            --bg-dark: #121214;
+            --bg-dark: #0a0a0a;
         }
 
         body { 
@@ -20,172 +20,179 @@
             font-family: 'VT323', monospace;
         }
 
-        /* Obudowa tablicy */
-        .main-frame {
-            position: relative;
-            background: #2a2a2e;
-            padding: 40px;
-            border-radius: 50px;
-            box-shadow: inset 0 0 50px #000, 0 20px 50px rgba(0,0,0,0.8);
-            border: 8px solid #3a3a3e;
+        /* Główna konstrukcja tablicy */
+        .board-container {
             display: flex;
             align-items: center;
+            gap: 20px;
+            padding: 40px;
+            background: #1a1a1c;
+            border-radius: 60px;
+            border: 10px solid #2a2a2e;
+            box-shadow: inset 0 0 50px #000, 0 30px 60px rgba(0,0,0,1);
         }
 
-        /* Ekran z siatką LED */
-        .screen {
-            width: 800px;
-            height: 500px;
-            background: var(--bg-dark);
-            background-image: radial-gradient(var(--led-off) 2px, transparent 2px);
-            background-size: 8px 8px; /* Efekt punktowej matrycy */
-            border-radius: 20px;
-            position: relative;
-            padding: 30px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-around;
-            box-shadow: inset 0 0 30px #000;
-        }
-
-        /* Boczne skrzydła na X */
-        .side-panel {
-            width: 120px;
-            height: 350px;
-            background: #222;
-            margin: 0 10px;
-            border-radius: 10px;
+        /* Boczne skrzydła na błędy (X) */
+        .side-wing {
+            width: 100px;
+            height: 400px;
+            background: #111;
+            border: 4px solid #333;
+            border-radius: 15px;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             gap: 20px;
-            border: 4px solid #333;
+            box-shadow: inset 0 0 20px #000;
         }
 
-        /* Styl wierszy */
+        /* Ekran główny z matrycą punktową */
+        .main-screen {
+            width: 900px;
+            height: 550px;
+            background: var(--bg-dark);
+            background-image: radial-gradient(var(--led-off) 2.5px, transparent 2.5px);
+            background-size: 10px 10px; /* Efekt punktowy jak na zdjęciu */
+            border-radius: 30px;
+            position: relative;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            border: 5px solid #222;
+            box-shadow: inset 0 0 40px #000;
+        }
+
+        /* Wiersze z odpowiedziami */
         .row {
             display: flex;
             align-items: center;
-            font-size: 70px;
-            color: var(--led-on);
-            text-shadow: 0 0 15px var(--led-on);
-            letter-spacing: 4px;
-        }
-        .num { width: 60px; color: var(--led-on); opacity: 0.8; }
-        .ans { flex-grow: 1; text-transform: uppercase; }
-        .pts { width: 100px; text-align: right; }
-
-        /* Styl dla X (Błędy) */
-        .x-symbol {
-            font-size: 100px;
+            height: 85px;
+            font-size: 80px;
             color: var(--led-on);
             text-shadow: 0 0 20px var(--led-on);
-            font-family: Arial, sans-serif;
-            font-weight: bold;
-            display: none;
+            letter-spacing: 5px;
         }
 
-        /* Finał - specjalny układ */
-        .f-row {
-            display: grid;
-            grid-template-columns: 1fr 80px 80px 1fr;
-            gap: 20px;
-            font-size: 55px;
+        .num { width: 70px; opacity: 0.9; }
+        .ans { flex-grow: 1; text-transform: uppercase; white-space: nowrap; overflow: hidden; }
+        .pts { width: 120px; text-align: right; }
+
+        /* Styl dla dużego X */
+        .x-icon {
+            font-size: 120px;
             color: var(--led-on);
-            text-shadow: 0 0 15px var(--led-on);
+            text-shadow: 0 0 25px var(--led-on);
+            font-family: 'Arial Black', sans-serif;
+            display: none; /* Ukryte domyślnie */
         }
 
-        .footer {
+        /* Dolny pasek z sumą */
+        .suma-box {
             position: absolute;
-            bottom: 20px;
-            right: 40px;
-            font-size: 60px;
+            bottom: 30px;
+            right: 60px;
+            font-size: 70px;
             color: var(--led-on);
+            text-shadow: 0 0 20px var(--led-on);
         }
 
-        /* Minutnik */
+        /* Timer na środku */
         #timer-display {
             position: absolute;
             top: 50%; left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 180px;
+            font-size: 200px;
             color: var(--led-on);
-            z-index: 100;
-            background: var(--bg-dark);
-            padding: 20px;
-            border: 4px solid var(--led-on);
+            background: black;
+            padding: 20px 60px;
+            border: 10px solid var(--led-on);
             display: none;
+            z-index: 1000;
+        }
+
+        #setup-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.95);
+            z-index: 9999; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; color: white;
         }
     </style>
 </head>
 <body>
 
-    <div class="main-frame">
-        <div class="side-panel" id="side-l">
-            <div class="x-symbol" id="xl1">X</div>
-            <div class="x-symbol" id="xl2">X</div>
-            <div class="x-symbol" id="xl3">X</div>
+    <div id="setup-overlay">
+        <h1 id="status">TABLICA GOTOWA</h1>
+        <button onclick="startServer()" style="padding: 20px 40px; font-size: 24px; cursor: pointer; border-radius: 10px;">URUCHOM TABLICĘ</button>
+    </div>
+
+    <div class="board-container">
+        <div class="side-wing" id="wing-l">
+            <div class="x-icon" id="xl1">X</div>
+            <div class="x-icon" id="xl2">X</div>
+            <div class="x-icon" id="xl3">X</div>
         </div>
 
-        <div class="screen">
+        <div class="main-screen">
             <div id="timer-display">00:00</div>
-            <div id="rows">
+            <div id="board-rows">
                 </div>
-            <div class="footer">SUMA <span id="suma">0</span></div>
+            <div class="suma-box">SUMA <span id="suma-val">0</span></div>
         </div>
 
-        <div class="side-panel" id="side-r">
-            <div class="x-symbol" id="xr1">X</div>
-            <div class="x-symbol" id="xr2">X</div>
-            <div class="x-symbol" id="xr3">X</div>
+        <div class="side-wing" id="wing-r">
+            <div class="x-icon" id="xr1">X</div>
+            <div class="x-icon" id="xr2">X</div>
+            <div class="x-icon" id="xr3">X</div>
         </div>
     </div>
 
-    <audio id="snd-ok" src="ok.mp3"></audio>
-    <audio id="snd-zle" src="zle.mp3"></audio>
+    <audio id="s-ok" src="ok.mp3"></audio>
+    <audio id="s-zle" src="zle.mp3"></audio>
+
     <script>
-        let peer, tInt;
+        let peer;
 
-        function playS(id) { document.getElementById('snd-'+id)?.play(); }
+        function startServer() {
+            const id = Math.random().toString(36).substring(2,5).toUpperCase();
+            peer = new Peer(id);
+            peer.on('open', code => {
+                document.getElementById('status').innerText = "KOD PANELU: " + code;
+            });
 
-        function showX(side, count) {
-            // Czyść wszystkie X na danej stronie
-            for(let i=1; i<=3; i++) document.getElementById(side.toLowerCase()+i).style.display = 'none';
-            // Pokaż odpowiednią ilość
-            for(let i=1; i<=count; i++) document.getElementById(side.toLowerCase()+i).style.display = 'block';
-            playS('zle');
-        }
-
-        function init() {
-            const id = prompt("Podaj kod sesji (np. GRA1) lub zostaw puste dla losowego:");
-            peer = new Peer(id || undefined);
-            peer.on('open', code => alert("KOD TWOJEJ TABLICY: " + code));
-            
-            peer.on('connection', c => {
-                c.on('data', d => {
-                    if(d.type==='SET'){
+            peer.on('connection', conn => {
+                document.getElementById('setup-overlay').style.display = 'none';
+                conn.on('data', data => {
+                    if(data.type === 'SET') {
                         let html = '';
-                        for(let i=1; i<=d.c; i++) {
+                        for(let i=1; i<=data.c; i++) {
                             html += `<div class="row"><div class="num">${i}</div><div class="ans" id="a${i}">................</div><div class="pts" id="p${i}">--</div></div>`;
                         }
-                        document.getElementById('rows').innerHTML = html;
-                        document.getElementById('suma').innerText = "0";
+                        document.getElementById('board-rows').innerHTML = html;
+                        resetX();
                     }
-                    if(d.type==='REV'){
-                        document.getElementById('a'+(d.i+1)).innerText = d.t;
-                        document.getElementById('p'+(d.i+1)).innerText = d.p;
-                        document.getElementById('suma').innerText = d.s;
-                        playS('ok');
+                    if(data.type === 'REV') {
+                        document.getElementById('a'+(data.i+1)).innerText = data.t;
+                        document.getElementById('p'+(data.i+1)).innerText = data.p;
+                        document.getElementById('suma-val').innerText = data.s;
+                        document.getElementById('s-ok').play();
                     }
-                    if(d.type==='X'){
-                        showX(d.s === 'L' ? 'XL' : 'XR', d.c);
+                    if(data.type === 'X') {
+                        showX(data.side, data.count);
                     }
-                    // Dodaj obsługę FINAŁU i TIMERA podobnie jak wcześniej
                 });
             });
         }
-        init();
+
+        function showX(side, count) {
+            const s = side === 'L' ? 'xl' : 'xr';
+            for(let i=1; i<=3; i++) document.getElementById(s+i).style.display = i <= count ? 'block' : 'none';
+            document.getElementById('s-zle').play();
+        }
+
+        function resetX() {
+            document.querySelectorAll('.x-icon').forEach(x => x.style.display = 'none');
+        }
     </script>
 </body>
 </html>
