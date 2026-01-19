@@ -2,12 +2,14 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA - FULLSCREEN LED</title>
+    <title>FAMILIADA - TABLICA LED FULLSCREEN</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root {
             --led-yellow: #f4ff00;
+            --bg-dark: #0a0a0a;
+            --grid-color: #151515;
         }
 
         body, html {
@@ -17,52 +19,48 @@
             height: 100%;
             background-color: #000;
             overflow: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
             font-family: 'VT323', monospace;
         }
 
-        /* TABLICA LED NA CAŁY EKRAN */
+        /* TABLICA NA CAŁY EKRAN */
         .board {
             width: 100vw;
             height: 100vh;
-            background-color: #050505;
+            background-color: var(--bg-dark);
             position: relative;
-            box-sizing: border-box;
-            padding: 5vh 8vw;
-            
-            /* EFEKT SIATKI LED */
-            background-image: radial-gradient(circle, #1a1a1a 1px, transparent 1px);
-            background-size: 5px 5px;
-            
             display: flex;
             flex-direction: column;
             justify-content: center;
-            border: 5px solid #111;
+            padding: 0 10vw;
+            box-sizing: border-box;
+            
+            /* EFEKT SIATKI KWADRATÓW LED */
+            background-image: 
+                linear-gradient(var(--grid-color) 2px, transparent 2px),
+                linear-gradient(90deg, var(--grid-color) 2px, transparent 2px);
+            background-size: 40px 40px; /* Rozmiar kratek LED */
         }
 
-        /* WIERSZE */
+        /* WIERSZE Z ODPOWIEDZIAMI */
         .row {
             display: flex;
             align-items: center;
             height: 12vh;
             font-size: 11vh;
             color: var(--led-yellow);
-            text-shadow: 0 0 15px rgba(244, 255, 0, 0.5);
-            border-bottom: 2px solid #0d0d0d;
+            text-shadow: 0 0 15px rgba(244, 255, 0, 0.6);
+            border-bottom: 2px solid #111;
         }
 
-        /* NUMERY 1-6 TERAZ SĄ ŻÓŁTE */
+        /* ŻÓŁTE NUMERY 1-6 */
         .num { 
             width: 8vw; 
             color: var(--led-yellow); 
-            text-shadow: 0 0 10px rgba(244, 255, 0, 0.3);
         }
 
         .ans { 
             flex-grow: 1; 
-            letter-spacing: 5px; 
+            letter-spacing: 4px; 
             text-transform: uppercase; 
         }
 
@@ -71,36 +69,38 @@
             text-align: right; 
         }
 
-        /* STOPKA Z SUMĄ - POPRAWIONA CZCIONKA */
+        /* DOLNA SEKCJA Z SUMĄ */
         .board-footer {
             position: absolute;
-            bottom: 4vh;
-            right: 8vw;
+            bottom: 5vh;
+            right: 10vw;
             display: flex;
             align-items: center;
-            gap: 30px;
-            font-size: 9vh; /* Powiększona suma */
+            gap: 40px;
+            font-size: 10vh; /* Duża czcionka dla SUMY */
             color: var(--led-yellow);
-            text-shadow: 0 0 15px rgba(244, 255, 0, 0.5);
+            text-shadow: 0 0 20px rgba(244, 255, 0, 0.7);
         }
 
-        /* NAKŁADKA X */
+        /* CZERWONY X (BŁĄD) */
         #x-overlay {
             position: fixed;
             inset: 0;
             display: none;
             justify-content: center;
             align-items: center;
-            background: rgba(0,0,0,0.85);
+            background: rgba(0,0,0,0.8);
             z-index: 1000;
         }
         .x-mark {
             color: #ff0000;
-            font-size: 70vh;
+            font-size: 80vh;
             font-family: Arial, sans-serif;
             font-weight: bold;
+            text-shadow: 0 0 50px red;
         }
 
+        /* EKRAN STARTOWY */
         #setup { 
             position: fixed; 
             inset: 0; 
@@ -117,8 +117,8 @@
 <body>
 
     <div id="setup">
-        <div id="code" style="font-size: 80px; color: var(--led-yellow); margin-bottom: 20px;">----</div>
-        <button onclick="init()" style="padding: 20px 60px; font-size: 24px; cursor: pointer; background: var(--led-yellow); border: none; font-weight: bold;">URUCHOM TABLICĘ</button>
+        <div id="code" style="font-size: 100px; color: var(--led-yellow); margin-bottom: 30px;">----</div>
+        <button onclick="init()" style="padding: 25px 70px; font-size: 30px; cursor: pointer; background: var(--led-yellow); border: none; font-weight: bold; border-radius: 10px;">POŁĄCZ TABLICĘ</button>
     </div>
 
     <div class="board">
@@ -137,6 +137,7 @@
         let peer;
         const rowsContainer = document.getElementById('board-rows');
 
+        // Funkcja tworząca początkowy stan tablicy
         function createRows() {
             rowsContainer.innerHTML = '';
             for(let i=1; i<=6; i++) {
@@ -144,7 +145,7 @@
                     <div class="row">
                         <div class="num">${i}</div>
                         <div class="ans" id="ans-${i}">....................</div>
-                        <div class="pts" id="pts-${i}"></div>
+                        <div class="pts" id="pts-${i}">--</div>
                     </div>`;
             }
         }
@@ -160,17 +161,21 @@
             peer.on('open', () => {
                 peer.on('connection', conn => {
                     conn.on('data', d => {
+                        // Reset tablicy
                         if(d.type.startsWith('SETUP')) {
                             document.getElementById('suma-val').innerText = "0";
                             createRows();
                         }
+                        // Odkrycie odpowiedzi
                         if(d.type === 'REV') {
                             document.getElementById(`ans-${d.idx+1}`).innerText = d.t;
                             document.getElementById(`pts-${d.idx+1}`).innerText = d.p;
-                            let s = document.getElementById('suma-val');
-                            let currentSuma = parseInt(s.innerText) || 0;
-                            s.innerText = currentSuma + parseInt(d.p);
+                            
+                            let sumaSpan = document.getElementById('suma-val');
+                            let currentSuma = parseInt(sumaSpan.innerText) || 0;
+                            sumaSpan.innerText = currentSuma + parseInt(d.p);
                         }
+                        // Wyświetlenie błędu X
                         if(d.type === 'X') {
                             const overlay = document.getElementById('x-overlay');
                             document.getElementById('x-text').innerText = "X".repeat(d.count);
