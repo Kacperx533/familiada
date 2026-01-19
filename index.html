@@ -2,57 +2,60 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA - TABLICA LED</title>
+    <title>FAMILIADA - TABLICA</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root { --led-yellow: #f4ff00; }
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: 'VT323', monospace; background: #000; }
         
-        /* TŁO ORYGINALNE */
-        #static-bg { position: fixed; inset: 0; background: linear-gradient(90deg, #ff2d55 0%, #6383ff 50%, #7592ff 100%); z-index: -1; }
-        #bg-video { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 100; display: none; object-fit: cover; }
+        /* GWARANTOWANE WIDOCZNE TŁO */
+        #static-bg { 
+            position: fixed; inset: 0; 
+            background: linear-gradient(90deg, #ff2d55 0%, #6383ff 50%, #7592ff 100%) !important; 
+            z-index: 1; 
+        }
 
         .board-outer { 
-            width: 82vw; height: 72vh; background: #1a1a24; border-radius: 40px; padding: 10px; 
-            border: 6px solid #333; position: relative; margin: auto; top: 14vh;
-            box-shadow: 0 0 100px rgba(0,0,0,0.5);
+            position: relative; z-index: 10; /* Tablica nad tłem */
+            width: 85vw; height: 75vh; background: #1a1a24; border-radius: 40px; padding: 10px; 
+            border: 6px solid #333; margin: auto; top: 12vh;
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
         }
         
         .led-matrix { 
             width: 100%; height: 100%; background: #050508; border-radius: 25px; 
-            display: flex; flex-direction: column; 
-            padding: 0 160px; /* BARDZO DUŻY MARGINES NA X */
-            box-sizing: border-box; position: relative;
+            display: flex; flex-direction: column; padding: 0 150px; box-sizing: border-box; 
         }
         
         #board-rows { display: flex; flex-direction: column; width: 100%; height: 100%; justify-content: center; }
-
-        .final-row { display: grid; grid-template-columns: 1fr 80px 80px 1fr; gap: 20px; align-items: center; height: 9vh; font-size: 7.5vh; color: var(--led-yellow); }
         .row { display: flex; align-items: center; width: 100%; height: 9vh; font-size: 8vh; color: var(--led-yellow); }
-        .num { width: 50px; margin-right: 40px; }
-        .ans { flex-grow: 1; text-transform: uppercase; }
-        .pts { width: 90px; text-align: right; }
+        .ans { flex-grow: 1; text-transform: uppercase; color: var(--led-yellow); }
+        .num { width: 50px; color: var(--led-yellow); }
+        .pts { width: 80px; text-align: right; color: var(--led-yellow); }
 
-        .board-footer { position: absolute; bottom: 5%; right: 10%; font-size: 9vh; color: var(--led-yellow); }
+        /* FINAŁ */
+        .final-row { display: grid; grid-template-columns: 1fr 70px 70px 1fr; gap: 20px; align-items: center; height: 9vh; font-size: 7vh; color: var(--led-yellow); }
 
-        /* X BEZ RAMKI - DUŻE I ŚWIECĄCE */
-        .x-container { position: absolute; display: none; z-index: 50; top: 25%; color: var(--led-yellow); font-size: 260px; font-weight: bold; text-shadow: 0 0 50px var(--led-yellow); line-height: 1; }
-        .x-left { left: 10px; }
-        .x-right { right: 10px; }
+        .x-container { position: absolute; display: none; z-index: 100; top: 20%; color: var(--led-yellow); font-size: 250px; font-weight: bold; text-shadow: 0 0 40px var(--led-yellow); }
+        .x-left { left: 20px; } .x-right { right: 20px; }
     </style>
 </head>
 <body>
-    <video id="bg-video" src="czolowka.mp4"></video>
     <div id="static-bg"></div>
+    
     <div class="board-outer">
         <div class="led-matrix">
             <div id="x-l" class="x-container x-left">X</div>
-            <div id="board-rows"></div>
-            <div class="board-footer">SUMA <span id="suma-val">0</span></div>
+            <div id="board-rows">
+                <h1 style="color:white; text-align:center;">KLIKNIJ "POŁĄCZ" I WYBIERZ RUNDĘ W PANELU</h1>
+            </div>
+            <div class="board-footer" style="position:absolute; bottom:5%; right:10%; font-size:8vh; color:var(--led-yellow);">SUMA <span id="suma-val">0</span></div>
             <div id="x-r" class="x-container x-right">X</div>
         </div>
     </div>
+
+    <button onclick="initPeer()" id="btn-conn" style="position:fixed; top:10px; left:10px; z-index:1000; padding:15px; background:yellow; font-weight:bold; cursor:pointer;">POŁĄCZ (GENERUJ KOD)</button>
 
     <script>
         let peer;
@@ -67,35 +70,37 @@
                 }
             } else {
                 for(let i=1; i<=5; i++) {
-                    container.innerHTML += `<div class="final-row"><div class="f-ans-l" id="f1-ans-${i}">........</div><div class="f-pts" id="f1-pts-${i}">░░</div><div class="f-pts" id="f2-pts-${i}">░░</div><div class="f-ans-r" id="f2-ans-${i}">........</div></div>`;
+                    container.innerHTML += `<div class="final-row"><div class="f-ans-l" id="f1-ans-${i}">........</div><div class="f-pts" id="f1-pts-${i}">--</div><div class="f-pts" id="f2-pts-${i}">--</div><div class="f-ans-r" id="f2-ans-${i}">........</div></div>`;
                 }
             }
         }
 
         function initPeer() {
             const id = Math.random().toString(36).substring(2, 5).toUpperCase();
-            document.getElementById('conn-btn').innerText = "KOD: " + id;
+            document.getElementById('btn-conn').innerText = "TWÓJ KOD: " + id;
             peer = new Peer(id);
             peer.on('connection', conn => {
                 conn.on('data', d => {
-                    if(d.type === 'SETUP') { document.getElementById('suma-val').innerText = "0"; updateLayout('normal', d.count); }
-                    if(d.type === 'FINAL_MODE') { document.getElementById('suma-val').innerText = "0"; updateLayout('final', 5); }
-                    if(d.type === 'REV') { document.getElementById(`ans-${d.idx+1}`).innerText = d.t; document.getElementById(`pts-${d.idx+1}`).innerText = d.p; document.getElementById('suma-val').innerText = d.total; }
+                    if(d.type === 'SETUP') { updateLayout('normal', d.count); document.getElementById('suma-val').innerText="0"; }
+                    if(d.type === 'FINAL_MODE') { updateLayout('final', 5); document.getElementById('suma-val').innerText="0"; }
+                    if(d.type === 'REV') { 
+                        document.getElementById(`ans-${d.idx+1}`).innerText = d.t; 
+                        document.getElementById(`pts-${d.idx+1}`).innerText = d.p;
+                        document.getElementById('suma-val').innerText = d.total;
+                    }
                     if(d.type === 'REV_ANS') document.getElementById(`f${d.player}-ans-${d.idx+1}`).innerText = d.t;
-                    if(d.type === 'REV_PTS') { document.getElementById(`f${d.player}-pts-${d.idx+1}`).innerText = d.p; document.getElementById('suma-val').innerText = d.total; }
+                    if(d.type === 'REV_PTS') { 
+                        document.getElementById(`f${d.player}-pts-${d.idx+1}`).innerText = d.p;
+                        document.getElementById('suma-val').innerText = d.total;
+                    }
                     if(d.type === 'X') {
                         const el = document.getElementById(d.side === 'L' ? 'x-l' : 'x-r');
                         el.innerText = "X".repeat(d.count);
                         el.style.display = 'block';
                     }
-                    if(d.type === 'VIDEO') {
-                        const v = document.getElementById('bg-video'); v.style.display='block'; v.play();
-                        v.onended = () => v.style.display='none';
-                    }
                 });
             });
         }
     </script>
-    <button id="conn-btn" onclick="initPeer()" style="position:fixed; top:10px; left:10px; z-index:1000; padding:10px; background:yellow; border:none; font-weight:bold; cursor:pointer;">POŁĄCZ</button>
 </body>
 </html>
