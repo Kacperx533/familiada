@@ -2,165 +2,172 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA - FINAL VERSION</title>
+    <title>FAMILIADA - IDENTYCZNA TABLICA</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root { 
             --yellow: #fefe00; 
-            --grid-line: #1a1b21;
-            --bg-black: #0d0e12;
+            --grid-bg: #1e2128;
+            --bg-black: #15171b;
         }
 
         body { 
             margin: 0; padding: 0; 
-            /* Dokładny gradient: Różowy -> Niebieski z dużą ilością miejsca po bokach */
-            background: linear-gradient(90deg, #f13171 0%, #6383ff 50%, #7592ff 100%) fixed;
+            /* Gradient tła dokładnie jak na zdjęciach */
+            background: linear-gradient(90deg, #f02d6b 0%, #6081ff 50%, #7090ff 100%) fixed;
             display: flex; justify-content: center; align-items: center; 
             height: 100vh; overflow: hidden;
             font-family: 'VT323', monospace;
         }
 
-        /* Obudowa tablicy - mniejsza, aby gradient był widoczny jak na zdjęciu */
-        .outer-frame {
-            background-color: #1a1b21;
+        /* Główna obudowa tablicy */
+        .board-outer {
+            background-color: #121417;
             padding: 20px;
-            border-radius: 35px; /* Zaokrąglony prostokąt */
-            box-shadow: 0 50px 100px rgba(0,0,0,0.8);
-            width: 85vw; /* Zostawia 15% szerokości na gradient */
-            max-width: 1100px;
+            border-radius: 40px; /* Zaokrąglone rogi ramki */
+            box-shadow: 0 40px 80px rgba(0,0,0,0.8);
+            width: 90vw;
+            max-width: 1200px;
             box-sizing: border-box;
-            border: 2px solid #2a2b33;
         }
 
-        /* Ekran z siatką */
-        .screen {
+        /* Ekran z siatką kwadratów */
+        .grid-screen {
             background-color: var(--bg-black);
+            /* Tworzenie siatki kwadratowych pól (identycznie jak na zdjęciu) */
             background-image: 
-                linear-gradient(var(--grid-line) 2px, transparent 2px),
-                linear-gradient(90deg, var(--grid-line) 2px, transparent 2px);
-            background-size: 45px 45px;
-            border-radius: 20px;
-            height: 65vh; /* Proporcje poziomego prostokąta */
+                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            border-radius: 25px;
+            height: 70vh;
             position: relative;
             display: flex;
-            padding: 30px 50px;
+            padding: 40px 50px;
             box-sizing: border-box;
-            box-shadow: inset 0 0 40px #000;
+            box-shadow: inset 0 0 50px #000;
         }
 
-        .ans-col { flex: 4; display: flex; flex-direction: column; justify-content: center; }
-        .x-col { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: flex-end; }
+        /* Odpowiedzi */
+        .answers-area { flex: 4; display: flex; flex-direction: column; justify-content: center; }
+
+        /* Specjalna kolumna na ikony X (segmentowe) */
+        .x-area { 
+            flex: 1; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            align-items: center; 
+            gap: 15px; 
+        }
 
         .row {
             display: flex;
             align-items: center;
-            height: 80px;
-            font-size: 75px;
+            height: 75px;
+            font-size: 70px;
             color: var(--yellow);
-            text-shadow: 2px 2px 0px rgba(0,0,0,0.8);
-            margin-bottom: 8px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            margin-bottom: 5px;
         }
 
         .num { width: 60px; }
-        .ans { flex-grow: 1; text-transform: uppercase; letter-spacing: 4px; }
-        .pts { width: 110px; text-align: right; }
+        .ans { flex-grow: 1; text-transform: uppercase; letter-spacing: 6px; }
+        .pts { width: 100px; text-align: right; margin-right: 20px; }
 
-        /* Błędy X - po prawej */
-        .x-mark {
-            font-size: 160px;
-            color: var(--yellow);
+        /* Styl ikony X (identyczny ze zdjęciem - segmenty) */
+        .x-icon {
+            font-size: 150px;
             font-family: 'Arial Black', sans-serif;
-            font-weight: bold;
+            color: var(--yellow);
+            line-height: 0.8;
             display: none;
-            line-height: 0.7;
-            margin-bottom: 10px;
+            filter: drop-shadow(0 0 15px rgba(254, 254, 0, 0.6));
+            font-weight: bold;
         }
 
-        /* SUMA - w prawym dolnym rogu ekranu */
-        .suma-box {
+        /* SUMA */
+        .total-container {
             position: absolute;
-            bottom: 30px;
-            right: 60px;
-            font-size: 70px;
+            bottom: 40px;
+            right: 180px;
+            font-size: 75px;
             color: var(--yellow);
             display: flex;
-            gap: 40px;
+            gap: 50px;
         }
 
-        #overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.9);
-            z-index: 1000; display: flex; justify-content: center; align-items: center;
-        }
-        button { 
-            padding: 20px 40px; font-size: 30px; cursor: pointer; 
-            background: var(--yellow); border: none; border-radius: 12px; font-weight: bold;
-        }
+        #setup { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; display: flex; justify-content: center; align-items: center; }
+        button { padding: 25px 50px; font-size: 30px; cursor: pointer; background: var(--yellow); border: none; border-radius: 15px; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <div id="overlay">
-        <button onclick="start()">URUCHOM TABLICĘ</button>
+    <div id="setup">
+        <button onclick="connect()">POŁĄCZ TABLICĘ</button>
     </div>
 
-    <div class="outer-frame">
-        <div class="screen">
-            <div class="ans-col" id="rows"></div>
+    <div class="board-outer">
+        <div class="grid-screen">
+            <div class="answers-area" id="main-list">
+                </div>
 
-            <div class="x-col">
-                <div class="x-mark" id="x1">X</div>
-                <div class="x-mark" id="x2">X</div>
-                <div class="x-mark" id="x3">X</div>
+            <div class="x-area">
+                <div class="x-icon" id="err1">X</div>
+                <div class="x-icon" id="err2">X</div>
+                <div class="x-icon" id="err3">X</div>
             </div>
 
-            <div class="suma-box">
+            <div class="total-container">
                 <span>SUMA</span>
-                <span id="total">0</span>
+                <span id="suma-pkt">0</span>
             </div>
         </div>
     </div>
 
-    <audio id="s-ok" src="ok.mp3"></audio>
-    <audio id="s-zle" src="zle.mp3"></audio>
+    <audio id="snd-ok" src="ok.mp3"></audio>
+    <audio id="snd-zle" src="zle.mp3"></audio>
 
     <script>
         let peer;
-        function start() {
-            const id = Math.random().toString(36).substring(2,5).toUpperCase();
-            alert("KOD TWOJEJ TABLICY: " + id);
-            peer = new Peer(id);
+        function connect() {
+            const code = Math.random().toString(36).substring(2,5).toUpperCase();
+            alert("KOD PANELU: " + code);
+            peer = new Peer(code);
             peer.on('connection', conn => {
-                document.getElementById('overlay').style.display = 'none';
+                document.getElementById('setup').style.display = 'none';
                 conn.on('data', data => {
                     if(data.type === 'SET') {
-                        let h = '';
+                        let html = '';
                         for(let i=1; i<=data.c; i++) {
-                            h += `<div class="row">
-                                    <div class="num">${i}</div>
-                                    <div class="ans" id="a${i}">................</div>
-                                    <div class="pts" id="p${i}">--</div>
-                                  </div>`;
+                            html += `<div class="row">
+                                <div class="num">${i}</div>
+                                <div class="ans" id="a${i}">....................</div>
+                                <div class="pts" id="p${i}">--</div>
+                            </div>`;
                         }
-                        document.getElementById('rows').innerHTML = h;
-                        document.getElementById('total').innerText = "0";
+                        document.getElementById('main-list').innerHTML = html;
+                        document.getElementById('suma-pkt').innerText = "0";
                         resetX();
                     }
                     if(data.type === 'REV') {
                         document.getElementById('a'+(data.i+1)).innerText = data.t;
                         document.getElementById('p'+(data.i+1)).innerText = data.p;
-                        document.getElementById('total').innerText = data.s;
-                        document.getElementById('s-ok').play();
+                        document.getElementById('suma-pkt').innerText = data.s;
+                        document.getElementById('snd-ok').play();
                     }
                     if(data.type === 'X') {
                         resetX();
-                        for(let i=1; i<=data.count; i++) document.getElementById('x'+i).style.display = 'block';
-                        document.getElementById('s-zle').play();
+                        for(let i=1; i<=data.count; i++) {
+                            document.getElementById('err'+i).style.display = 'block';
+                        }
+                        document.getElementById('snd-zle').play();
                     }
                 });
             });
         }
-        function resetX() { document.querySelectorAll('.x-mark').forEach(x => x.style.display = 'none'); }
+        function resetX() { document.querySelectorAll('.x-icon').forEach(el => el.style.display = 'none'); }
     </script>
 </body>
 </html>
