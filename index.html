@@ -2,14 +2,14 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA TV - FINAL BUILD</title>
+    <title>FAMILIADA TV - MODERN</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root {
             --led-yellow: #f4ff00;
-            --neon-red: #ff1a1a;
-            --neon-blue: #1a75ff;
+            --neon-red: #ff0000;
+            --neon-blue: #0077ff;
         }
 
         body {
@@ -18,139 +18,115 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-end; /* Tablica niżej, góra wolna */
+            justify-content: center;
             overflow: hidden;
             text-transform: uppercase;
             font-family: 'VT323', monospace;
-            background: linear-gradient(90deg, #800000 0%, #a00000 48%, #0000a0 52%, #000080 100%);
-            padding-bottom: 5vh;
+            /* Gładkie, głębokie tło bez pasków */
+            background: radial-gradient(circle at 50% 150%, #000 0%, transparent 80%),
+                        linear-gradient(90deg, #900 0%, #006 100%);
         }
 
-        /* TŁO: Paski płynące do góry przez cały ekran */
-        body::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(0deg, rgba(0,0,0,0.2) 2px, transparent 2px);
-            background-size: 100% 15px;
-            animation: moveStripes 3s linear infinite;
-            pointer-events: none;
-            z-index: 1;
-        }
-
-        @keyframes moveStripes {
-            from { background-position: 0 0; }
-            to { background-position: 0 -150px; }
-        }
-
-        /* GÓRNA KOPUŁA (CZARNA FÓRA) */
-        .top-studio-ceiling {
+        /* CZARNA "FÓRA" - GÓRNY PANEL */
+        .ceiling-panel {
             position: absolute;
             top: 0;
-            width: 120%;
-            height: 250px;
+            width: 100%;
+            height: 160px;
             background: #000;
-            border-bottom: 4px solid #222;
-            border-radius: 0 0 50% 50%; /* Zaokrąglenie w dół */
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: flex-end;
             padding-bottom: 20px;
-            z-index: 10;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.9);
+            border-bottom: 3px solid #1a1a1a;
+            z-index: 100;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
         }
 
-        /* LICZNIK OSADZONY NA ŚRODKU CZARNEJ GÓRY */
+        /* LICZNIK SUMY W PANELU */
         .top-suma-box {
-            background: #050505;
-            border: 3px solid var(--led-yellow);
-            width: 180px;
-            height: 90px;
+            background: #000;
+            border: 2px solid var(--led-yellow);
+            width: 170px;
+            height: 85px;
             display: flex;
             align-items: center;
             justify-content: flex-end;
             padding-right: 20px;
-            box-shadow: 0 0 20px var(--led-yellow) inset;
-            margin-bottom: 10px;
+            box-shadow: 0 0 15px rgba(244, 255, 0, 0.2) inset;
         }
-        #suma-val { font-size: 100px; color: var(--led-yellow); line-height: 1; }
+        #suma-val { font-size: 90px; color: var(--led-yellow); line-height: 1; }
 
-        /* NEONOWE ŁUKI WYCHODZĄCE Z BOKÓW KOPUŁY */
-        .neon-arch-container {
+        /* LINIE NEONOWE POD PANELEM */
+        .neon-lines-container {
             position: absolute;
-            top: 180px;
-            width: 90%;
-            height: 150px;
-            z-index: 5;
+            top: 157px; /* Dokładnie pod czarnym panelem */
+            width: 95%;
+            height: 100px;
             display: flex;
             justify-content: space-between;
+            z-index: 50;
         }
 
-        .arch {
-            width: 45%;
+        .neon-line {
+            width: 48%;
             height: 100%;
-            border-top: 5px solid;
-            border-radius: 150px 150px 0 0;
+            border-top: 3px solid;
+            border-radius: 100px 100px 0 0;
         }
+        .line-red { border-color: var(--neon-red); box-shadow: 0 -5px 15px var(--neon-red); }
+        .line-blue { border-color: var(--neon-blue); box-shadow: 0 -5px 15px var(--neon-blue); }
 
-        .arch-L { 
-            border-color: var(--neon-red); 
-            box-shadow: 0 -10px 20px var(--neon-red);
-            border-left: 5px solid var(--neon-red);
-        }
-        .arch-R { 
-            border-color: var(--neon-blue); 
-            box-shadow: 0 -10px 20px var(--neon-blue);
-            border-right: 5px solid var(--neon-blue);
-        }
-
-        /* UKŁAD TABLICY I WYNIKÓW */
-        .studio-layout {
+        /* STUDIO LAYOUT */
+        .main-stage {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 25px;
-            z-index: 8;
+            gap: 30px;
+            margin-top: 140px; /* Obniżenie tablicy względem góry */
+            z-index: 10;
         }
 
+        /* PUNKTY W KWADRATACH/PROSTOKĄTACH - MAX W PRAWO */
         .score-box {
             width: 200px;
-            height: 120px;
+            height: 110px;
             background: #000;
-            border: 3px solid var(--led-yellow);
+            border: 2px solid var(--led-yellow);
             display: flex;
             align-items: center;
             justify-content: flex-end;
             padding-right: 20px;
-            font-size: 120px;
+            font-size: 110px;
             color: var(--led-yellow);
-            box-shadow: 0 0 15px var(--led-yellow) inset;
+            box-shadow: 0 0 10px rgba(244, 255, 0, 0.1) inset;
         }
 
+        /* TABLICA Z MOCNYM ZAOKRĄGLENIEM BOKÓW */
         .board-frame {
-            width: 1000px;
-            height: 560px;
+            width: 950px;
+            height: 540px;
             background: #000;
-            border: 4px solid #333;
-            border-radius: 70px; /* Zakrąglone boki jak na foto */
-            padding: 25px 50px;
-            box-shadow: inset 0 0 60px #000;
-            background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 0);
+            border: 2px solid #222;
+            border-radius: 100px; /* Bardzo obłe boki */
+            padding: 30px 60px;
+            box-shadow: inset 0 0 40px #000;
+            background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 0);
             background-size: 12px 12px;
         }
 
         .row {
             display: flex;
             align-items: center;
-            height: 92px;
-            font-size: 92px;
-            border-bottom: 2px solid #0a0a0a;
+            height: 90px;
+            font-size: 90px;
+            border-bottom: 1px solid #080808;
         }
 
         .num { width: 70px; color: #151515; }
         .ans { flex-grow: 1; color: var(--led-yellow); letter-spacing: 2px; }
-        .pts { width: 120px; text-align: right; color: var(--led-yellow); }
+        .pts { width: 110px; text-align: right; color: var(--led-yellow); }
 
         #x-overlay {
             position: fixed;
@@ -158,40 +134,42 @@
             display: none;
             align-items: center;
             justify-content: center;
-            background: rgba(0,0,0,0.96);
+            background: rgba(0,0,0,0.97);
             z-index: 1000;
         }
-        .x-text { font-size: 650px; color: red; font-weight: bold; font-family: Arial; }
+        .x-text { font-size: 600px; color: red; font-weight: bold; font-family: Arial; }
 
-        #setup { position: fixed; inset: 0; background: #000; z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; }
-        button { padding: 20px 60px; font-size: 30px; cursor: pointer; background: var(--led-yellow); border: none; font-weight: bold; }
+        #setup { position: fixed; inset: 0; background: #000; z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        button { padding: 20px 50px; font-size: 24px; cursor: pointer; background: var(--led-yellow); border: none; font-weight: bold; border-radius: 5px; }
     </style>
 </head>
 <body>
 
     <div id="setup">
-        <div id="code" style="font-size: 120px; color: var(--led-yellow); margin-bottom: 30px;"></div>
-        <button onclick="init()">ODPAL SYSTEM</button>
+        <div id="code" style="font-size: 100px; color: var(--led-yellow); margin-bottom: 20px;"></div>
+        <button onclick="init()">START TRANSMISJI</button>
     </div>
 
-    <div class="top-studio-ceiling">
+    <div class="ceiling-panel">
         <div class="top-suma-box">
             <div id="suma-val">0</div>
         </div>
     </div>
 
-    <div class="neon-arch-container">
-        <div class="arch arch-L"></div>
-        <div class="arch arch-R"></div>
+    <div class="neon-lines-container">
+        <div class="neon-line line-red"></div>
+        <div class="neon-line line-blue"></div>
     </div>
 
     <div id="x-overlay"><div class="x-text" id="x-val">X</div></div>
 
-    <div class="studio-layout">
+    <div class="main-stage">
         <div class="score-box"><span id="score-L">0</span></div>
+        
         <div class="board-frame">
             <div id="board-content"></div>
         </div>
+
         <div class="score-box"><span id="score-R">0</span></div>
     </div>
 
