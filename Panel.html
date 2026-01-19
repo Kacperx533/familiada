@@ -2,85 +2,63 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>PANEL KONTROLNY - FAMILIADA</title>
+    <title>FAMILIADA - PANEL</title>
     <style>
-        body { font-family: sans-serif; background: #1a1a1a; color: white; display: grid; grid-template-columns: 320px 1fr 320px; gap: 10px; margin: 0; height: 100vh; }
-        .col { background: #2a2a2a; padding: 15px; overflow-y: auto; border-right: 1px solid #444; }
-        h2 { font-size: 16px; color: #fbbf24; border-bottom: 1px solid #444; padding-bottom: 5px; }
-        .card { background: #111; padding: 12px; border-radius: 8px; margin-bottom: 10px; }
-        button { width: 100%; padding: 10px; margin: 3px 0; cursor: pointer; font-weight: bold; border-radius: 4px; border: none; transition: 0.2s; }
+        body { font-family: sans-serif; background: #1a1a1a; color: white; display: grid; grid-template-columns: 350px 1fr 350px; gap: 10px; margin: 0; height: 100vh; }
+        .col { background: #222; padding: 15px; overflow-y: auto; border-right: 1px solid #444; }
+        button { width: 100%; padding: 12px; margin: 3px 0; cursor: pointer; font-weight: bold; border: none; border-radius: 5px; }
         .btn-green { background: #22c55e; color: white; }
         .btn-red { background: #ef4444; color: white; }
         .btn-blue { background: #3b82f6; color: white; }
-        .btn-gold { background: #fbbf24; color: black; }
-        .q-item { padding: 10px; background: #333; margin-bottom: 5px; cursor: pointer; font-size: 13px; border-radius: 4px; border-left: 4px solid #fbbf24; }
-        .q-item:hover { background: #444; }
-        input { width: 100%; padding: 6px; background: #000; color: #fbbf24; border: 1px solid #444; margin: 4px 0; }
-        .sciaga { font-size: 13px; color: #fbbf24; line-height: 1.6; background: #000; padding: 10px; border-radius: 5px; }
+        .btn-yellow { background: #fbbf24; color: black; }
+        .q-list { background: #333; padding: 10px; margin-bottom: 10px; border-radius: 5px; cursor: pointer; border-left: 5px solid #fbbf24; }
+        .q-list:hover { background: #444; }
+        .sciaga { background: #000; padding: 15px; color: #fbbf24; font-family: monospace; font-size: 14px; border-radius: 10px; }
     </style>
 </head>
 <body>
 
     <div class="col">
-        <h2>RUNDY ZWYKŁE</h2>
-        <div id="bank-normal"></div>
+        <h2>LISTA RUND</h2>
+        <div id="normal-list"></div>
         <hr>
         <h2>FINAŁY</h2>
-        <div id="bank-final"></div>
+        <div id="final-list"></div>
     </div>
 
     <div class="col">
-        <div class="card">
-            <input type="text" id="target" placeholder="KOD Z TABLICY">
-            <button onclick="connect()" class="btn-green">POŁĄCZ Z TABLICĄ</button>
+        <div class="card" style="background:#000; padding:10px; margin-bottom:10px;">
+            <input type="text" id="target" placeholder="KOD TABLICY" style="width:70%; padding:10px;">
+            <button onclick="connect()" class="btn-green" style="width:25%;">POŁĄCZ</button>
         </div>
 
-        <div class="card">
-            <h2>MULTIMEDIA</h2>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:5px">
-                <button onclick="playMedia('video')" class="btn-gold">CZOŁÓWKA (MP4)</button>
-                <button onclick="playMedia('intro')" class="btn-gold">INTRO (MP3)</button>
-                <button onclick="playMedia('powtorzenie')" class="btn-gold">POWTÓRZENIE</button>
-            </div>
-        </div>
-        
-        <div id="ctrl-normal">
-            <h2>EDYCJA RUNDY</h2>
-            <div id="inputs-normal"></div>
+        <button onclick="playMedia('video')" class="btn-yellow">CZOŁÓWKA (WIDEO)</button>
+        <button onclick="playMedia('intro')" class="btn-yellow">INTRO (MUZYKA)</button>
+        <button onclick="playMedia('powtorzenie')" class="btn-yellow">POWTÓRZENIE</button>
+
+        <div id="round-ctrl">
+            <h3 id="round-title">Wybierz rundę...</h3>
+            <div id="inputs-area"></div>
         </div>
 
-        <div id="ctrl-final" style="display:none">
-            <h2>EDYCJA FINAŁU</h2>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px">
-                <div id="f1-inputs"></div>
-                <div id="f2-inputs"></div>
-            </div>
-        </div>
-
-        <div class="card">
-            <h2>BŁĘDY (X)</h2>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:5px">
-                <button onclick="sendX('L',1)" class="btn-red">L: X</button>
-                <button onclick="sendX('R',1)" class="btn-red">R: X</button>
-                <button onclick="sendX('L',2)" class="btn-red">L: XX</button>
-                <button onclick="sendX('R',2)" class="btn-red">R: XX</button>
-                <button onclick="sendX('L',3)" class="btn-red">L: XXX</button>
-                <button onclick="sendX('R',3)" class="btn-red">R: XXX</button>
-            </div>
+        <div id="x-area" style="margin-top:20px; display:grid; grid-template-columns: 1fr 1fr; gap:5px;">
+            <button onclick="sendX('L',1)" class="btn-red">LEWY X</button><button onclick="sendX('R',1)" class="btn-red">PRAWY X</button>
+            <button onclick="sendX('L',2)" class="btn-red">LEWY XX</button><button onclick="sendX('R',2)" class="btn-red">PRAWY XX</button>
+            <button onclick="sendX('L',3)" class="btn-red">LEWY XXX</button><button onclick="sendX('R',3)" class="btn-red">PRAWY XXX</button>
         </div>
     </div>
 
     <div class="col">
-        <h2>ŚCIĄGA DLA PROWADZĄCEGO</h2>
-        <div id="sciaga-content" class="sciaga">Zaladuj zestaw...</div>
+        <h2>ŚCIĄGA</h2>
+        <div id="sciaga" class="sciaga">Zaladuj...</div>
         <hr>
-        <div class="card">
-            <h1 id="timer" style="text-align:center; font-size:60px; margin: 10px 0;">00</h1>
-            <button onclick="startTimer(15)" class="btn-blue">TIMER 15s</button>
-            <button onclick="startTimer(20)" class="btn-blue">TIMER 20s</button>
-        </div>
+        <h1 id="timer-display" style="text-align:center; font-size:70px;">00</h1>
+        <button onclick="startTimer(15)" class="btn-blue">15 SEKUND</button>
+        <button onclick="startTimer(20)" class="btn-blue">20 SEKUND</button>
     </div>
 
+    <audio id="snd-runda" src="runda.mp3"></audio>
+    <audio id="snd-final" src="final.mp3"></audio>
     <audio id="snd-intro" src="intro.mp3"></audio>
     <audio id="snd-powtorzenie" src="powtorzenie.mp3"></audio>
     <audio id="snd-ok" src="ok.mp3"></audio>
@@ -89,70 +67,60 @@
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script>
         let conn, total = 0, peer = new Peer();
-        
-        // ROZBUDOWANA BAZA PYTAŃ
         const bNormal = [
-            { q: "Więcej niż jedno zwierzę?", a: ["STADO","KLUCZ","PARA","WATAHA","ŁAWICA"], p:[40,25,15,10,10] },
-            { q: "Przedmiot w szkolnym piórniku?", a: ["DŁUGOPIS","OŁÓWEK","GUMKA","LINIJKA","CYRKIEL"], p:[35,25,20,10,10] },
-            { q: "Co pijemy rano do śniadania?", a: ["KAWA","HERBATA","SOK","MLEKO","WODA"], p:[45,30,12,8,5] },
-            { q: "Dyscyplina olimpijska?", a: ["BIEGANIE","PŁYWANIE","SIATKÓWKA","TENIS","SKOKI"], p:[30,25,20,15,10] },
-            { q: "Warzywo do zupy jarzynowej?", a: ["MARCHEW","PIETRUSZKA","SELER","POR","ZIEMNIAK"], p:[40,20,15,15,10] },
-            { q: "Coś, co ma koła?", a: ["SAMOCHÓD","ROWER","MOTOCYKL","WÓZEK","TRAKTOR"], p:[50,20,15,10,5] }
+            { q: "RUNDA 1: Przedmiot do pisania", a: ["DŁUGOPIS","OŁÓWEK","PIÓRO","FLAMASTR"], p: [45,30,15,10] },
+            { q: "RUNDA 2: Co pijemy zimne?", a: ["WODA","COLA","PIWO","SOK","LEMONIADA"], p: [40,25,15,10,10] },
+            { q: "RUNDA 3: Zwierzę domowe", a: ["KOT","PIES","CHOMIK","PAPUGA"], p: [50,35,10,5] }
         ];
-
         const bFinal = [
-            { q: "FINAŁ: ŚWIĘTA", a: ["CHOINKA","KARP","PIEROGI","Mikołaj","Sianko"], p:[42,28,15,10,5] },
-            { q: "FINAŁ: MIASTA", a: ["WARSZAWA","KRAKÓW","WROCŁAW","GDAŃSK","POZNAŃ"], p:[38,24,18,12,8] },
-            { q: "FINAŁ: OWOCE", a: ["JABŁKO","BANAN","TRUSKAWKA","ARBUZ","GRUSZKA"], p:[35,30,15,12,8] }
+            { q: "FINAŁ 1: Wakacje", a: ["MORZE","GÓRY","MAZURY","LAS","DOM"], p: [40,25,15,10,10] }
         ];
 
-        function connect() { 
-            const id = document.getElementById('target').value.toUpperCase();
-            conn = peer.connect(id); 
-            conn.on('open', () => alert("POŁĄCZONO!"));
-        }
-
-        function playMedia(type) {
-            if(type === 'video') { if(conn) conn.send({type:'VIDEO'}); }
-            else { document.getElementById('snd-'+type).play(); }
+        function connect() { conn = peer.connect(document.getElementById('target').value.toUpperCase()); }
+        function playMedia(id) { 
+            if(id === 'video') conn.send({type:'VIDEO'});
+            else document.getElementById('snd-'+id).play(); 
         }
 
         function loadNormal(idx) {
-            const z = bNormal[idx]; total = 0; 
-            if(conn) conn.send({type:'SETUP', count:z.a.length});
-            document.getElementById('ctrl-normal').style.display='block';
-            document.getElementById('ctrl-final').style.display='none';
-            const box = document.getElementById('inputs-normal'); box.innerHTML='';
+            const z = bNormal[idx]; total = 0; conn.send({type:'SETUP', count:z.a.length});
+            document.getElementById('snd-runda').play();
+            document.getElementById('round-title').innerText = z.q;
+            const area = document.getElementById('inputs-area'); area.innerHTML = '';
             z.a.forEach((ans, i) => {
-                box.innerHTML += `<div style="display:flex; gap:5px; margin-bottom:5px"><input id="t${i}" value="${ans}"><input id="p${i}" value="${z.p[i]}" style="width:50px"><button onclick="revN(${i})" class="btn-green">OK</button></div>`;
+                area.innerHTML += `<div style="display:flex; gap:5px; margin-bottom:5px">
+                    <input id="t${i}" value="${ans}" style="flex-grow:1"><input id="p${i}" value="${z.p[i]}" style="width:40px">
+                    <button onclick="revN(${i})" class="btn-green" style="width:60px">OK</button></div>`;
             });
+            document.getElementById('sciaga').innerText = z.a.map((v,i)=>`${i+1}. ${v} (${z.p[i]})`).join('\n');
         }
 
         function loadFinal(idx) {
-            const z = bFinal[idx]; total = 0; 
-            if(conn) conn.send({type:'FINAL_MODE'});
-            document.getElementById('ctrl-normal').style.display='none';
-            document.getElementById('ctrl-final').style.display='block';
-            document.getElementById('sciaga-content').innerHTML = z.a.map((v,i)=>`<b>${i+1}. ${v}</b> (${z.p[i]})`).join('<br>');
+            const z = bFinal[idx]; total = 0; conn.send({type:'FINAL_MODE'});
+            document.getElementById('snd-final').play();
+            document.getElementById('round-title').innerText = "FINAŁ";
+            const area = document.getElementById('inputs-area'); area.innerHTML = '';
             [1,2].forEach(p => {
-                const box = document.getElementById(`f${p}-inputs`); box.innerHTML=`<h4>GRACZ ${p}</h4>`;
-                for(let i=0; i<5; i++) box.innerHTML += `<div style="margin-bottom:8px"><input id="f${p}-t${i}"><div style="display:flex; gap:2px"><button onclick="revFA(${p},${i})" class="btn-blue">ODP</button><input id="f${p}-p${i}" style="width:40px"><button onclick="revFP(${p},${i})" class="btn-green">PKT</button></div></div>`;
+                area.innerHTML += `<h4>GRACZ ${p}</h4>`;
+                for(let i=0; i<5; i++) {
+                    area.innerHTML += `<div style="display:flex; gap:2px; margin-bottom:5px">
+                        <input id="f${p}-t${i}" placeholder="Odp">
+                        <button onclick="revFA(${p},${i})" class="btn-blue">O</button>
+                        <input id="f${p}-p${i}" style="width:35px" placeholder="P">
+                        <button onclick="revFP(${p},${i})" class="btn-green">P</button></div>`;
+                }
             });
+            document.getElementById('sciaga').innerText = z.a.map((v,i)=>`${i+1}. ${v} (${z.p[i]})`).join('\n');
         }
 
-        function revN(i) { const t = document.getElementById(`t${i}`).value, p = parseInt(document.getElementById(`p${i}`).value); total+=p; conn.send({type:'REV', idx:i, t, p, total}); document.getElementById('snd-ok').play(); }
+        function revN(i) { const t=document.getElementById(`t${i}`).value, p=parseInt(document.getElementById(`p${i}`).value); total+=p; conn.send({type:'REV', idx:i, t, p, total}); document.getElementById('snd-ok').play(); }
         function revFA(p, i) { conn.send({type:'REV_ANS', player:p, idx:i, t: document.getElementById(`f${p}-t${i}`).value}); }
-        function revFP(p, i) { const val = parseInt(document.getElementById(`f${p}-p${i}`).value)||0; total+=val; conn.send({type:'REV_PTS', player:p, idx:i, p:val, total}); document.getElementById('snd-ok').play(); }
+        function revFP(p, i) { const v=parseInt(document.getElementById(`f${p}-p${i}`).value)||0; total+=v; conn.send({type:'REV_PTS', player:p, idx:i, p:v, total}); document.getElementById('snd-ok').play(); }
         function sendX(side, count) { conn.send({type:'X', side, count}); document.getElementById('snd-zle').play(); }
+        function startTimer(s) { let t=s; const el=document.getElementById('timer-display'); const int=setInterval(()=>{t--; el.innerText=t<10?'0'+t:t; if(t<=0){clearInterval(int); document.getElementById('snd-zle').play();}},1000); }
 
-        function startTimer(s) {
-            let t = s; const el = document.getElementById('timer');
-            const int = setInterval(() => { t--; el.innerText = t<10?'0'+t:t; if(t<=0){ clearInterval(int); document.getElementById('snd-zle').play(); } }, 1000);
-        }
-
-        const bN = document.getElementById('bank-normal'), bF = document.getElementById('bank-final');
-        bNormal.forEach((z, i) => bN.innerHTML += `<div class="q-item" onclick="loadNormal(${i})">${z.q}</div>`);
-        bFinal.forEach((z, i) => bF.innerHTML += `<div class="q-item" onclick="loadFinal(${i})">${z.q}</div>`);
+        bNormal.forEach((z, i) => document.getElementById('normal-list').innerHTML += `<div class="q-list" onclick="loadNormal(${i})">${z.q}</div>`);
+        bFinal.forEach((z, i) => document.getElementById('final-list').innerHTML += `<div class="q-list" onclick="loadFinal(${i})">${z.q}</div>`);
     </script>
 </body>
 </html>
