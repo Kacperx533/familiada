@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA - TABLICA INTERAKTYWNA</title>
+    <title>FAMILIADA - WIELKA TABLICA</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
@@ -14,101 +14,106 @@
 
         body { 
             margin: 0; padding: 0; 
-            /* Gradient tła dokładnie jak na zdjęciach */
             background: linear-gradient(to right, #ff2d55 0%, #6383ff 50%, #7592ff 100%) fixed;
             display: flex; justify-content: center; align-items: center; 
             height: 100vh; overflow: hidden;
             font-family: 'VT323', monospace;
         }
 
-        /* Główna obudowa tablicy */
+        /* Powiększona obudowa tablicy */
         .outer-frame {
             background: #1a1b21;
-            padding: 25px;
-            border-radius: 40px;
-            box-shadow: 0 30px 60px rgba(0,0,0,0.6);
+            padding: 30px;
+            border-radius: 50px;
+            box-shadow: 0 40px 80px rgba(0,0,0,0.8);
             display: flex;
             align-items: center;
-            gap: 15px;
-            border: 2px solid #2a2b31;
+            gap: 20px;
+            border: 3px solid #2a2b31;
+            width: 95vw; /* Zajmuje prawie całą szerokość ekranu */
+            max-width: 1200px;
+            box-sizing: border-box;
         }
 
-        /* Ekran z siatką kwadratów */
+        /* Powiększony ekran z wyraźniejszą siatką */
         .screen {
-            width: 850px;
-            height: 500px;
+            flex-grow: 1;
+            height: 80vh; /* Zajmuje 80% wysokości okna */
             background-color: var(--bg-panel);
-            /* Tworzenie siatki kwadratów (grid) widocznej w tle */
+            /* Siatka kwadratów */
             background-image: 
-                linear-gradient(var(--grid-color) 2px, transparent 2px),
-                linear-gradient(90deg, var(--grid-color) 2px, transparent 2px);
-            background-size: 45px 45px;
-            border-radius: 20px;
+                linear-gradient(var(--grid-color) 3px, transparent 3px),
+                linear-gradient(90deg, var(--grid-color) 3px, transparent 3px);
+            background-size: 55px 55px; /* Większe oczka siatki */
+            border-radius: 30px;
             position: relative;
-            padding: 40px;
+            padding: 50px;
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
             justify-content: flex-start;
+            border: 2px solid #000;
         }
 
-        /* Styl wiersza odpowiedzi */
+        /* Jeszcze większe wiersze */
         .row {
             display: flex;
             align-items: center;
-            height: 60px;
-            font-size: 65px;
+            height: 100px; /* Zwiększona wysokość wiersza */
+            font-size: 90px; /* Gigantyczna czcionka */
             color: var(--yellow);
-            text-shadow: 2px 2px 0px rgba(0,0,0,0.5);
-            margin-bottom: 5px;
+            text-shadow: 3px 3px 0px rgba(0,0,0,0.7);
+            margin-bottom: 10px;
         }
 
-        .num { width: 50px; }
-        .ans { flex-grow: 1; text-transform: uppercase; letter-spacing: 5px; }
-        .pts { width: 80px; text-align: right; }
+        .num { width: 80px; }
+        .ans { flex-grow: 1; text-transform: uppercase; letter-spacing: 8px; }
+        .pts { width: 120px; text-align: right; }
 
-        /* Duży symbol X (Błędy) */
+        /* Większy panel na błędy (X) */
         .x-panel {
-            width: 100px;
+            width: 150px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 20px;
             align-items: center;
         }
 
         .x-icon {
-            font-size: 110px;
+            font-size: 160px; /* Bardzo duży X */
             color: var(--yellow);
-            font-family: Arial, sans-serif;
+            font-family: 'Arial Black', sans-serif;
             font-weight: bold;
-            line-height: 0.8;
-            display: none; /* Ukryte domyślnie */
-            text-shadow: 0 0 20px rgba(254, 254, 0, 0.5);
+            line-height: 0.7;
+            display: none;
+            text-shadow: 0 0 30px rgba(254, 254, 0, 0.6);
         }
 
+        /* Sekcja SUMA */
         .suma-area {
             position: absolute;
-            bottom: 40px;
-            right: 60px;
+            bottom: 50px;
+            right: 80px;
             display: flex;
-            gap: 40px;
-            font-size: 65px;
+            gap: 50px;
+            font-size: 85px;
             color: var(--yellow);
+            text-shadow: 2px 2px 0px rgba(0,0,0,0.5);
         }
 
-        /* Nakładka startowa */
+        /* Overlay startowy */
         #overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.8);
+            position: fixed; inset: 0; background: rgba(0,0,0,0.85);
             z-index: 100; display: flex; flex-direction: column;
             justify-content: center; align-items: center; color: white;
         }
-        button { padding: 15px 30px; font-size: 20px; cursor: pointer; border-radius: 10px; }
+        button { padding: 25px 50px; font-size: 30px; cursor: pointer; border-radius: 15px; border: none; background: var(--yellow); color: black; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div id="overlay">
-        <h1 id="msg">TABLICA FAMILIADA</h1>
+        <h1 id="msg" style="font-size: 50px; margin-bottom: 30px;">FAMILIADA</h1>
         <button onclick="initTablica()">URUCHOM TABLICĘ</button>
     </div>
 
@@ -137,28 +142,28 @@
         let peer;
         function initTablica() {
             const id = Math.random().toString(36).substring(2,5).toUpperCase();
-            document.getElementById('msg').innerText = "KOD DO PANELU: " + id;
+            document.getElementById('msg').innerText = "KOD PANELU: " + id;
             peer = new Peer(id);
             
             peer.on('connection', conn => {
                 document.getElementById('overlay').style.display = 'none';
                 conn.on('data', data => {
-                    if(data.type === 'START') {
+                    if(data.type === 'SET') {
                         let h = '';
-                        for(let i=1; i<=data.rows; i++) {
+                        for(let i=1; i<=data.c; i++) {
                             h += `<div class="row">
                                     <div class="num">${i}</div>
-                                    <div class="ans" id="ans${i}">..........................</div>
+                                    <div class="ans" id="ans${i}">....................</div>
                                     <div class="pts" id="pts${i}">--</div>
                                   </div>`;
                         }
                         document.getElementById('board-content').innerHTML = h;
                         resetX();
                     }
-                    if(data.type === 'SHOW') {
-                        document.getElementById('ans'+data.idx).innerText = data.txt;
-                        document.getElementById('pts'+data.idx).innerText = data.val;
-                        document.getElementById('total-val').innerText = data.total;
+                    if(data.type === 'REV') {
+                        document.getElementById('ans'+(data.i+1)).innerText = data.t;
+                        document.getElementById('pts'+(data.i+1)).innerText = data.p;
+                        document.getElementById('total-val').innerText = data.s;
                         document.getElementById('snd-ok').play();
                     }
                     if(data.type === 'X') {
