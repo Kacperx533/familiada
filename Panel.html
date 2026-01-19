@@ -2,59 +2,68 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA - PANEL</title>
+    <title>PANEL STEROWANIA 50+</title>
     <style>
-        body { font-family: sans-serif; background: #1a1a1a; color: white; display: grid; grid-template-columns: 350px 1fr 350px; gap: 10px; margin: 0; height: 100vh; }
+        body { font-family: sans-serif; background: #111; color: white; display: grid; grid-template-columns: 350px 1fr 350px; gap: 10px; margin: 0; height: 100vh; }
         .col { background: #222; padding: 15px; overflow-y: auto; border-right: 1px solid #444; }
         button { width: 100%; padding: 12px; margin: 3px 0; cursor: pointer; font-weight: bold; border: none; border-radius: 5px; }
         .btn-green { background: #22c55e; color: white; }
         .btn-red { background: #ef4444; color: white; }
         .btn-blue { background: #3b82f6; color: white; }
         .btn-yellow { background: #fbbf24; color: black; }
-        .q-list { background: #333; padding: 10px; margin-bottom: 10px; border-radius: 5px; cursor: pointer; border-left: 5px solid #fbbf24; }
-        .q-list:hover { background: #444; }
-        .sciaga { background: #000; padding: 15px; color: #fbbf24; font-family: monospace; font-size: 14px; border-radius: 10px; }
+        .q-card { background: #333; padding: 10px; margin-bottom: 5px; cursor: pointer; border-radius: 5px; font-size: 13px; border-left: 5px solid #fbbf24; }
+        .q-card:hover { background: #444; }
+        .sciaga { background: #000; padding: 15px; color: #fbbf24; font-family: monospace; border-radius: 10px; min-height: 100px; margin-top: 10px; }
+        input { background: #000; color: #fbbf24; border: 1px solid #555; padding: 8px; }
     </style>
 </head>
 <body>
 
     <div class="col">
-        <h2>LISTA RUND</h2>
-        <div id="normal-list"></div>
-        <hr>
-        <h2>FINAŁY</h2>
-        <div id="final-list"></div>
+        <h2>BAZA PYTAŃ (KLIKNIJ BY WYBRAĆ)</h2>
+        <div id="q-bank"></div>
     </div>
 
     <div class="col">
-        <div class="card" style="background:#000; padding:10px; margin-bottom:10px;">
-            <input type="text" id="target" placeholder="KOD TABLICY" style="width:70%; padding:10px;">
-            <button onclick="connect()" class="btn-green" style="width:25%;">POŁĄCZ</button>
+        <div class="card" style="margin-bottom:20px">
+            <input type="text" id="target" placeholder="KOD Z TABLICY" style="width:60%">
+            <button onclick="connect()" class="btn-green" style="width:35%">POŁĄCZ</button>
         </div>
 
-        <button onclick="playMedia('video')" class="btn-yellow">CZOŁÓWKA (WIDEO)</button>
-        <button onclick="playMedia('intro')" class="btn-yellow">INTRO (MUZYKA)</button>
-        <button onclick="playMedia('powtorzenie')" class="btn-yellow">POWTÓRZENIE</button>
+        <div class="card">
+            <h2>START RUNDY (MUZYKA + RESET)</h2>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:5px">
+                <button onclick="startRunda(1)" class="btn-blue">RUNDA 1</button>
+                <button onclick="startRunda(2)" class="btn-blue">RUNDA 2</button>
+                <button onclick="startRunda(3)" class="btn-blue">RUNDA 3</button>
+                <button onclick="startFinal()" class="btn-yellow">FINAŁ</button>
+            </div>
+        </div>
 
-        <div id="round-ctrl">
-            <h3 id="round-title">Wybierz rundę...</h3>
+        <hr>
+        <button onclick="playMedia('video')" class="btn-yellow">CZOŁÓWKA WIDEO</button>
+        <button onclick="playMedia('intro')" class="btn-yellow">INTRO MUZYKA</button>
+
+        <div id="active-round-ui" style="margin-top:20px">
+            <h3 id="current-q-label">Wybierz pytanie z listy -></h3>
             <div id="inputs-area"></div>
         </div>
 
-        <div id="x-area" style="margin-top:20px; display:grid; grid-template-columns: 1fr 1fr; gap:5px;">
+        <div style="margin-top:20px; display:grid; grid-template-columns: 1fr 1fr; gap:5px">
             <button onclick="sendX('L',1)" class="btn-red">LEWY X</button><button onclick="sendX('R',1)" class="btn-red">PRAWY X</button>
             <button onclick="sendX('L',2)" class="btn-red">LEWY XX</button><button onclick="sendX('R',2)" class="btn-red">PRAWY XX</button>
-            <button onclick="sendX('L',3)" class="btn-red">LEWY XXX</button><button onclick="sendX('R',3)" class="btn-red">PRAWY XXX</button>
+            <button onclick="sendX('L',3)" class="btn-red">L XXX</button><button onclick="sendX('R',3)" class="btn-red">R XXX</button>
         </div>
     </div>
 
     <div class="col">
-        <h2>ŚCIĄGA</h2>
-        <div id="sciaga" class="sciaga">Zaladuj...</div>
+        <h2>ŚCIĄGA DLA CIEBIE</h2>
+        <div id="sciaga" class="sciaga">Tu pojawi się treść wybranego pytania...</div>
         <hr>
-        <h1 id="timer-display" style="text-align:center; font-size:70px;">00</h1>
+        <h1 id="timer-val" style="text-align:center; font-size:80px">00</h1>
         <button onclick="startTimer(15)" class="btn-blue">15 SEKUND</button>
         <button onclick="startTimer(20)" class="btn-blue">20 SEKUND</button>
+        <button onclick="playMedia('powtorzenie')" class="btn-yellow" style="margin-top:20px">POWTÓRZENIE</button>
     </div>
 
     <audio id="snd-runda" src="runda.mp3"></audio>
@@ -67,38 +76,43 @@
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script>
         let conn, total = 0, peer = new Peer();
-        const bNormal = [
-            { q: "RUNDA 1: Przedmiot do pisania", a: ["DŁUGOPIS","OŁÓWEK","PIÓRO","FLAMASTR"], p: [45,30,15,10] },
-            { q: "RUNDA 2: Co pijemy zimne?", a: ["WODA","COLA","PIWO","SOK","LEMONIADA"], p: [40,25,15,10,10] },
-            { q: "RUNDA 3: Zwierzę domowe", a: ["KOT","PIES","CHOMIK","PAPUGA"], p: [50,35,10,5] }
-        ];
-        const bFinal = [
-            { q: "FINAŁ 1: Wakacje", a: ["MORZE","GÓRY","MAZURY","LAS","DOM"], p: [40,25,15,10,10] }
-        ];
+        let selectedQ = null;
+
+        // BAZA 50 PYTAŃ (DODAJ WIĘCEJ TUTAJ)
+        const questions = [];
+        for(let i=1; i<=50; i++) {
+            questions.push({
+                id: i,
+                q: "Pytanie numer " + i + "?",
+                a: ["ODPOWIEDŹ 1", "ODPOWIEDŹ 2", "ODPOWIEDŹ 3", "ODPOWIEDŹ 4", "ODPOWIEDŹ 5"],
+                p: [45, 25, 15, 10, 5]
+            });
+        }
 
         function connect() { conn = peer.connect(document.getElementById('target').value.toUpperCase()); }
-        function playMedia(id) { 
-            if(id === 'video') conn.send({type:'VIDEO'});
-            else document.getElementById('snd-'+id).play(); 
+        function playMedia(id) { if(id==='video') conn.send({type:'VIDEO'}); else document.getElementById('snd-'+id).play(); }
+
+        function selectQuestion(idx) {
+            selectedQ = questions[idx];
+            document.getElementById('sciaga').innerText = selectedQ.q + "\n\n" + selectedQ.a.map((v,i)=>`${i+1}. ${v} (${selectedQ.p[i]})`).join("\n");
+            document.getElementById('current-q-label').innerText = selectedQ.q;
         }
 
-        function loadNormal(idx) {
-            const z = bNormal[idx]; total = 0; conn.send({type:'SETUP', count:z.a.length});
-            document.getElementById('snd-runda').play();
-            document.getElementById('round-title').innerText = z.q;
+        function startRunda(nr) {
+            if(!selectedQ) { alert("Najpierw wybierz pytanie z listy po lewej!"); return; }
+            total = 0; playMedia('runda');
+            conn.send({type:'SETUP', count: selectedQ.a.length});
             const area = document.getElementById('inputs-area'); area.innerHTML = '';
-            z.a.forEach((ans, i) => {
+            selectedQ.a.forEach((ans, i) => {
                 area.innerHTML += `<div style="display:flex; gap:5px; margin-bottom:5px">
-                    <input id="t${i}" value="${ans}" style="flex-grow:1"><input id="p${i}" value="${z.p[i]}" style="width:40px">
+                    <input id="t${i}" value="${ans}" style="flex-grow:1"><input id="p${i}" value="${selectedQ.p[i]}" style="width:40px">
                     <button onclick="revN(${i})" class="btn-green" style="width:60px">OK</button></div>`;
             });
-            document.getElementById('sciaga').innerText = z.a.map((v,i)=>`${i+1}. ${v} (${z.p[i]})`).join('\n');
         }
 
-        function loadFinal(idx) {
-            const z = bFinal[idx]; total = 0; conn.send({type:'FINAL_MODE'});
-            document.getElementById('snd-final').play();
-            document.getElementById('round-title').innerText = "FINAŁ";
+        function startFinal() {
+            total = 0; playMedia('final');
+            conn.send({type:'FINAL_MODE'});
             const area = document.getElementById('inputs-area'); area.innerHTML = '';
             [1,2].forEach(p => {
                 area.innerHTML += `<h4>GRACZ ${p}</h4>`;
@@ -110,17 +124,18 @@
                         <button onclick="revFP(${p},${i})" class="btn-green">P</button></div>`;
                 }
             });
-            document.getElementById('sciaga').innerText = z.a.map((v,i)=>`${i+1}. ${v} (${z.p[i]})`).join('\n');
         }
 
         function revN(i) { const t=document.getElementById(`t${i}`).value, p=parseInt(document.getElementById(`p${i}`).value); total+=p; conn.send({type:'REV', idx:i, t, p, total}); document.getElementById('snd-ok').play(); }
         function revFA(p, i) { conn.send({type:'REV_ANS', player:p, idx:i, t: document.getElementById(`f${p}-t${i}`).value}); }
         function revFP(p, i) { const v=parseInt(document.getElementById(`f${p}-p${i}`).value)||0; total+=v; conn.send({type:'REV_PTS', player:p, idx:i, p:v, total}); document.getElementById('snd-ok').play(); }
         function sendX(side, count) { conn.send({type:'X', side, count}); document.getElementById('snd-zle').play(); }
-        function startTimer(s) { let t=s; const el=document.getElementById('timer-display'); const int=setInterval(()=>{t--; el.innerText=t<10?'0'+t:t; if(t<=0){clearInterval(int); document.getElementById('snd-zle').play();}},1000); }
+        function startTimer(s) { let t=s; const el=document.getElementById('timer-val'); const int=setInterval(()=>{t--; el.innerText=t<10?'0'+t:t; if(t<=0){clearInterval(int); document.getElementById('snd-zle').play();}},1000); }
 
-        bNormal.forEach((z, i) => document.getElementById('normal-list').innerHTML += `<div class="q-list" onclick="loadNormal(${i})">${z.q}</div>`);
-        bFinal.forEach((z, i) => document.getElementById('final-list').innerHTML += `<div class="q-list" onclick="loadFinal(${i})">${z.q}</div>`);
+        const bankEl = document.getElementById('q-bank');
+        questions.forEach((q, i) => {
+            bankEl.innerHTML += `<div class="q-card" onclick="selectQuestion(${i})"><b>${q.id}.</b> ${q.q}</div>`;
+        });
     </script>
 </body>
 </html>
