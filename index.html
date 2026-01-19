@@ -8,16 +8,34 @@
     <style>
         :root { --led: #f4ff00; }
         html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: 'VT323', monospace; background: linear-gradient(90deg, #ff2d55 0%, #6383ff 50%, #7592ff 100%) fixed !important; }
+        
         #vid { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 100; display: none; object-fit: cover; }
-        .board { width: 85vw; height: 75vh; background: #111; border: 10px solid #333; border-radius: 40px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; flex-direction: column; padding: 0 160px; box-sizing: border-box; box-shadow: 0 0 100px rgba(0,0,0,0.9); z-index: 10; }
+        
+        .board { 
+            width: 85vw; height: 75vh; background: #111; border: 10px solid #333; border-radius: 40px; 
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+            display: flex; flex-direction: column; padding: 0 140px; box-sizing: border-box; 
+            box-shadow: 0 0 100px rgba(0,0,0,0.9); z-index: 10; 
+        }
+
         #rows { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; }
         .row { display: flex; align-items: center; font-size: 8.5vh; color: var(--led); height: 10vh; }
         .ans { flex-grow: 1; text-transform: uppercase; }
         .pts { width: 100px; text-align: right; }
+        
         .f-row { display: grid; grid-template-columns: 1fr 80px 80px 1fr; gap: 20px; font-size: 7vh; color: var(--led); height: 9.5vh; align-items: center; }
         .footer { position: absolute; bottom: 40px; right: 100px; font-size: 9vh; color: var(--led); }
-        .x-mark { position: absolute; top: 20%; font-size: 300px; color: var(--led); display: none; font-weight: bold; text-shadow: 0 0 60px red; z-index: 200; }
-        #x-l { left: 20px; } #x-r { right: 20px; }
+
+        /* PIONOWE X */
+        .x-mark { 
+            position: absolute; top: 50%; transform: translateY(-50%);
+            font-size: 18vh; color: #ff0000; display: none; 
+            font-weight: bold; text-shadow: 0 0 30px #000; z-index: 200;
+            line-height: 0.9; text-align: center;
+        }
+        #x-l { left: 30px; } 
+        #x-r { right: 30px; }
+
         #timer-display { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 25vh; color: var(--led); background: #000; padding: 20px 50px; border: 5px solid var(--led); display: none; z-index: 500; }
         #setup { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; }
     </style>
@@ -37,17 +55,23 @@
     </div>
 
     <div class="board">
-        <div id="x-l" class="x-mark">X</div>
+        <div id="x-l" class="x-mark"></div>
         <div id="timer-display">00:00</div>
         <div id="rows"></div>
         <div class="footer">SUMA <span id="suma">0</span></div>
-        <div id="x-r" class="x-mark">X</div>
+        <div id="x-r" class="x-mark"></div>
     </div>
 
     <script>
         let peer, tInt;
         function playS(id) { const s = document.getElementById('snd-'+id); if(s){ s.currentTime=0; s.play(); } }
-        function stopAll() { document.querySelectorAll('audio').forEach(a=>{a.pause(); a.currentTime=0;}); clearInterval(tInt); document.getElementById('timer-display').style.display='none'; }
+        function stopAll() { 
+            document.querySelectorAll('audio').forEach(a=>{a.pause(); a.currentTime=0;}); 
+            clearInterval(tInt); 
+            document.getElementById('timer-display').style.display='none'; 
+            document.getElementById('x-l').style.display='none';
+            document.getElementById('x-r').style.display='none';
+        }
         
         function runTimer(sec) {
             clearInterval(tInt);
@@ -72,6 +96,7 @@
                         document.getElementById('rows').innerHTML='';
                         for(let i=1;i<=d.c;i++) document.getElementById('rows').innerHTML+=`<div class="row"><div style="width:60px">${i}</div><div class="ans" id="a${i}">................</div><div class="pts" id="p${i}">--</div></div>`;
                         document.getElementById('suma').innerText="0"; playS('runda');
+                        document.getElementById('x-l').style.display='none'; document.getElementById('x-r').style.display='none';
                     }
                     if(d.type==='FIN'){ 
                         document.getElementById('rows').innerHTML='';
@@ -81,7 +106,11 @@
                     if(d.type==='REV'){ document.getElementById('a'+(d.i+1)).innerText=d.t; document.getElementById('p'+(d.i+1)).innerText=d.p; document.getElementById('suma').innerText=d.s; playS('ok'); }
                     if(d.type==='R_A'){ document.getElementById(`f${d.pl}a${d.i+1}`).innerText=d.t; }
                     if(d.type==='R_P'){ document.getElementById(`f${d.pl}p${d.i+1}`).innerText=d.p; document.getElementById('suma').innerText=d.s; playS('ok'); }
-                    if(d.type==='X'){ const el=document.getElementById(d.s==='L'?'x-l':'x-r'); el.innerText="X".repeat(d.c); el.style.display='block'; playS('zle'); }
+                    if(d.type==='X'){ 
+                        const el=document.getElementById(d.s==='L'?'x-l':'x-r'); 
+                        el.innerHTML = "X<br>".repeat(d.c); // Pionowe ustawienie
+                        el.style.display='block'; playS('zle'); 
+                    }
                     if(d.type==='SND'){ if(d.f==='stop') stopAll(); else playS(d.f); }
                     if(d.type==='T_START') runTimer(d.s);
                     if(d.type==='VID'){ const v=document.getElementById('vid'); v.style.display='block'; v.play(); v.onended=()=>v.style.display='none'; }
