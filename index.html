@@ -2,172 +2,180 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA - IDENTYCZNA TABLICA</title>
+    <title>FAMILIADA - TABLICA IDENTYCZNA</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root { 
             --yellow: #fefe00; 
-            --grid-bg: #1e2128;
-            --bg-black: #15171b;
+            --bg-dark: #1a1c22;
+            --tile-border: #131418;
         }
 
         body { 
             margin: 0; padding: 0; 
-            /* Gradient tła dokładnie jak na zdjęciach */
             background: linear-gradient(90deg, #f02d6b 0%, #6081ff 50%, #7090ff 100%) fixed;
             display: flex; justify-content: center; align-items: center; 
             height: 100vh; overflow: hidden;
             font-family: 'VT323', monospace;
         }
 
-        /* Główna obudowa tablicy */
-        .board-outer {
-            background-color: #121417;
-            padding: 20px;
-            border-radius: 40px; /* Zaokrąglone rogi ramki */
-            box-shadow: 0 40px 80px rgba(0,0,0,0.8);
+        /* Główny czarny prostokąt z zaokrąglonymi rogami */
+        .main-board {
+            position: relative;
             width: 90vw;
             max-width: 1200px;
-            box-sizing: border-box;
-        }
-
-        /* Ekran z siatką kwadratów */
-        .grid-screen {
-            background-color: var(--bg-black);
-            /* Tworzenie siatki kwadratowych pól (identycznie jak na zdjęciu) */
-            background-image: 
-                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
-            background-size: 40px 40px;
-            border-radius: 25px;
-            height: 70vh;
-            position: relative;
+            height: 75vh;
+            background-color: #111216;
+            border-radius: 40px;
+            box-shadow: 0 40px 100px rgba(0,0,0,0.8);
             display: flex;
-            padding: 40px 50px;
+            padding: 40px;
             box-sizing: border-box;
-            box-shadow: inset 0 0 50px #000;
+            border: 15px solid #1a1c22; /* Gruba ramka jak na zdjęciu */
         }
 
-        /* Odpowiedzi */
-        .answers-area { flex: 4; display: flex; flex-direction: column; justify-content: center; }
-
-        /* Specjalna kolumna na ikony X (segmentowe) */
-        .x-area { 
-            flex: 1; 
-            display: flex; 
-            flex-direction: column; 
-            justify-content: center; 
-            align-items: center; 
-            gap: 15px; 
+        /* Siatka kafli wewnątrz */
+        .tile-grid {
+            position: absolute;
+            inset: 0;
+            display: grid;
+            grid-template-columns: repeat(25, 1fr);
+            grid-template-rows: repeat(15, 1fr);
+            pointer-events: none;
+            opacity: 0.4;
         }
+        .tile { border: 1px solid var(--tile-border); }
+
+        /* Treść tablicy */
+        .content {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            width: 100%;
+        }
+
+        .answers-section { flex: 4; display: flex; flex-direction: column; justify-content: center; }
+        .x-section { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: flex-end; padding-right: 20px; }
 
         .row {
             display: flex;
             align-items: center;
-            height: 75px;
-            font-size: 70px;
+            height: 80px;
+            font-size: 75px;
             color: var(--yellow);
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
             margin-bottom: 5px;
         }
 
         .num { width: 60px; }
-        .ans { flex-grow: 1; text-transform: uppercase; letter-spacing: 6px; }
-        .pts { width: 100px; text-align: right; margin-right: 20px; }
+        .ans { flex-grow: 1; text-transform: uppercase; letter-spacing: 4px; }
+        .pts { width: 120px; text-align: right; }
 
-        /* Styl ikony X (identyczny ze zdjęciem - segmenty) */
-        .x-icon {
-            font-size: 150px;
-            font-family: 'Arial Black', sans-serif;
+        /* Styl X - segmentowy */
+        .x-segment {
+            font-size: 160px;
             color: var(--yellow);
-            line-height: 0.8;
-            display: none;
-            filter: drop-shadow(0 0 15px rgba(254, 254, 0, 0.6));
+            font-family: 'Arial Black', sans-serif;
             font-weight: bold;
+            line-height: 0.7;
+            display: none;
+            filter: drop-shadow(0 0 15px rgba(254, 254, 0, 0.5));
+            /* Styl "klockowy" X */
+            transform: scaleX(1.3);
         }
 
-        /* SUMA */
-        .total-container {
+        /* Suma na dole */
+        .suma-area {
             position: absolute;
             bottom: 40px;
-            right: 180px;
-            font-size: 75px;
+            right: 220px;
+            font-size: 80px;
             color: var(--yellow);
             display: flex;
-            gap: 50px;
+            gap: 60px;
         }
 
-        #setup { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; display: flex; justify-content: center; align-items: center; }
-        button { padding: 25px 50px; font-size: 30px; cursor: pointer; background: var(--yellow); border: none; border-radius: 15px; font-weight: bold; }
+        #start-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 100; display: flex; justify-content: center; align-items: center; }
+        button { padding: 20px 50px; font-size: 30px; cursor: pointer; background: var(--yellow); border: none; border-radius: 15px; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <div id="setup">
-        <button onclick="connect()">POŁĄCZ TABLICĘ</button>
+    <div id="start-overlay">
+        <button onclick="initBoard()">URUCHOM TABLICĘ</button>
     </div>
 
-    <div class="board-outer">
-        <div class="grid-screen">
-            <div class="answers-area" id="main-list">
+    <div class="main-board">
+        <div class="tile-grid" id="tiles"></div>
+
+        <div class="content">
+            <div class="answers-section" id="ans-rows">
                 </div>
 
-            <div class="x-area">
-                <div class="x-icon" id="err1">X</div>
-                <div class="x-icon" id="err2">X</div>
-                <div class="x-icon" id="err3">X</div>
+            <div class="x-section">
+                <div class="x-segment" id="x1">X</div>
+                <div class="x-segment" id="x2">X</div>
+                <div class="x-segment" id="x3">X</div>
             </div>
+        </div>
 
-            <div class="total-container">
-                <span>SUMA</span>
-                <span id="suma-pkt">0</span>
-            </div>
+        <div class="suma-area">
+            <span>SUMA</span>
+            <span id="total-pts">0</span>
         </div>
     </div>
 
     <audio id="snd-ok" src="ok.mp3"></audio>
-    <audio id="snd-zle" src="zle.mp3"></audio>
+    <audio id="snd-err" src="zle.mp3"></audio>
 
     <script>
+        // Generowanie kafelków tła
+        const grid = document.getElementById('tiles');
+        for(let i=0; i<375; i++) {
+            const t = document.createElement('div');
+            t.className = 'tile';
+            grid.appendChild(t);
+        }
+
         let peer;
-        function connect() {
-            const code = Math.random().toString(36).substring(2,5).toUpperCase();
-            alert("KOD PANELU: " + code);
-            peer = new Peer(code);
+        function initBoard() {
+            const id = Math.random().toString(36).substring(2,5).toUpperCase();
+            alert("KOD TWOJEJ TABLICY: " + id);
+            peer = new Peer(id);
+            
             peer.on('connection', conn => {
-                document.getElementById('setup').style.display = 'none';
+                document.getElementById('start-overlay').style.display = 'none';
                 conn.on('data', data => {
                     if(data.type === 'SET') {
-                        let html = '';
+                        let h = '';
                         for(let i=1; i<=data.c; i++) {
-                            html += `<div class="row">
+                            h += `<div class="row">
                                 <div class="num">${i}</div>
                                 <div class="ans" id="a${i}">....................</div>
                                 <div class="pts" id="p${i}">--</div>
                             </div>`;
                         }
-                        document.getElementById('main-list').innerHTML = html;
-                        document.getElementById('suma-pkt').innerText = "0";
+                        document.getElementById('ans-rows').innerHTML = h;
+                        document.getElementById('total-pts').innerText = "0";
                         resetX();
                     }
                     if(data.type === 'REV') {
                         document.getElementById('a'+(data.i+1)).innerText = data.t;
                         document.getElementById('p'+(data.i+1)).innerText = data.p;
-                        document.getElementById('suma-pkt').innerText = data.s;
+                        document.getElementById('total-pts').innerText = data.s;
                         document.getElementById('snd-ok').play();
                     }
                     if(data.type === 'X') {
                         resetX();
                         for(let i=1; i<=data.count; i++) {
-                            document.getElementById('err'+i).style.display = 'block';
+                            document.getElementById('x'+i).style.display = 'block';
                         }
-                        document.getElementById('snd-zle').play();
+                        document.getElementById('snd-err').play();
                     }
                 });
             });
         }
-        function resetX() { document.querySelectorAll('.x-icon').forEach(el => el.style.display = 'none'); }
+        function resetX() { document.querySelectorAll('.x-segment').forEach(x => x.style.display = 'none'); }
     </script>
 </body>
 </html>
