@@ -2,14 +2,14 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA - WIELKA TABLICA</title>
+    <title>FAMILIADA - PEŁNA SIATKA</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root { 
             --yellow: #fefe00; 
-            --grid-color: #1a1b21;
-            --bg-panel: #111217;
+            --grid-line: #1a1b21;
+            --bg-black: #0d0e12;
         }
 
         body { 
@@ -20,118 +20,116 @@
             font-family: 'VT323', monospace;
         }
 
-        /* Powiększona obudowa tablicy */
-        .outer-frame {
-            background: #1a1b21;
-            padding: 30px;
-            border-radius: 50px;
-            box-shadow: 0 40px 80px rgba(0,0,0,0.8);
+        /* Główna obudowa - teraz to ona trzyma siatkę na całości */
+        .board-main {
+            position: relative;
+            width: 95vw;
+            max-width: 1300px;
+            height: 85vh;
+            background-color: var(--bg-black);
+            /* Siatka na CAŁEJ powierzchni tablicy */
+            background-image: 
+                linear-gradient(var(--grid-line) 2px, transparent 2px),
+                linear-gradient(90deg, var(--grid-line) 2px, transparent 2px);
+            background-size: 50px 50px;
+            
+            border-radius: 40px;
+            border: 15px solid #1a1a1c;
+            box-shadow: 0 50px 100px rgba(0,0,0,0.9), inset 0 0 40px #000;
             display: flex;
-            align-items: center;
-            gap: 20px;
-            border: 3px solid #2a2b31;
-            width: 95vw; /* Zajmuje prawie całą szerokość ekranu */
-            max-width: 1200px;
+            padding: 40px;
             box-sizing: border-box;
         }
 
-        /* Powiększony ekran z wyraźniejszą siatką */
-        .screen {
+        /* Kontener na odpowiedzi (lewa/środek) */
+        .answers-container {
             flex-grow: 1;
-            height: 80vh; /* Zajmuje 80% wysokości okna */
-            background-color: var(--bg-panel);
-            /* Siatka kwadratów */
-            background-image: 
-                linear-gradient(var(--grid-color) 3px, transparent 3px),
-                linear-gradient(90deg, var(--grid-color) 3px, transparent 3px);
-            background-size: 55px 55px; /* Większe oczka siatki */
-            border-radius: 30px;
-            position: relative;
-            padding: 50px;
-            box-sizing: border-box;
             display: flex;
             flex-direction: column;
             justify-content: flex-start;
-            border: 2px solid #000;
+            padding-top: 20px;
         }
 
-        /* Jeszcze większe wiersze */
         .row {
             display: flex;
             align-items: center;
-            height: 100px; /* Zwiększona wysokość wiersza */
-            font-size: 90px; /* Gigantyczna czcionka */
+            height: 90px;
+            font-size: 85px;
             color: var(--yellow);
-            text-shadow: 3px 3px 0px rgba(0,0,0,0.7);
+            text-shadow: 3px 3px 0px rgba(0,0,0,0.8);
             margin-bottom: 10px;
+            z-index: 2;
         }
 
-        .num { width: 80px; }
-        .ans { flex-grow: 1; text-transform: uppercase; letter-spacing: 8px; }
-        .pts { width: 120px; text-align: right; }
+        .num { width: 70px; }
+        .ans { flex-grow: 1; text-transform: uppercase; letter-spacing: 6px; }
+        .pts { width: 120px; text-align: right; margin-right: 40px; }
 
-        /* Większy panel na błędy (X) */
-        .x-panel {
-            width: 150px;
+        /* Panel na błędy (prawa strona) - siatka jest pod nim */
+        .x-column {
+            width: 180px;
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            justify-content: center;
             align-items: center;
+            gap: 15px;
+            z-index: 2;
         }
 
-        .x-icon {
-            font-size: 160px; /* Bardzo duży X */
+        .x-large {
+            font-size: 180px;
             color: var(--yellow);
             font-family: 'Arial Black', sans-serif;
             font-weight: bold;
             line-height: 0.7;
             display: none;
-            text-shadow: 0 0 30px rgba(254, 254, 0, 0.6);
+            text-shadow: 0 0 40px rgba(254, 254, 0, 0.7);
         }
 
-        /* Sekcja SUMA */
-        .suma-area {
+        /* Suma w prawym dolnym rogu */
+        .total-area {
             position: absolute;
-            bottom: 50px;
-            right: 80px;
-            display: flex;
-            gap: 50px;
+            bottom: 40px;
+            right: 60px;
             font-size: 85px;
             color: var(--yellow);
-            text-shadow: 2px 2px 0px rgba(0,0,0,0.5);
+            display: flex;
+            gap: 40px;
+            z-index: 2;
         }
 
-        /* Overlay startowy */
-        #overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+        #setup-screen {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.9);
             z-index: 100; display: flex; flex-direction: column;
             justify-content: center; align-items: center; color: white;
         }
-        button { padding: 25px 50px; font-size: 30px; cursor: pointer; border-radius: 15px; border: none; background: var(--yellow); color: black; font-weight: bold; }
+        
+        button { 
+            padding: 20px 40px; font-size: 25px; cursor: pointer; 
+            background: var(--yellow); border: none; border-radius: 10px; font-weight: bold;
+        }
     </style>
 </head>
 <body>
 
-    <div id="overlay">
-        <h1 id="msg" style="font-size: 50px; margin-bottom: 30px;">FAMILIADA</h1>
-        <button onclick="initTablica()">URUCHOM TABLICĘ</button>
+    <div id="setup-screen">
+        <h1 id="status-msg">TABLICA FAMILIADA</h1>
+        <button onclick="startApp()">URUCHOM</button>
     </div>
 
-    <div class="outer-frame">
-        <div class="screen">
-            <div id="board-content">
-                </div>
-
-            <div class="suma-area">
-                <span>SUMA</span>
-                <span id="total-val">0</span>
+    <div class="board-main">
+        <div class="answers-container" id="rows-box">
             </div>
+
+        <div class="x-column">
+            <div class="x-large" id="x1">X</div>
+            <div class="x-large" id="x2">X</div>
+            <div class="x-large" id="x3">X</div>
         </div>
 
-        <div class="x-panel">
-            <div class="x-icon" id="x1">X</div>
-            <div class="x-icon" id="x2">X</div>
-            <div class="x-icon" id="x3">X</div>
+        <div class="total-area">
+            <span>SUMA</span>
+            <span id="suma-total">0</span>
         </div>
     </div>
 
@@ -140,30 +138,30 @@
 
     <script>
         let peer;
-        function initTablica() {
+        function startApp() {
             const id = Math.random().toString(36).substring(2,5).toUpperCase();
-            document.getElementById('msg').innerText = "KOD PANELU: " + id;
+            document.getElementById('status-msg').innerText = "KOD PANELU: " + id;
             peer = new Peer(id);
             
             peer.on('connection', conn => {
-                document.getElementById('overlay').style.display = 'none';
+                document.getElementById('setup-screen').style.display = 'none';
                 conn.on('data', data => {
                     if(data.type === 'SET') {
-                        let h = '';
+                        let html = '';
                         for(let i=1; i<=data.c; i++) {
-                            h += `<div class="row">
-                                    <div class="num">${i}</div>
-                                    <div class="ans" id="ans${i}">....................</div>
-                                    <div class="pts" id="pts${i}">--</div>
-                                  </div>`;
+                            html += `<div class="row">
+                                <div class="num">${i}</div>
+                                <div class="ans" id="ans${i}">....................</div>
+                                <div class="pts" id="pts${i}">--</div>
+                            </div>`;
                         }
-                        document.getElementById('board-content').innerHTML = h;
+                        document.getElementById('rows-box').innerHTML = html;
                         resetX();
                     }
                     if(data.type === 'REV') {
                         document.getElementById('ans'+(data.i+1)).innerText = data.t;
                         document.getElementById('pts'+(data.i+1)).innerText = data.p;
-                        document.getElementById('total-val').innerText = data.s;
+                        document.getElementById('suma-total').innerText = data.s;
                         document.getElementById('snd-ok').play();
                     }
                     if(data.type === 'X') {
@@ -177,7 +175,7 @@
             });
         }
         function resetX() {
-            document.querySelectorAll('.x-icon').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('.x-large').forEach(el => el.style.display = 'none');
         }
     </script>
 </body>
