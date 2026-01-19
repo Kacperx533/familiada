@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA - TABLICA OSTATECZNA</title>
+    <title>FAMILIADA - TABLICA</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
@@ -18,7 +18,8 @@
         .footer { position: absolute; bottom: 40px; right: 100px; font-size: 9vh; color: var(--led); }
         .x-mark { position: absolute; top: 20%; font-size: 300px; color: var(--led); display: none; font-weight: bold; text-shadow: 0 0 60px red; z-index: 200; }
         #x-l { left: 20px; } #x-r { right: 20px; }
-        #setup { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; }
+        #timer-display { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 25vh; color: var(--led); background: #000; padding: 20px 50px; border: 5px solid var(--led); display: none; z-index: 500; }
+        #setup { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; }
     </style>
 </head>
 <body>
@@ -31,50 +32,59 @@
     <audio id="snd-zle" src="zle.mp3"></audio>
 
     <div id="setup">
-        <h1 id="code-info" style="font-size: 50px;">FAMILIADA TABLICA</h1>
-        <button onclick="init()" style="padding: 25px 60px; font-size: 30px; cursor: pointer; background: #22c55e; color: white; border: none; border-radius: 10px;">ODPAL SYSTEM</button>
+        <h1 id="code-info" style="font-size: 40px;">TABLICA FAMILIADA</h1>
+        <button onclick="init()" style="padding: 20px 50px; font-size: 25px; cursor: pointer;">URUCHOM TABLICĘ</button>
     </div>
 
     <div class="board">
         <div id="x-l" class="x-mark">X</div>
+        <div id="timer-display">00:00</div>
         <div id="rows"></div>
         <div class="footer">SUMA <span id="suma">0</span></div>
         <div id="x-r" class="x-mark">X</div>
     </div>
 
     <script>
-        let peer;
-        function playSnd(id) { 
-            const s = document.getElementById('snd-'+id);
-            if(s) { s.currentTime = 0; s.play(); }
-        }
-
-        function update(mode, count) {
-            const r = document.getElementById('rows'); r.innerHTML = '';
-            document.getElementById('x-l').style.display = 'none';
-            document.getElementById('x-r').style.display = 'none';
-            if(mode === 'normal') {
-                for(let i=1; i<=count; i++) r.innerHTML += `<div class="row"><div style="width:60px">${i}</div><div class="ans" id="a${i}">................</div><div class="pts" id="p${i}">--</div></div>`;
-            } else {
-                for(let i=1; i<=5; i++) r.innerHTML += `<div class="f-row"><div id="f1a${i}">........</div><div id="f1p${i}">░░</div><div id="f2p${i}">░░</div><div id="f2a${i}" style="text-align:right">........</div></div>`;
-            }
+        let peer, tInt;
+        function playS(id) { const s = document.getElementById('snd-'+id); if(s){ s.currentTime=0; s.play(); } }
+        function stopAll() { document.querySelectorAll('audio').forEach(a=>{a.pause(); a.currentTime=0;}); clearInterval(tInt); document.getElementById('timer-display').style.display='none'; }
+        
+        function runTimer(sec) {
+            clearInterval(tInt);
+            const d = document.getElementById('timer-display'); d.style.display='block';
+            let t = sec;
+            tInt = setInterval(() => {
+                t--;
+                let m = Math.floor(t/60), s = t%60;
+                d.innerText = (m>0?m+":":"")+(s<10?"0"+s:s);
+                if(t<=0){ clearInterval(tInt); playS('zle'); setTimeout(()=>d.style.display='none', 2000); }
+            }, 1000);
         }
 
         function init() {
-            const id = Math.random().toString(36).substring(2, 5).toUpperCase();
+            const id = Math.random().toString(36).substring(2,5).toUpperCase();
             document.getElementById('code-info').innerText = "KOD PANELU: " + id;
             peer = new Peer(id);
-            peer.on('connection', conn => {
-                document.getElementById('setup').style.display = 'none';
-                conn.on('data', d => {
-                    if(d.type === 'SET') { update('normal', d.c); document.getElementById('suma').innerText = "0"; playSnd('runda'); }
-                    if(d.type === 'FIN') { update('final'); document.getElementById('suma').innerText = "0"; playSnd('final'); }
-                    if(d.type === 'REV') { document.getElementById('a'+(d.i+1)).innerText = d.t; document.getElementById('p'+(d.i+1)).innerText = d.p; document.getElementById('suma').innerText = d.s; playSnd('ok'); }
-                    if(d.type === 'R_A') { document.getElementById(`f${d.pl}a${d.i+1}`).innerText = d.t; }
-                    if(d.type === 'R_P') { document.getElementById(`f${d.pl}p${d.i+1}`).innerText = d.p; document.getElementById('suma').innerText = d.s; playSnd('ok'); }
-                    if(d.type === 'X') { const el = document.getElementById(d.s === 'L' ? 'x-l' : 'x-r'); el.innerText = "X".repeat(d.c); el.style.display = 'block'; playSnd('zle'); }
-                    if(d.type === 'SND') { playSnd(d.file); }
-                    if(d.type === 'VID') { const v = document.getElementById('vid'); v.style.display='block'; v.play(); v.onended=()=>v.style.display='none'; }
+            peer.on('connection', c => {
+                document.getElementById('setup').style.display='none';
+                c.on('data', d => {
+                    if(d.type==='SET'){ 
+                        document.getElementById('rows').innerHTML='';
+                        for(let i=1;i<=d.c;i++) document.getElementById('rows').innerHTML+=`<div class="row"><div style="width:60px">${i}</div><div class="ans" id="a${i}">................</div><div class="pts" id="p${i}">--</div></div>`;
+                        document.getElementById('suma').innerText="0"; playS('runda');
+                    }
+                    if(d.type==='FIN'){ 
+                        document.getElementById('rows').innerHTML='';
+                        for(let i=1;i<=5;i++) document.getElementById('rows').innerHTML+=`<div class="f-row"><div id="f1a${i}">........</div><div id="f1p${i}">░░</div><div id="f2p${i}">░░</div><div id="f2a${i}" style="text-align:right">........</div></div>`;
+                        document.getElementById('suma').innerText="0"; playS('final');
+                    }
+                    if(d.type==='REV'){ document.getElementById('a'+(d.i+1)).innerText=d.t; document.getElementById('p'+(d.i+1)).innerText=d.p; document.getElementById('suma').innerText=d.s; playS('ok'); }
+                    if(d.type==='R_A'){ document.getElementById(`f${d.pl}a${d.i+1}`).innerText=d.t; }
+                    if(d.type==='R_P'){ document.getElementById(`f${d.pl}p${d.i+1}`).innerText=d.p; document.getElementById('suma').innerText=d.s; playS('ok'); }
+                    if(d.type==='X'){ const el=document.getElementById(d.s==='L'?'x-l':'x-r'); el.innerText="X".repeat(d.c); el.style.display='block'; playS('zle'); }
+                    if(d.type==='SND'){ if(d.f==='stop') stopAll(); else playS(d.f); }
+                    if(d.type==='T_START') runTimer(d.s);
+                    if(d.type==='VID'){ const v=document.getElementById('vid'); v.style.display='block'; v.play(); v.onended=()=>v.style.display='none'; }
                 });
             });
         }
