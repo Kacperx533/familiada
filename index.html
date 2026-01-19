@@ -2,13 +2,14 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA - TABLICA LED FULLSCREEN</title>
+    <title>FAMILIADA - PEŁNE STUDIO</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root {
             --led-yellow: #f4ff00;
-            --bg-dark: #0a0a0a;
+            --fam-red: #c61d1d;
+            --fam-blue: #1d60c6;
             --grid-color: #151515;
         }
 
@@ -20,115 +21,159 @@
             background-color: #000;
             overflow: hidden;
             font-family: 'VT323', monospace;
-        }
-
-        /* TABLICA NA CAŁY EKRAN */
-        .board {
-            width: 100vw;
-            height: 100vh;
-            background-color: var(--bg-dark);
-            position: relative;
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            padding: 0 10vw;
-            box-sizing: border-box;
-            
-            /* EFEKT SIATKI KWADRATÓW LED */
-            background-image: 
-                linear-gradient(var(--grid-color) 2px, transparent 2px),
-                linear-gradient(90deg, var(--grid-color) 2px, transparent 2px);
-            background-size: 40px 40px; /* Rozmiar kratek LED */
+            align-items: center;
         }
 
-        /* WIERSZE Z ODPOWIEDZIAMI */
+        /* 1. TŁO PODZIELONE PIONOWO */
+        .background {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            z-index: 1;
+        }
+        .bg-l { flex: 1; background: var(--fam-red); box-shadow: inset -50px 0 100px rgba(0,0,0,0.3); }
+        .bg-r { flex: 1; background: var(--fam-blue); box-shadow: inset 50px 0 100px rgba(0,0,0,0.3); }
+
+        /* 2. CZARNY ŁUK (TĘCZA) */
+        .top-arch-area {
+            position: relative;
+            z-index: 10;
+            width: 110%;
+            height: 220px;
+            background: #000;
+            margin-top: 20px;
+            border-radius: 50% 50% 0 0;
+            display: flex;
+            justify-content: center;
+            border-top: 4px solid #222;
+        }
+
+        /* Kolorowe paski wewnątrz łuku */
+        .rainbow-lines {
+            position: absolute;
+            top: 35px;
+            width: 85%;
+            height: 100%;
+        }
+        .line {
+            position: absolute;
+            width: 40%;
+            height: 200px;
+            border-top: 5px solid;
+            border-radius: 50% 50% 0 0;
+        }
+        .line-red { left: 0; border-color: #ff4d4d; filter: drop-shadow(0 0 10px red); }
+        .line-blue { right: 0; border-color: #4d94ff; filter: drop-shadow(0 0 10px blue); }
+
+        /* 3. SCENA (TABLICA + WYNIKI) */
+        .stage {
+            position: relative;
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            margin-top: -50px; /* Podciągnięcie pod łuk */
+        }
+
+        /* Wyniki drużyn (Białe ramki) */
+        .team-score {
+            width: 170px;
+            height: 110px;
+            background: #000;
+            border: 4px solid #fff;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 15px;
+            color: var(--led-yellow);
+            font-size: 110px;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+        }
+
+        /* GŁÓWNA TABLICA LED (Z TWOICH ZDJĘĆ) */
+        .main-board {
+            width: 850px;
+            height: 520px;
+            background-color: #050505;
+            border: 6px solid #222;
+            border-radius: 50px;
+            position: relative;
+            padding: 30px 50px;
+            box-sizing: border-box;
+            background-image: 
+                linear-gradient(var(--grid-color) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+            background-size: 30px 30px;
+            box-shadow: inset 0 0 80px #000;
+        }
+
         .row {
             display: flex;
             align-items: center;
-            height: 12vh;
-            font-size: 11vh;
+            height: 75px;
+            font-size: 70px;
             color: var(--led-yellow);
-            text-shadow: 0 0 15px rgba(244, 255, 0, 0.6);
-            border-bottom: 2px solid #111;
+            text-shadow: 0 0 10px rgba(244, 255, 0, 0.5);
+            border-bottom: 1px solid #111;
         }
 
-        /* ŻÓŁTE NUMERY 1-6 */
-        .num { 
-            width: 8vw; 
-            color: var(--led-yellow); 
-        }
+        .num { width: 50px; color: var(--led-yellow); } /* Żółte numery */
+        .ans { flex-grow: 1; letter-spacing: 3px; }
+        .pts { width: 80px; text-align: right; }
 
-        .ans { 
-            flex-grow: 1; 
-            letter-spacing: 4px; 
-            text-transform: uppercase; 
-        }
-
-        .pts { 
-            width: 12vw; 
-            text-align: right; 
-        }
-
-        /* DOLNA SEKCJA Z SUMĄ */
-        .board-footer {
+        /* SUMA WEWNĄTRZ TABLICY */
+        .board-suma {
             position: absolute;
-            bottom: 5vh;
-            right: 10vw;
+            bottom: 25px;
+            right: 60px;
             display: flex;
             align-items: center;
-            gap: 40px;
-            font-size: 10vh; /* Duża czcionka dla SUMY */
+            gap: 25px;
+            font-size: 75px;
             color: var(--led-yellow);
-            text-shadow: 0 0 20px rgba(244, 255, 0, 0.7);
+            text-shadow: 0 0 15px rgba(244, 255, 0, 0.6);
         }
 
-        /* CZERWONY X (BŁĄD) */
-        #x-overlay {
-            position: fixed;
-            inset: 0;
-            display: none;
-            justify-content: center;
-            align-items: center;
-            background: rgba(0,0,0,0.8);
-            z-index: 1000;
-        }
-        .x-mark {
-            color: #ff0000;
-            font-size: 80vh;
-            font-family: Arial, sans-serif;
-            font-weight: bold;
-            text-shadow: 0 0 50px red;
-        }
+        /* BŁĄD X */
+        #x-overlay { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.9); z-index: 1000; }
+        .x-mark { color: red; font-size: 500px; font-weight: bold; font-family: Arial; }
 
-        /* EKRAN STARTOWY */
-        #setup { 
-            position: fixed; 
-            inset: 0; 
-            background: #000; 
-            z-index: 2000; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: center; 
-            color: white; 
-        }
+        #setup { position: fixed; inset: 0; background: #000; z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; }
     </style>
 </head>
 <body>
 
     <div id="setup">
-        <div id="code" style="font-size: 100px; color: var(--led-yellow); margin-bottom: 30px;">----</div>
-        <button onclick="init()" style="padding: 25px 70px; font-size: 30px; cursor: pointer; background: var(--led-yellow); border: none; font-weight: bold; border-radius: 10px;">POŁĄCZ TABLICĘ</button>
+        <div id="code" style="font-size: 100px; color: var(--led-yellow); margin-bottom: 20px;">----</div>
+        <button onclick="init()" style="padding: 20px 60px; font-size: 26px; cursor: pointer; background: var(--led-yellow); border: none; font-weight: bold;">ODPAL STUDIO</button>
     </div>
 
-    <div class="board">
-        <div id="board-rows">
-            </div>
+    <div class="background">
+        <div class="bg-l"></div>
+        <div class="bg-r"></div>
+    </div>
 
-        <div class="board-footer">
-            <span>SUMA</span>
-            <span id="suma-val">0</span>
+    <div class="top-arch-area">
+        <div class="rainbow-lines">
+            <div class="line line-red"></div>
+            <div class="line line-blue"></div>
         </div>
+    </div>
+
+    <div class="stage">
+        <div class="team-score"><span id="score-L">0</span></div>
+        
+        <div class="main-board">
+            <div id="board-rows"></div>
+            <div class="board-suma">
+                <span>SUMA</span>
+                <span id="suma-val">0</span>
+            </div>
+        </div>
+
+        <div class="team-score"><span id="score-R">0</span></div>
     </div>
 
     <div id="x-overlay"><div class="x-mark" id="x-text">X</div></div>
@@ -137,7 +182,6 @@
         let peer;
         const rowsContainer = document.getElementById('board-rows');
 
-        // Funkcja tworząca początkowy stan tablicy
         function createRows() {
             rowsContainer.innerHTML = '';
             for(let i=1; i<=6; i++) {
@@ -145,42 +189,39 @@
                     <div class="row">
                         <div class="num">${i}</div>
                         <div class="ans" id="ans-${i}">....................</div>
-                        <div class="pts" id="pts-${i}">--</div>
+                        <div class="pts" id="pts-${i}"></div>
                     </div>`;
             }
         }
-
         createRows();
 
         function init() {
             const id = Math.random().toString(36).substring(2, 5).toUpperCase();
             document.getElementById('code').innerText = id;
             document.getElementById('setup').style.display = 'none';
-            
             peer = new Peer(id);
             peer.on('open', () => {
                 peer.on('connection', conn => {
                     conn.on('data', d => {
-                        // Reset tablicy
                         if(d.type.startsWith('SETUP')) {
                             document.getElementById('suma-val').innerText = "0";
                             createRows();
                         }
-                        // Odkrycie odpowiedzi
                         if(d.type === 'REV') {
                             document.getElementById(`ans-${d.idx+1}`).innerText = d.t;
                             document.getElementById(`pts-${d.idx+1}`).innerText = d.p;
-                            
-                            let sumaSpan = document.getElementById('suma-val');
-                            let currentSuma = parseInt(sumaSpan.innerText) || 0;
-                            sumaSpan.innerText = currentSuma + parseInt(d.p);
+                            let s = document.getElementById('suma-val');
+                            s.innerText = parseInt(s.innerText) + parseInt(d.p);
                         }
-                        // Wyświetlenie błędu X
                         if(d.type === 'X') {
                             const overlay = document.getElementById('x-overlay');
                             document.getElementById('x-text').innerText = "X".repeat(d.count);
                             overlay.style.display = 'flex';
-                            setTimeout(() => overlay.style.display = 'none', 1500);
+                            setTimeout(() => overlay.style.display = 'none', 1200);
+                        }
+                        if(d.type === 'SCORE_SYNC') {
+                            document.getElementById('score-L').innerText = d.l;
+                            document.getElementById('score-R').innerText = d.r;
                         }
                     });
                 });
