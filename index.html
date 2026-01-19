@@ -2,105 +2,92 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA - TABLICA</title>
+    <title>FAMILIADA - TABLICA LED</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        :root { --led-yellow: #f4ff00; }
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: 'VT323', monospace; background: #000; }
+        :root { --led: #f4ff00; --shadow: rgba(244, 255, 0, 0.4); }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: 'VT323', monospace; }
         
-        /* GWARANTOWANE WIDOCZNE TŁO */
-        #static-bg { 
-            position: fixed; inset: 0; 
-            background: linear-gradient(90deg, #ff2d55 0%, #6383ff 50%, #7592ff 100%) !important; 
-            z-index: 1; 
+        /* TŁO */
+        #bg { position: fixed; inset: 0; background: linear-gradient(90deg, #ff2d55 0%, #6383ff 50%, #7592ff 100%); z-index: -1; }
+        #vid { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 100; display: none; object-fit: cover; }
+
+        .container { display: flex; justify-content: center; align-items: center; height: 100vh; }
+
+        .board { 
+            width: 85vw; height: 75vh; background: #111; border: 8px solid #333; 
+            border-radius: 40px; box-shadow: 0 40px 100px rgba(0,0,0,0.7);
+            position: relative; display: flex; flex-direction: column; padding: 0 160px; box-sizing: border-box;
         }
 
-        .board-outer { 
-            position: relative; z-index: 10; /* Tablica nad tłem */
-            width: 85vw; height: 75vh; background: #1a1a24; border-radius: 40px; padding: 10px; 
-            border: 6px solid #333; margin: auto; top: 12vh;
-            box-shadow: 0 0 50px rgba(0,0,0,0.8);
-        }
+        #rows { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; }
         
-        .led-matrix { 
-            width: 100%; height: 100%; background: #050508; border-radius: 25px; 
-            display: flex; flex-direction: column; padding: 0 150px; box-sizing: border-box; 
-        }
-        
-        #board-rows { display: flex; flex-direction: column; width: 100%; height: 100%; justify-content: center; }
-        .row { display: flex; align-items: center; width: 100%; height: 9vh; font-size: 8vh; color: var(--led-yellow); }
-        .ans { flex-grow: 1; text-transform: uppercase; color: var(--led-yellow); }
-        .num { width: 50px; color: var(--led-yellow); }
-        .pts { width: 80px; text-align: right; color: var(--led-yellow); }
+        .row { display: flex; align-items: center; font-size: 8.5vh; color: var(--led); text-shadow: 0 0 15px var(--shadow); height: 10vh; }
+        .num { width: 60px; }
+        .ans { flex-grow: 1; text-transform: uppercase; }
+        .pts { width: 100px; text-align: right; }
 
-        /* FINAŁ */
-        .final-row { display: grid; grid-template-columns: 1fr 70px 70px 1fr; gap: 20px; align-items: center; height: 9vh; font-size: 7vh; color: var(--led-yellow); }
+        .f-row { display: grid; grid-template-columns: 1fr 80px 80px 1fr; gap: 20px; font-size: 7.5vh; color: var(--led); height: 10vh; align-items: center; }
 
-        .x-container { position: absolute; display: none; z-index: 100; top: 20%; color: var(--led-yellow); font-size: 250px; font-weight: bold; text-shadow: 0 0 40px var(--led-yellow); }
-        .x-left { left: 20px; } .x-right { right: 20px; }
+        .footer { position: absolute; bottom: 40px; right: 100px; font-size: 10vh; color: var(--led); }
+
+        .x-mark { position: absolute; top: 25%; font-size: 280px; color: var(--led); display: none; font-weight: bold; text-shadow: 0 0 40px red; z-index: 200; }
+        #x-l { left: 30px; } #x-r { right: 30px; }
+
+        #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; }
+        #code-display { font-size: 80px; color: var(--led); margin: 20px; }
     </style>
 </head>
 <body>
-    <div id="static-bg"></div>
-    
-    <div class="board-outer">
-        <div class="led-matrix">
-            <div id="x-l" class="x-container x-left">X</div>
-            <div id="board-rows">
-                <h1 style="color:white; text-align:center;">KLIKNIJ "POŁĄCZ" I WYBIERZ RUNDĘ W PANELU</h1>
-            </div>
-            <div class="board-footer" style="position:absolute; bottom:5%; right:10%; font-size:8vh; color:var(--led-yellow);">SUMA <span id="suma-val">0</span></div>
-            <div id="x-r" class="x-container x-right">X</div>
+    <div id="bg"></div>
+    <video id="vid" src="czolowka.mp4"></video>
+
+    <div id="overlay">
+        <div id="code-display">KLIKNIJ START</div>
+        <button onclick="init()" style="padding: 20px 50px; font-size: 30px; cursor: pointer;">START SYSTEMU</button>
+    </div>
+
+    <div class="container">
+        <div class="board">
+            <div id="x-l" class="x-mark">X</div>
+            <div id="rows"></div>
+            <div class="footer">SUMA <span id="suma">0</span></div>
+            <div id="x-r" class="x-mark">X</div>
         </div>
     </div>
 
-    <button onclick="initPeer()" id="btn-conn" style="position:fixed; top:10px; left:10px; z-index:1000; padding:15px; background:yellow; font-weight:bold; cursor:pointer;">POŁĄCZ (GENERUJ KOD)</button>
-
     <script>
         let peer;
-        function updateLayout(mode, rowsCount) {
+        function update(mode, count) {
+            const r = document.getElementById('rows'); r.innerHTML = '';
             document.getElementById('x-l').style.display = 'none';
             document.getElementById('x-r').style.display = 'none';
-            const container = document.getElementById('board-rows');
-            container.innerHTML = '';
             if(mode === 'normal') {
-                for(let i=1; i<=rowsCount; i++) {
-                    container.innerHTML += `<div class="row"><div class="num">${i}</div><div class="ans" id="ans-${i}">................</div><div class="pts" id="pts-${i}">--</div></div>`;
-                }
+                for(let i=1; i<=count; i++) r.innerHTML += `<div class="row"><div class="num">${i}</div><div class="ans" id="a${i}">................</div><div class="pts" id="p${i}">--</div></div>`;
             } else {
-                for(let i=1; i<=5; i++) {
-                    container.innerHTML += `<div class="final-row"><div class="f-ans-l" id="f1-ans-${i}">........</div><div class="f-pts" id="f1-pts-${i}">--</div><div class="f-pts" id="f2-pts-${i}">--</div><div class="f-ans-r" id="f2-ans-${i}">........</div></div>`;
-                }
+                for(let i=1; i<=5; i++) r.innerHTML += `<div class="f-row"><div id="f1a${i}">........</div><div id="f1p${i}">░░</div><div id="f2p${i}">░░</div><div id="f2a${i}" style="text-align:right">........</div></div>`;
             }
         }
 
-        function initPeer() {
+        function init() {
             const id = Math.random().toString(36).substring(2, 5).toUpperCase();
-            document.getElementById('btn-conn').innerText = "TWÓJ KOD: " + id;
+            document.getElementById('code-display').innerText = "TWÓJ KOD: " + id;
             peer = new Peer(id);
             peer.on('connection', conn => {
+                document.getElementById('overlay').style.display = 'none';
                 conn.on('data', d => {
-                    if(d.type === 'SETUP') { updateLayout('normal', d.count); document.getElementById('suma-val').innerText="0"; }
-                    if(d.type === 'FINAL_MODE') { updateLayout('final', 5); document.getElementById('suma-val').innerText="0"; }
-                    if(d.type === 'REV') { 
-                        document.getElementById(`ans-${d.idx+1}`).innerText = d.t; 
-                        document.getElementById(`pts-${d.idx+1}`).innerText = d.p;
-                        document.getElementById('suma-val').innerText = d.total;
-                    }
-                    if(d.type === 'REV_ANS') document.getElementById(`f${d.player}-ans-${d.idx+1}`).innerText = d.t;
-                    if(d.type === 'REV_PTS') { 
-                        document.getElementById(`f${d.player}-pts-${d.idx+1}`).innerText = d.p;
-                        document.getElementById('suma-val').innerText = d.total;
-                    }
-                    if(d.type === 'X') {
-                        const el = document.getElementById(d.side === 'L' ? 'x-l' : 'x-r');
-                        el.innerText = "X".repeat(d.count);
-                        el.style.display = 'block';
-                    }
+                    if(d.type === 'SET') { update('normal', d.c); document.getElementById('suma').innerText = "0"; }
+                    if(d.type === 'FIN') { update('final'); document.getElementById('suma').innerText = "0"; }
+                    if(d.type === 'REV') { document.getElementById('a'+(d.i+1)).innerText = d.t; document.getElementById('p'+(d.i+1)).innerText = d.p; document.getElementById('suma').innerText = d.s; }
+                    if(d.type === 'R_A') document.getElementById(`f${d.pl}a${d.i+1}`).innerText = d.t;
+                    if(d.type === 'R_P') { document.getElementById(`f${d.pl}p${d.i+1}`).innerText = d.p; document.getElementById('suma').innerText = d.s; }
+                    if(d.type === 'X') { const el = document.getElementById(d.s === 'L' ? 'x-l' : 'x-r'); el.innerText = "X".repeat(d.c); el.style.display = 'block'; }
+                    if(d.type === 'VID') { const v = document.getElementById('vid'); v.style.display='block'; v.play(); v.onended=()=>v.style.display='none'; }
                 });
             });
         }
+        update('normal', 6);
     </script>
 </body>
 </html>
