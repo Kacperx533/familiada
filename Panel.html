@@ -2,63 +2,107 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>PANEL STEROWANIA</title>
+    <title>FAMILIADA - PANEL EKSPERCKI</title>
     <style>
-        body { font-family: sans-serif; background: #111; color: white; padding: 20px; }
-        .box { background: #222; padding: 20px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #333; }
-        input, button { padding: 10px; margin: 5px; border-radius: 5px; border: none; }
-        button { cursor: pointer; background: #444; color: white; font-weight: bold; }
-        button:hover { background: #555; }
-        .yellow { background: #f4ff00; color: #000; }
-        .red { background: #ff3333; color: white; }
-        .row { display: flex; align-items: center; background: #2a2a2a; margin-bottom: 5px; padding: 5px; border-radius: 5px; }
-        input[type="text"] { flex: 2; }
-        input[type="number"] { width: 60px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f172a; color: #f8fafc; margin: 0; display: flex; height: 100vh; }
+        .sidebar { width: 300px; background: #1e293b; padding: 20px; border-right: 1px solid #334155; display: flex; flex-direction: column; }
+        .main { flex: 1; padding: 25px; overflow-y: auto; }
+        
+        .card { background: #334155; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        h2 { margin: 0 0 15px 0; font-size: 18px; color: #fbbf24; text-transform: uppercase; letter-spacing: 1px; }
+        
+        input, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: none; font-size: 14px; box-sizing: border-box; }
+        input { background: #1e293b; color: white; border: 1px solid #475569; }
+        
+        button { cursor: pointer; font-weight: 600; transition: all 0.2s; }
+        .btn-primary { background: #3b82f6; color: white; }
+        .btn-primary:hover { background: #2563eb; }
+        .btn-yellow { background: #fbbf24; color: #1e293b; }
+        .btn-red { background: #ef4444; color: white; }
+        
+        .row-grid { display: grid; grid-template-columns: 40px 1fr 80px 100px; gap: 10px; align-items: center; background: #1e293b; padding: 8px; border-radius: 8px; margin-bottom: 5px; }
+        .row-grid span { font-weight: bold; color: #94a3b8; text-align: center; }
+        
+        .flex-group { display: flex; gap: 10px; }
+        .sound-btn { background: #64748b; font-size: 12px; }
     </style>
 </head>
 <body>
 
-    <div class="box">
+    <div class="sidebar">
         <h2>POŁĄCZENIE</h2>
         <input type="text" id="target" placeholder="KOD Z TABLICY">
-        <button onclick="connect()" class="yellow">POŁĄCZ</button>
-        <span id="stat" style="color: red; margin-left: 10px;">Brak połączenia</span>
+        <button onclick="connect()" class="btn-yellow">POŁĄCZ Z SYSTEMEM</button>
+        <div id="stat" style="text-align:center; margin-top:10px; color:#ef4444;">🔴 Rozłączony</div>
+        
+        <h2 style="margin-top:40px;">MULTIMEDIA</h2>
+        <button onclick="playSnd('intro')" class="sound-btn">🎵 CZOŁÓWKA</button>
+        <button onclick="playSnd('think')" class="sound-btn">⏲️ CZAS MYŚLENIA</button>
+        <button onclick="playSnd('final_win')" class="sound-btn">🏆 WYGRANA FINAŁ</button>
     </div>
 
-    <div class="box">
-        <h2>RUNDA</h2>
-        <button onclick="send('SETUP')">RESET TABLICY (NOWE PYTANIE)</button>
-        <div id="inputs"></div>
-        <div style="margin-top: 15px;">
-            <button onclick="sendX(1)" class="red">X (BŁĄD)</button>
-            <button onclick="sendX(2)" class="red">XX</button>
-            <button onclick="sendX(3)" class="red">XXX</button>
+    <div class="main">
+        <div class="card">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h2>RUNDA ZWYKŁA / ELIMINACJE</h2>
+                <button onclick="send('SETUP')" class="btn-primary" style="width:200px;">RESETUJ TABLICĘ</button>
+            </div>
+            <div id="inputs-container"></div>
+            <div style="margin-top:20px;">
+                <p>BŁĘDY (X):</p>
+                <div class="flex-group">
+                    <button onclick="sendX(1)" class="btn-red">X</button>
+                    <button onclick="sendX(2)" class="btn-red">XX</button>
+                    <button onclick="sendX(3)" class="btn-red">XXX</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card" style="border-left: 5px solid #fbbf24;">
+            <h2>MODUŁ FINAŁOWY</h2>
+            <button onclick="send('FINAL_MODE')" class="btn-yellow">PRZEŁĄCZ TABLICĘ NA FINAŁ (5 WIERSZY)</button>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top:15px;">
+                <div>
+                    <h3>GRACZ 1</h3>
+                    <input type="text" id="f1-t" placeholder="Odpowiedź">
+                    <input type="number" id="f1-p" placeholder="Pkt">
+                    <button onclick="revealFinal(1)" class="btn-primary">POKAŻ PKT</button>
+                </div>
+                <div>
+                    <h3>GRACZ 2</h3>
+                    <input type="text" id="f2-t" placeholder="Odpowiedź">
+                    <input type="number" id="f2-p" placeholder="Pkt">
+                    <button onclick="revealFinal(2)" class="btn-primary">POKAŻ PKT</button>
+                </div>
+            </div>
         </div>
     </div>
 
-    <audio id="snd-x" src="https://www.myinstants.com/media/sounds/familiada-x.mp3"></audio>
-    <audio id="snd-ok" src="https://www.myinstants.com/media/sounds/familiada-poprawna.mp3"></audio>
+    <audio id="snd-x" src="https://www.soundboard.com/handler/Downloadaudio.ashx?id=156711"></audio>
+    <audio id="snd-ok" src="https://www.soundboard.com/handler/Downloadaudio.ashx?id=156710"></audio>
 
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script>
         let conn;
         const peer = new Peer();
-        const ins = document.getElementById('inputs');
+        const container = document.getElementById('inputs-container');
 
         for(let i=0; i<6; i++) {
-            ins.innerHTML += `<div class="row">
-                <span>${i+1}</span>
-                <input type="text" id="t${i}" placeholder="Hasło">
-                <input type="number" id="p${i}" placeholder="Pkt">
-                <button onclick="reveal(${i})">ODKRYJ</button>
-            </div>`;
+            container.innerHTML += `
+                <div class="row-grid">
+                    <span>${i+1}</span>
+                    <input type="text" id="t${i}" placeholder="Hasło">
+                    <input type="number" id="p${i}" placeholder="Pkt">
+                    <button onclick="reveal(${i})" class="btn-primary">ODKRYJ</button>
+                </div>`;
         }
 
         function connect() {
             const id = document.getElementById('target').value.toUpperCase();
             conn = peer.connect(id);
             conn.on('open', () => {
-                document.getElementById('stat').innerText = "POŁĄCZONO!";
-                document.getElementById('stat').style.color = "lime";
+                document.getElementById('stat').innerText = "🟢 Połączono z Tablicą";
+                document.getElementById('stat').style.color = "#2ecc71";
             });
         }
 
@@ -67,7 +111,7 @@
         function reveal(idx) {
             const t = document.getElementById(`t${idx}`).value;
             const p = document.getElementById(`p${idx}`).value;
-            if(conn) {
+            if(conn && t && p) {
                 conn.send({ type: 'REV', idx, t, p });
                 document.getElementById('snd-ok').play();
             }
@@ -77,6 +121,22 @@
             if(conn) {
                 conn.send({ type: 'X', count });
                 document.getElementById('snd-x').play();
+            }
+        }
+
+        function playSnd(type) {
+            console.log("Odtwarzanie dźwięku: " + type);
+            // Tu można podpiąć realne linki do MP3
+        }
+
+        function revealFinal(playerNum) {
+            // Logika specyficzna dla finału (np. sumowanie do specjalnego licznika)
+            const t = document.getElementById(`f${playerNum}-t`).value;
+            const p = document.getElementById(`f${playerNum}-p`).value;
+            // W finale często odkrywamy sam punkt po odpowiedzi gracza
+            if(conn) {
+                conn.send({ type: 'REV', idx: playerNum-1, t, p }); // Uproszczone mapowanie
+                document.getElementById('snd-ok').play();
             }
         }
     </script>
