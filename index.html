@@ -2,71 +2,93 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA TV - REVERSE ARCH</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FAMILIADA TV - REVERSE ARCH STUDIO</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root {
             --led-yellow: #f4ff00;
+            --bg-red: #b31212;
+            --bg-blue: #1236b3;
         }
+
+        * { box-sizing: border-box; }
 
         body {
             margin: 0;
             height: 100vh;
+            background-color: #000;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            overflow: hidden;
-            text-transform: uppercase;
             font-family: 'VT323', monospace;
-            background: linear-gradient(90deg, #900 0%, #b00 48%, #00b 52%, #009 100%);
+            text-transform: uppercase;
+            overflow: hidden;
         }
 
-        /* ODWRÓCONA FÓRA (WKLĘSŁA) */
-        .ceiling-container {
+        /* TŁO PODZIELONE NA PÓŁ Z ZAOKRĄGLONĄ GÓRĄ */
+        .background-container {
             position: absolute;
-            top: -150px; /* Przesunięcie do góry, by widoczny był tylko dół łuku */
-            width: 120%;
-            height: 350px;
+            inset: 0;
+            display: flex;
+            z-index: 1;
+        }
+
+        .side {
+            flex: 1;
+            height: 100%;
+            /* Zaokrąglenie górnych rogów do wewnątrz pod łuk */
+            border-radius: 80px 80px 0 0;
+            margin-top: 40px;
+        }
+
+        .side-left { background-color: var(--bg-red); margin-right: 2px; }
+        .side-right { background-color: var(--bg-blue); margin-left: 2px; }
+
+        /* CZARNA FÓRA - ŁUK WYGIĘTY W DÓŁ (WKLĘSŁY) */
+        .top-arch {
+            position: absolute;
+            top: -100px;
+            width: 110%;
+            height: 250px;
             background: #000;
-            /* Wygięcie w drugą stronę - border-radius na dole */
-            border-radius: 0 0 50% 50%; 
+            border-radius: 0 0 50% 50%; /* Wygięcie w dół */
+            z-index: 100;
             display: flex;
             align-items: flex-end;
             justify-content: center;
-            padding-bottom: 40px;
-            z-index: 100;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.9);
-            border-bottom: 4px solid #222;
+            padding-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
         }
 
-        /* LICZNIK OSADZONY W TYM ŁUKU */
-        .top-suma-box {
+        /* LICZNIK SUMY W ŁUKU */
+        .top-score-box {
             background: #000;
-            border: 2px solid var(--led-yellow);
-            width: 160px;
-            height: 80px;
+            border: 3px solid var(--led-yellow);
+            width: 150px;
+            height: 75px;
             display: flex;
             align-items: center;
             justify-content: flex-end;
             padding-right: 15px;
-            box-shadow: 0 0 15px rgba(244,255,0,0.3) inset;
+            box-shadow: 0 0 15px rgba(244, 255, 0, 0.2) inset;
         }
-        #suma-val { font-size: 90px; color: var(--led-yellow); }
+        #suma-val { font-size: 80px; color: var(--led-yellow); line-height: 1; }
 
-        /* UKŁAD GŁÓWNY */
-        .studio-layout {
+        /* GŁÓWNY UKŁAD STUDIA */
+        .studio-content {
+            position: relative;
+            z-index: 10;
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 25px;
-            margin-top: 150px; /* Miejsce pod odwróconym łukiem */
-            z-index: 10;
+            gap: 20px;
+            margin-top: 100px;
         }
 
-        /* WYNIKI BOCZNE */
-        .score-box {
+        /* WYNIKI DRUŻYN (POZIOME PROSTOKĄTY) */
+        .team-score {
             width: 180px;
             height: 100px;
             background: #000;
@@ -75,21 +97,19 @@
             align-items: center;
             justify-content: flex-end;
             padding-right: 15px;
-            font-size: 110px;
+            font-size: 100px;
             color: var(--led-yellow);
         }
 
-        /* TABLICA */
-        .board-frame {
+        /* TABLICA HASEŁ - MOCNO ZAOKRĄGLONA */
+        .main-board {
             width: 900px;
             height: 520px;
             background: #000;
             border: 3px solid #333;
-            border-radius: 80px;
-            padding: 30px 50px;
+            border-radius: 90px;
+            padding: 35px 55px;
             box-shadow: inset 0 0 50px #000;
-            background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 0);
-            background-size: 12px 12px;
         }
 
         .row {
@@ -100,46 +120,74 @@
             border-bottom: 2px solid #0a0a0a;
         }
 
-        .num { width: 60px; color: #111; }
+        .num { width: 60px; color: #1a1a1a; }
         .ans { flex-grow: 1; color: var(--led-yellow); letter-spacing: 2px; }
         .pts { width: 100px; text-align: right; color: var(--led-yellow); }
 
+        /* ELEMENT X */
         #x-overlay {
             position: fixed;
             inset: 0;
             display: none;
             align-items: center;
             justify-content: center;
-            background: rgba(0,0,0,0.96);
+            background: rgba(0,0,0,0.9);
             z-index: 1000;
         }
-        .x-text { font-size: 600px; color: red; font-weight: bold; font-family: Arial; }
+        .x-text { font-size: 600px; color: red; font-weight: bold; font-family: Arial, sans-serif; }
 
-        #setup { position: fixed; inset: 0; background: #000; z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        button { padding: 20px 50px; font-size: 24px; cursor: pointer; background: var(--led-yellow); border: none; font-weight: bold; }
+        /* SETUP SCREEN */
+        #setup {
+            position: fixed;
+            inset: 0;
+            background: #000;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        button {
+            padding: 20px 40px;
+            font-size: 24px;
+            cursor: pointer;
+            background: var(--led-yellow);
+            border: none;
+            font-weight: bold;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
 
     <div id="setup">
-        <div id="code" style="font-size: 100px; color: var(--led-yellow); margin-bottom: 20px;"></div>
-        <button onclick="init()">START STUDIO</button>
+        <div id="code" style="font-size: 80px; color: var(--led-yellow);">----</div>
+        <button onclick="init()">URUCHOM STUDIO</button>
     </div>
 
-    <div class="ceiling-container">
-        <div class="top-suma-box">
+    <div class="background-container">
+        <div class="side side-left"></div>
+        <div class="side side-right"></div>
+    </div>
+
+    <div class="top-arch">
+        <div class="top-score-box">
             <div id="suma-val">0</div>
         </div>
     </div>
 
     <div id="x-overlay"><div class="x-text" id="x-val">X</div></div>
 
-    <div class="studio-layout">
-        <div class="score-box"><span id="score-L">0</span></div>
-        <div class="board-frame">
-            <div id="board-content"></div>
+    <div class="studio-content">
+        <div class="team-score"><span id="score-L">0</span></div>
+        
+        <div class="main-board">
+            <div id="board-content">
+                </div>
         </div>
-        <div class="score-box"><span id="score-R">0</span></div>
+
+        <div class="team-score"><span id="score-R">0</span></div>
     </div>
 
     <audio id="snd-ok" src="ok.mp3"></audio>
@@ -159,9 +207,12 @@
                 peer.on('connection', conn => {
                     conn.on('data', d => {
                         if(d.type === 'SETUP_NORMAL' || d.type === 'SETUP_FINAL') {
-                            sum = 0; document.getElementById('suma-val').innerText = "0";
+                            sum = 0; 
+                            document.getElementById('suma-val').innerText = "0";
                             let h = "";
-                            for(let i=1; i<=6; i++) h += `<div class="row"><div class="num">${i}</div><div class="ans" id="ans-${i}">..........</div><div class="pts" id="pts-${i}"></div></div>`;
+                            for(let i=1; i<=6; i++) {
+                                h += `<div class="row"><div class="num">${i}</div><div class="ans" id="ans-${i}">..........</div><div class="pts" id="pts-${i}"></div></div>`;
+                            }
                             document.getElementById('board-content').innerHTML = h;
                         }
                         if(d.type === 'REV') {
