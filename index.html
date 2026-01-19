@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA - TABLICA</title>
+    <title>FAMILIADA - TABLICA OSTATECZNA</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
@@ -26,15 +26,21 @@
         .f-row { display: grid; grid-template-columns: 1fr 80px 80px 1fr; gap: 20px; font-size: 7vh; color: var(--led); height: 9.5vh; align-items: center; }
         .footer { position: absolute; bottom: 40px; right: 100px; font-size: 9vh; color: var(--led); }
 
-        /* PIONOWE X */
+        /* PIONOWE SEGMENTOWE X */
         .x-mark { 
             position: absolute; top: 50%; transform: translateY(-50%);
-            font-size: 18vh; color: #ff0000; display: none; 
-            font-weight: bold; text-shadow: 0 0 30px #000; z-index: 200;
-            line-height: 0.9; text-align: center;
+            display: none; z-index: 200; text-align: center;
         }
-        #x-l { left: 30px; } 
-        #x-r { right: 30px; }
+        .x-symbol {
+            display: block;
+            font-size: 16vh;
+            color: var(--led);
+            line-height: 0.85;
+            text-shadow: 0 0 30px #f4ff00;
+            font-family: Arial, sans-serif; /* Dla mocniejszego kształtu X */
+        }
+        #x-l { left: 40px; } 
+        #x-r { right: 40px; }
 
         #timer-display { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 25vh; color: var(--led); background: #000; padding: 20px 50px; border: 5px solid var(--led); display: none; z-index: 500; }
         #setup { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; }
@@ -108,7 +114,8 @@
                     if(d.type==='R_P'){ document.getElementById(`f${d.pl}p${d.i+1}`).innerText=d.p; document.getElementById('suma').innerText=d.s; playS('ok'); }
                     if(d.type==='X'){ 
                         const el=document.getElementById(d.s==='L'?'x-l':'x-r'); 
-                        el.innerHTML = "X<br>".repeat(d.c); // Pionowe ustawienie
+                        el.innerHTML = "";
+                        for(let i=0; i<d.c; i++) el.innerHTML += `<span class="x-symbol">X</span>`;
                         el.style.display='block'; playS('zle'); 
                     }
                     if(d.type==='SND'){ if(d.f==='stop') stopAll(); else playS(d.f); }
