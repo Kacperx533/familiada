@@ -2,139 +2,160 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>PANEL STEROWANIA 50+</title>
+    <title>FAMILIADA - PANEL</title>
     <style>
-        body { font-family: sans-serif; background: #111; color: white; display: grid; grid-template-columns: 350px 1fr 350px; gap: 10px; margin: 0; height: 100vh; }
-        .col { background: #222; padding: 15px; overflow-y: auto; border-right: 1px solid #444; }
-        button { width: 100%; padding: 12px; margin: 3px 0; cursor: pointer; font-weight: bold; border: none; border-radius: 5px; }
+        body { font-family: sans-serif; background: #0f172a; color: white; display: grid; grid-template-columns: 350px 1fr 300px; height: 100vh; margin: 0; overflow: hidden; }
+        .side { background: #1e293b; padding: 15px; overflow-y: auto; border-right: 1px solid #334155; }
+        .main { padding: 20px; overflow-y: auto; }
+        .card { background: #1e293b; padding: 15px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        button { padding: 10px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin: 2px; }
+        .btn-blue { background: #3b82f6; color: white; width: 100%; }
         .btn-green { background: #22c55e; color: white; }
         .btn-red { background: #ef4444; color: white; }
-        .btn-blue { background: #3b82f6; color: white; }
-        .btn-yellow { background: #fbbf24; color: black; }
-        .q-card { background: #333; padding: 10px; margin-bottom: 5px; cursor: pointer; border-radius: 5px; font-size: 13px; border-left: 5px solid #fbbf24; }
-        .q-card:hover { background: #444; }
-        .sciaga { background: #000; padding: 15px; color: #fbbf24; font-family: monospace; border-radius: 10px; min-height: 100px; margin-top: 10px; }
-        input { background: #000; color: #fbbf24; border: 1px solid #555; padding: 8px; }
+        .btn-gold { background: #eab308; color: black; }
+        .q-item { background: #334155; padding: 8px; margin-bottom: 5px; border-radius: 4px; cursor: pointer; font-size: 13px; border-left: 4px solid #eab308; }
+        input { width: 100%; padding: 8px; background: #0f172a; border: 1px solid #334155; color: #facc15; border-radius: 4px; box-sizing: border-box; }
+        h2 { color: #facc15; font-size: 16px; margin-top: 0; }
     </style>
 </head>
 <body>
-
-    <div class="col">
-        <h2>BAZA PYTAŃ (KLIKNIJ BY WYBRAĆ)</h2>
-        <div id="q-bank"></div>
+    <div class="side">
+        <h2>BAZA 50 PYTAŃ</h2>
+        <div id="q-list"></div>
     </div>
-
-    <div class="col">
-        <div class="card" style="margin-bottom:20px">
-            <input type="text" id="target" placeholder="KOD Z TABLICY" style="width:60%">
-            <button onclick="connect()" class="btn-green" style="width:35%">POŁĄCZ</button>
-        </div>
-
+    <div class="main">
         <div class="card">
-            <h2>START RUNDY (MUZYKA + RESET)</h2>
+            <input type="text" id="code" placeholder="KOD Z TABLICY">
+            <button onclick="connect()" class="btn-green" style="width:100%; margin-top:10px">POŁĄCZ</button>
+        </div>
+        <div class="card">
+            <h2>START RUNDY (MUZYKA)</h2>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:5px">
-                <button onclick="startRunda(1)" class="btn-blue">RUNDA 1</button>
-                <button onclick="startRunda(2)" class="btn-blue">RUNDA 2</button>
-                <button onclick="startRunda(3)" class="btn-blue">RUNDA 3</button>
-                <button onclick="startFinal()" class="btn-yellow">FINAŁ</button>
+                <button onclick="startR(1)" class="btn-blue">RUNDA 1</button>
+                <button onclick="startR(2)" class="btn-blue">RUNDA 2</button>
+                <button onclick="startR(3)" class="btn-blue">RUNDA 3</button>
+                <button onclick="startF()" class="btn-gold">FINAŁ</button>
+            </div>
+            <button onclick="send('VID')" class="btn-gold" style="width:100%; margin-top:8px">CZOŁÓWKA WIDEO</button>
+        </div>
+        <div id="inputs" class="card" style="display:none">
+            <h2 id="q-title">Aktywne</h2>
+            <div id="ans-box"></div>
+        </div>
+        <div class="card">
+            <h2>BŁĘDY (X)</h2>
+            <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:5px">
+                <button onclick="x('L',1)" class="btn-red">L: X</button><button onclick="x('L',2)" class="btn-red">L: XX</button><button onclick="x('L',3)" class="btn-red">L: XXX</button>
+                <button onclick="x('R',1)" class="btn-red">R: X</button><button onclick="x('R',2)" class="btn-red">R: XX</button><button onclick="x('R',3)" class="btn-red">R: XXX</button>
             </div>
         </div>
-
+    </div>
+    <div class="side" style="border-left: 1px solid #334155;">
+        <h2>ŚCIĄGA</h2>
+        <div id="hint" style="color:#facc15; white-space: pre-wrap; font-size:14px">Wybierz pytanie...</div>
         <hr>
-        <button onclick="playMedia('video')" class="btn-yellow">CZOŁÓWKA WIDEO</button>
-        <button onclick="playMedia('intro')" class="btn-yellow">INTRO MUZYKA</button>
-
-        <div id="active-round-ui" style="margin-top:20px">
-            <h3 id="current-q-label">Wybierz pytanie z listy -></h3>
-            <div id="inputs-area"></div>
-        </div>
-
-        <div style="margin-top:20px; display:grid; grid-template-columns: 1fr 1fr; gap:5px">
-            <button onclick="sendX('L',1)" class="btn-red">LEWY X</button><button onclick="sendX('R',1)" class="btn-red">PRAWY X</button>
-            <button onclick="sendX('L',2)" class="btn-red">LEWY XX</button><button onclick="sendX('R',2)" class="btn-red">PRAWY XX</button>
-            <button onclick="sendX('L',3)" class="btn-red">L XXX</button><button onclick="sendX('R',3)" class="btn-red">R XXX</button>
-        </div>
+        <h1 id="timer" style="text-align:center; font-size:50px; margin:10px 0;">00</h1>
+        <button onclick="timer(15)" class="btn-blue">15 SEKUND</button>
+        <button onclick="timer(20)" class="btn-blue">20 SEKUND</button>
     </div>
 
-    <div class="col">
-        <h2>ŚCIĄGA DLA CIEBIE</h2>
-        <div id="sciaga" class="sciaga">Tu pojawi się treść wybranego pytania...</div>
-        <hr>
-        <h1 id="timer-val" style="text-align:center; font-size:80px">00</h1>
-        <button onclick="startTimer(15)" class="btn-blue">15 SEKUND</button>
-        <button onclick="startTimer(20)" class="btn-blue">20 SEKUND</button>
-        <button onclick="playMedia('powtorzenie')" class="btn-yellow" style="margin-top:20px">POWTÓRZENIE</button>
-    </div>
-
-    <audio id="snd-runda" src="runda.mp3"></audio>
-    <audio id="snd-final" src="final.mp3"></audio>
-    <audio id="snd-intro" src="intro.mp3"></audio>
-    <audio id="snd-powtorzenie" src="powtorzenie.mp3"></audio>
-    <audio id="snd-ok" src="ok.mp3"></audio>
-    <audio id="snd-zle" src="zle.mp3"></audio>
+    <audio id="s-r" src="runda.mp3"></audio><audio id="s-f" src="final.mp3"></audio>
+    <audio id="s-ok" src="ok.mp3"></audio><audio id="s-zle" src="zle.mp3"></audio>
 
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script>
-        let conn, total = 0, peer = new Peer();
-        let selectedQ = null;
+        let conn, total = 0, peer = new Peer(), curQ = null;
+        
+        // BAZA 50 PYTAŃ
+        const questions = [
+            {id:1, q:"Co pijemy rano?", a:["KAWA","HERBATA","WODA","SOK","MLEKO"], p:[45,25,15,10,5]},
+            {id:2, q:"Więcej niż jedno zwierzę?", a:["STADO","KLUCZ","PARA","WATAHA","ŁAWICA"], p:[40,20,15,15,10]},
+            {id:3, q:"Zwierzę na K?", a:["KOT","KOŃ","KROWA","KURA","KANGUR"], p:[35,25,20,12,8]},
+            {id:4, q:"Przedmiot w piórniku?", a:["DŁUGOPIS","OŁÓWEK","GUMKA","LINIJKA","CYRKIEL"], p:[42,28,15,10,5]},
+            {id:5, q:"Warzywo do zupy?", a:["MARCHEW","PIETRUSZKA","SELER","POR","ZIEMNIAK"], p:[30,22,18,15,15]},
+            {id:6, q:"Dyscyplina olimpijska?", a:["BIEGANIE","PŁYWANIE","SIATKÓWKA","TENIS","SKOKI"], p:[35,25,20,10,10]},
+            {id:7, q:"Coś z kołami?", a:["SAMOCHÓD","ROWER","MOTOCYKL","WÓZEK","TRAKTOR"], p:[50,25,12,8,5]},
+            {id:8, q:"Dzień tygodnia?", a:["PONIEDZIAŁEK","PIĄTEK","SOBOTA","NIEDZIELA","ŚRODA"], p:[25,25,20,20,10]},
+            {id:9, q:"Co kładziemy na chleb?", a:["MASŁO","SER","SZYNKA","POMIDOR","DŻEM"], p:[45,25,15,10,5]},
+            {id:10, q:"Miesiąc letni?", a:["LIPIEC","SIERPIEŃ","CZERWIEC","WRZESIEŃ","MAJ"], p:[40,35,20,3,2]},
+            {id:11, q:"Część ciała?", a:["GŁOWA","RĘKA","NOGA","BRZUCH","PLECY"], p:[38,30,20,10,2]},
+            {id:12, q:"Polska rzeka?", a:["WISŁA","ODRA","WARTA","BUG","NAREW"], p:[60,20,10,6,4]},
+            {id:13, q:"Drzewo liściaste?", a:["DĄB","BRZOZA","KLON","LIPA","BUK"], p:[42,28,15,10,5]},
+            {id:14, q:"Coś słodkiego?", a:["CZEKOLADA","CIASTKO","CUKIERKI","LODY","WAFLE"], p:[35,30,20,10,5]},
+            {id:15, q:"Ptak domowy?", a:["KURA","KACZKA","GĘŚ","INDYK","PERLICZKA"], p:[50,25,15,8,2]},
+            {id:16, q:"Kolor?", a:["NIEBIESKI","CZERWONY","ZIELONY","BIAŁY","CZARNY"], p:[25,25,20,15,15]},
+            {id:17, q:"Mebel w salonie?", a:["KANAPA","FOTEL","STÓŁ","REGAŁ","SZAFA"], p:[45,25,15,10,5]},
+            {id:18, q:"Ryba morska?", a:["DORSZ","ŚLEDŹ","FLĄDRA","MAKRELA","SZPROT"], p:[35,30,15,12,8]},
+            {id:19, q:"Owoc egzotyczny?", a:["BANAN","POMARAŃCZA","ANANAS","KIWI","MANGO"], p:[40,30,15,10,5]},
+            {id:20, q:"Narzędzie budowlane?", a:["MŁOTEK","ŚRUBOKRĘT","PIŁA","POZIOMICA","KIELNIA"], p:[45,25,15,10,5]},
+            {id:21, q:"Zwierzę afrykańskie?", a:["LEW","SŁOŃ","ŻYRAFA","ZEBRA","NOSOROŻEC"], p:[35,30,20,10,5]},
+            {id:22, q:"Coś w łazience?", a:["WANNA","LUSTRO","PRALKA","MYDŁO","RĘCZNIK"], p:[30,25,20,15,10]},
+            {id:23, q:"Instrument muzyczny?", a:["GITARA","FORTEPIAN","SKRZYPCE","FLET","PERKUSJA"], p:[40,25,20,10,5]},
+            {id:24, q:"Marka samochodu?", a:["FIAT","BMW","AUDI","TOYOTA","FORD"], p:[30,20,20,20,10]},
+            {id:25, q:"Coś zimnego?", a:["LODY","LÓD","ŚNIEG","WODA","PIWO"], p:[40,30,20,5,5]},
+            {id:26, q:"Sport zimowy?", a:["NARCIARSTWO","ŁYŻWIARSTWO","HOKEJ","SKOKI","SANKI"], p:[45,25,15,10,5]},
+            {id:27, q:"Coś na literę P?", a:["PIŁKA","PIES","PTAK","PUDEŁKO","POMIDOR"], p:[20,20,20,20,20]},
+            {id:28, q:"Imię męskie?", a:["JAN","ADAM","PIOTR","MAREK","TOMASZ"], p:[30,25,20,15,10]},
+            {id:29, q:"Coś co świeci?", a:["SŁOŃCE","ŻARÓWKA","KSIĘŻYC","GWIAZDY","LATARKA"], p:[50,20,15,10,5]},
+            {id:30, q:"Sposób podróży?", a:["SAMOCHÓD","SAMOLOT","POCIĄG","AUTOBUS","ROWER"], p:[35,30,20,10,5]},
+            {id:31, q:"Coś w kuchni?", a:["LODÓWKA","KUCHENKA","ZLEW","STÓŁ","GARNEK"], p:[35,25,15,15,10]},
+            {id:32, q:"Kwiat ogrodowy?", a:["RÓŻA","TULIPAN","PELARGONIA","BRATEK","MALWA"], p:[45,25,15,10,5]},
+            {id:33, q:"Coś co lata?", a:["SAMOLOT","PTAK","MUCHA","HELIKOPTER","BALON"], p:[40,35,15,8,2]},
+            {id:34, q:"Zwierzę wiejskie?", a:["KROWA","ŚWINIA","KOŃ","KURA","OWCA"], p:[40,25,20,10,5]},
+            {id:35, q:"Państwo w Europie?", a:["POLSKA","NIEMCY","FRANCJA","WŁOCHY","HISZPANIA"], p:[40,20,15,15,10]},
+            {id:36, q:"Gatunek filmu?", a:["KOMEDIA","HORROR","AKCJA","DRAMAT","KRYMINAŁ"], p:[40,20,15,15,10]},
+            {id:37, q:"Coś w lesie?", a:["DRZEWA","GRZYBY","ZWIERZĘTA","MECH","JAGODY"], p:[50,20,15,10,5]},
+            {id:38, q:"Zawód?", a:["LEKARZ","NAUCZYCIEL","KIEROWCA","STRAŻAK","POLICJANT"], p:[30,25,20,15,10]},
+            {id:39, q:"Coś do picia?", a:["WODA","SOK","KAWA","HERBATA","PIWO"], p:[40,20,15,15,10]},
+            {id:40, q:"Planeta?", a:["MARS","ZIEMIA","JOWISZ","WENUS","SATURN"], p:[35,30,20,10,5]},
+            {id:41, q:"Coś na literę M?", a:["MAMA","MIASTO","MORZE","MASŁO","MLEKO"], p:[20,20,20,20,20]},
+            {id:42, q:"Sport drużynowy?", a:["PIŁKA NOŻNA","SIATKÓWKA","KOSZYKÓWKA","PIŁKA RĘCZNA","HOKEJ"], p:[50,20,15,10,5]},
+            {id:43, q:"Coś co ma struny?", a:["GITARA","SKRZYPCE","WIOLONCZELA","HARFA","KONTRABAS"], p:[55,25,10,5,5]},
+            {id:44, q:"Przedmiot w sypialni?", a:["ŁÓŻKO","SZAFA","LUSTRO","LAMPA","REGAŁ"], p:[60,20,10,5,5]},
+            {id:45, q:"Coś czerwonego?", a:["POMIDOR","KREW","STRAŻAK","RÓŻA","JABŁKO"], p:[35,25,15,15,10]},
+            {id:46, q:"Finał: Zwierzę domowe?", a:["PIES","KOT","CHOMIK","PAPUGA","RYBKI"], p:[48,35,10,5,2]},
+            {id:47, q:"Finał: Stolica?", a:["WARSZAWA","LONDYN","PARYŻ","BERLIN","RZYM"], p:[55,15,15,10,5]},
+            {id:48, q:"Finał: Coś białego?", a:["ŚNIEG","MLEKO","PAPIER","CUKIER","SÓL"], p:[45,25,15,10,5]},
+            {id:49, q:"Finał: Przedmiot w aucie?", a:["KIEROWNICA","KOŁO","SILNIK","FOTEL","RADIO"], p:[50,20,15,10,5]},
+            {id:50, q:"Finał: Imię żeńskie?", a:["MARIA","ANNA","KATARZYNA","MAŁGORZATA","AGNIESZKA"], p:[30,25,20,15,10]}
+        ];
 
-        // BAZA 50 PYTAŃ (DODAJ WIĘCEJ TUTAJ)
-        const questions = [];
-        for(let i=1; i<=50; i++) {
-            questions.push({
-                id: i,
-                q: "Pytanie numer " + i + "?",
-                a: ["ODPOWIEDŹ 1", "ODPOWIEDŹ 2", "ODPOWIEDŹ 3", "ODPOWIEDŹ 4", "ODPOWIEDŹ 5"],
-                p: [45, 25, 15, 10, 5]
+        function connect() { conn = peer.connect(document.getElementById('code').value.toUpperCase()); }
+        function send(type, data={}) { if(conn) conn.send({type, ...data}); }
+
+        function startR(n) {
+            if(!curQ) return alert("Wybierz pytanie!");
+            total = 0; document.getElementById('s-r').play();
+            send('SET', {c: curQ.a.length});
+            const box = document.getElementById('ans-box'); box.innerHTML = '';
+            curQ.a.forEach((a, i) => {
+                box.innerHTML += `<div style="display:flex; gap:5px; margin-bottom:5px"><input id="t${i}" value="${a}"><input id="p${i}" value="${curQ.p[i]}" style="width:45px"><button onclick="revN(${i})" class="btn-green">OK</button></div>`;
             });
+            document.getElementById('inputs').style.display = 'block';
         }
 
-        function connect() { conn = peer.connect(document.getElementById('target').value.toUpperCase()); }
-        function playMedia(id) { if(id==='video') conn.send({type:'VIDEO'}); else document.getElementById('snd-'+id).play(); }
-
-        function selectQuestion(idx) {
-            selectedQ = questions[idx];
-            document.getElementById('sciaga').innerText = selectedQ.q + "\n\n" + selectedQ.a.map((v,i)=>`${i+1}. ${v} (${selectedQ.p[i]})`).join("\n");
-            document.getElementById('current-q-label').innerText = selectedQ.q;
-        }
-
-        function startRunda(nr) {
-            if(!selectedQ) { alert("Najpierw wybierz pytanie z listy po lewej!"); return; }
-            total = 0; playMedia('runda');
-            conn.send({type:'SETUP', count: selectedQ.a.length});
-            const area = document.getElementById('inputs-area'); area.innerHTML = '';
-            selectedQ.a.forEach((ans, i) => {
-                area.innerHTML += `<div style="display:flex; gap:5px; margin-bottom:5px">
-                    <input id="t${i}" value="${ans}" style="flex-grow:1"><input id="p${i}" value="${selectedQ.p[i]}" style="width:40px">
-                    <button onclick="revN(${i})" class="btn-green" style="width:60px">OK</button></div>`;
-            });
-        }
-
-        function startFinal() {
-            total = 0; playMedia('final');
-            conn.send({type:'FINAL_MODE'});
-            const area = document.getElementById('inputs-area'); area.innerHTML = '';
+        function startF() {
+            total = 0; document.getElementById('s-f').play(); send('FIN');
+            const box = document.getElementById('ans-box'); box.innerHTML = '';
             [1,2].forEach(p => {
-                area.innerHTML += `<h4>GRACZ ${p}</h4>`;
-                for(let i=0; i<5; i++) {
-                    area.innerHTML += `<div style="display:flex; gap:2px; margin-bottom:5px">
-                        <input id="f${p}-t${i}" placeholder="Odp">
-                        <button onclick="revFA(${p},${i})" class="btn-blue">O</button>
-                        <input id="f${p}-p${i}" style="width:35px" placeholder="P">
-                        <button onclick="revFP(${p},${i})" class="btn-green">P</button></div>`;
-                }
+                box.innerHTML += `<h4>GRACZ ${p}</h4>`;
+                for(let i=0; i<5; i++) box.innerHTML += `<div style="display:flex; gap:2px; margin-bottom:4px"><input id="f${p}t${i}" placeholder="Odp"><button onclick="revFA(${p},${i})" class="btn-blue" style="padding:5px">O</button><input id="f${p}p${i}" style="width:35px"><button onclick="revFP(${p},${i})" class="btn-green" style="padding:5px">P</button></div>`;
             });
+            document.getElementById('inputs').style.display = 'block';
         }
 
-        function revN(i) { const t=document.getElementById(`t${i}`).value, p=parseInt(document.getElementById(`p${i}`).value); total+=p; conn.send({type:'REV', idx:i, t, p, total}); document.getElementById('snd-ok').play(); }
-        function revFA(p, i) { conn.send({type:'REV_ANS', player:p, idx:i, t: document.getElementById(`f${p}-t${i}`).value}); }
-        function revFP(p, i) { const v=parseInt(document.getElementById(`f${p}-p${i}`).value)||0; total+=v; conn.send({type:'REV_PTS', player:p, idx:i, p:v, total}); document.getElementById('snd-ok').play(); }
-        function sendX(side, count) { conn.send({type:'X', side, count}); document.getElementById('snd-zle').play(); }
-        function startTimer(s) { let t=s; const el=document.getElementById('timer-val'); const int=setInterval(()=>{t--; el.innerText=t<10?'0'+t:t; if(t<=0){clearInterval(int); document.getElementById('snd-zle').play();}},1000); }
+        function revN(i) { const t=document.getElementById('t'+i).value, p=parseInt(document.getElementById('p'+i).value); total+=p; send('REV', {i, t, p, s:total}); document.getElementById('s-ok').play(); }
+        function revFA(pl, i) { send('R_A', {pl, i, t: document.getElementById(`f${pl}t${i}`).value}); }
+        function revFP(pl, i) { const p=parseInt(document.getElementById(`f${pl}p${i}`).value)||0; total+=p; send('R_P', {pl, i, p, s:total}); document.getElementById('s-ok').play(); }
+        function x(s, c) { send('X', {s, c}); document.getElementById('s-zle').play(); }
+        function timer(s) { let t=s; const el=document.getElementById('timer'); const int=setInterval(()=>{t--; el.innerText=t<10?'0'+t:t; if(t<=0){clearInterval(int); document.getElementById('s-zle').play();}},1000); }
 
-        const bankEl = document.getElementById('q-bank');
+        const list = document.getElementById('q-list');
         questions.forEach((q, i) => {
-            bankEl.innerHTML += `<div class="q-card" onclick="selectQuestion(${i})"><b>${q.id}.</b> ${q.q}</div>`;
+            const div = document.createElement('div'); div.className = 'q-item';
+            div.innerText = `${q.id}. ${q.q}`;
+            div.onclick = () => { curQ = q; document.getElementById('hint').innerText = q.q + "\n\n" + q.a.map((v,idx)=>`${idx+1}. ${v} (${q.p[idx]})`).join('\n'); document.getElementById('q-title').innerText = q.q; };
+            list.appendChild(div);
         });
     </script>
 </body>
