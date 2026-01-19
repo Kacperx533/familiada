@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA - TABLICA FULLSCREEN</title>
+    <title>FAMILIADA - FULLSCREEN LED</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
@@ -10,7 +10,6 @@
             --led-yellow: #f4ff00;
         }
 
-        /* Usunięcie domyślnych marginesów przeglądarki */
         body, html {
             margin: 0;
             padding: 0;
@@ -21,59 +20,71 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            font-family: 'VT323', monospace;
         }
 
-        /* TABLICA NA CAŁY EKRAN */
+        /* TABLICA LED NA CAŁY EKRAN */
         .board {
             width: 100vw;
             height: 100vh;
             background-color: #050505;
             position: relative;
             box-sizing: border-box;
-            padding: 5vh 8vw; /* Proporcjonalne odstępy */
+            padding: 5vh 8vw;
             
             /* EFEKT SIATKI LED */
-            background-image: 
-                radial-gradient(circle, #1a1a1a 1px, transparent 1px);
+            background-image: radial-gradient(circle, #1a1a1a 1px, transparent 1px);
             background-size: 5px 5px;
             
-            /* Delikatne zaokrąglenie rogów przy krawędziach ekranu */
-            border: 10px solid #111;
-            border-radius: 0; 
             display: flex;
             flex-direction: column;
             justify-content: center;
+            border: 5px solid #111;
         }
 
-        /* WIERSZE DOPASOWANE DO WYSOKOŚCI EKRANU */
+        /* WIERSZE */
         .row {
             display: flex;
             align-items: center;
-            height: 12vh; /* Wiersze zajmują 12% wysokości ekranu */
-            font-size: 11vh; /* Rozmiar czcionki zależny od ekranu */
+            height: 12vh;
+            font-size: 11vh;
             color: var(--led-yellow);
             text-shadow: 0 0 15px rgba(244, 255, 0, 0.5);
-            font-family: 'VT323', monospace;
             border-bottom: 2px solid #0d0d0d;
         }
 
-        .num { width: 8vw; color: #1a1a1a; }
-        .ans { flex-grow: 1; letter-spacing: 5px; text-transform: uppercase; }
-        .pts { width: 12vw; text-align: right; }
+        /* NUMERY 1-6 TERAZ SĄ ŻÓŁTE */
+        .num { 
+            width: 8vw; 
+            color: var(--led-yellow); 
+            text-shadow: 0 0 10px rgba(244, 255, 0, 0.3);
+        }
 
-        /* STOPKA Z SUMĄ W PRAWYM DOLNYM ROGU */
+        .ans { 
+            flex-grow: 1; 
+            letter-spacing: 5px; 
+            text-transform: uppercase; 
+        }
+
+        .pts { 
+            width: 12vw; 
+            text-align: right; 
+        }
+
+        /* STOPKA Z SUMĄ - POPRAWIONA CZCIONKA */
         .board-footer {
             position: absolute;
             bottom: 4vh;
             right: 8vw;
             display: flex;
             align-items: center;
-            gap: 40px;
-            font-size: 8vh;
+            gap: 30px;
+            font-size: 9vh; /* Powiększona suma */
             color: var(--led-yellow);
+            text-shadow: 0 0 15px rgba(244, 255, 0, 0.5);
         }
 
-        /* NAKŁADKA DLA BŁĘDÓW (X) */
+        /* NAKŁADKA X */
         #x-overlay {
             position: fixed;
             inset: 0;
@@ -90,7 +101,6 @@
             font-weight: bold;
         }
 
-        /* EKRAN KONFIGURACJI */
         #setup { 
             position: fixed; 
             inset: 0; 
@@ -108,7 +118,7 @@
 
     <div id="setup">
         <div id="code" style="font-size: 80px; color: var(--led-yellow); margin-bottom: 20px;">----</div>
-        <button onclick="init()" style="padding: 20px 60px; font-size: 24px; cursor: pointer; background: var(--led-yellow); border: none; font-weight: bold;">ODPAL TABLICĘ</button>
+        <button onclick="init()" style="padding: 20px 60px; font-size: 24px; cursor: pointer; background: var(--led-yellow); border: none; font-weight: bold;">URUCHOM TABLICĘ</button>
     </div>
 
     <div class="board">
@@ -158,7 +168,8 @@
                             document.getElementById(`ans-${d.idx+1}`).innerText = d.t;
                             document.getElementById(`pts-${d.idx+1}`).innerText = d.p;
                             let s = document.getElementById('suma-val');
-                            s.innerText = parseInt(s.innerText) + parseInt(d.p);
+                            let currentSuma = parseInt(s.innerText) || 0;
+                            s.innerText = currentSuma + parseInt(d.p);
                         }
                         if(d.type === 'X') {
                             const overlay = document.getElementById('x-overlay');
