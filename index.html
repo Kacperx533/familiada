@@ -1,302 +1,137 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-<meta charset="UTF-8">
-<title>FAMILIADA – Rainbow Studio</title>
-<link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
-<script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <meta charset="UTF-8">
+    <title>FAMILIADA - TABLICA LED</title>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <style>
+        :root {
+            --led-yellow: #f4ff00;
+            --led-dim: #222;
+        }
 
-<style>
-:root{
-    --led:#f4ff00;
-    --red:#c62828;
-    --blue:#1565c0;
-}
+        body {
+            margin: 0;
+            height: 100vh;
+            background-color: #111; /* Ciemne tło studia */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'VT323', monospace;
+        }
 
-body{
-    margin:0;
-    height:100vh;
-    background:#000;
-    font-family:'VT323', monospace;
-    overflow:hidden;
-}
+        /* CZARNA TABLICA LED */
+        .board {
+            width: 900px;
+            height: 550px;
+            background-color: #050505;
+            border: 8px solid #222;
+            border-radius: 40px;
+            position: relative;
+            padding: 40px;
+            box-sizing: border-box;
+            
+            /* EFEKT SIATKI LED - Małe punkciki w tle */
+            background-image: 
+                radial-gradient(circle, #1a1a1a 1px, transparent 1px),
+                radial-gradient(circle, #1a1a1a 1px, transparent 1px);
+            background-size: 6px 6px;
+            box-shadow: inset 0 0 100px #000;
+            overflow: hidden;
+        }
 
-/* TŁO STUDIA */
-.background{
-    position:absolute;
-    inset:0;
-    display:flex;
-    z-index:1;
-}
-.bg-l{
-    flex:1;
-    background:linear-gradient(#8e0000,#c62828 40%, #8e0000);
-}
-.bg-r{
-    flex:1;
-    background:linear-gradient(#002f6c,#1565c0 40%, #002f6c);
-}
-.background::after{
-    content:"";
-    position:absolute;
-    left:50%;
-    top:0;
-    width:10px;
-    height:100%;
-    background:linear-gradient(#000,#222,#000);
-}
+        /* UKŁAD WIERSZY */
+        .row {
+            display: flex;
+            align-items: center;
+            height: 75px;
+            font-size: 75px;
+            color: var(--led-yellow);
+            text-shadow: 0 0 12px rgba(244, 255, 0, 0.4);
+            border-bottom: 2px solid #0d0d0d;
+        }
 
-/* GÓRNA BELKA */
-.top-rainbow-arch{
-    position:relative;
-    width:100%;
-    height:340px;
-    z-index:10;
-    display:flex;
-    justify-content:center;
-}
+        .num { width: 50px; color: #1a1a1a; } /* Numerki są prawie niewidoczne jak w oryginale */
+        .ans { flex-grow: 1; letter-spacing: 3px; }
+        .pts { width: 100px; text-align: right; }
 
-.black-bar{
-    position:absolute;
-    top:-70px;
-    width:135%;
-    height:380px;
-    background:linear-gradient(#000,#050505);
-    border-radius:0 0 260px 260px;
-    box-shadow:
-        0 25px 90px rgba(0,0,0,.95),
-        inset 0 -6px 20px rgba(255,255,255,.05);
-}
+        /* DOLNY LICZNIK "SUMA" WEWNĄTRZ TABLICY */
+        .board-footer {
+            position: absolute;
+            bottom: 30px;
+            right: 60px;
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            font-size: 65px;
+            color: var(--led-yellow);
+        }
 
-/* NEONY */
-.inner-rainbow-lines{
-    position:absolute;
-    top:150px;
-    width:92%;
-    height:180px;
-}
-
-.line{
-    position:absolute;
-    width:44%;
-    height:100%;
-    border-bottom:4px solid;
-    border-radius:0 0 240px 240px;
-}
-
-.line-red{
-    left:2%;
-    border-color:#ff3b3b;
-    filter:drop-shadow(0 0 15px #ff0000);
-}
-.line-blue{
-    right:2%;
-    border-color:#40a9ff;
-    filter:drop-shadow(0 0 15px #0088ff);
-}
-
-/* SUMA */
-.suma-display{
-    position:absolute;
-    top:235px;
-    background:radial-gradient(#000,#050505);
-    border:3px solid var(--led);
-    width:160px;
-    height:80px;
-    display:flex;
-    align-items:center;
-    justify-content:flex-end;
-    padding-right:15px;
-    box-shadow:
-        0 0 30px rgba(244,255,0,.6),
-        inset 0 0 20px rgba(244,255,0,.3);
-}
-
-#suma-val{
-    font-size:82px;
-    color:var(--led);
-    text-shadow:
-        0 0 8px var(--led),
-        0 0 18px var(--led);
-}
-
-/* SCENA */
-.stage{
-    position:relative;
-    z-index:50;
-    display:flex;
-    align-items:center;
-    gap:55px;
-    margin-top:-50px;
-}
-
-/* PUNKTY DRUŻYN */
-.team-box{
-    width:170px;
-    height:95px;
-    background:radial-gradient(#000,#050505);
-    border:3px solid #eee;
-    border-radius:14px;
-    display:flex;
-    align-items:center;
-    justify-content:flex-end;
-    padding-right:15px;
-    font-size:96px;
-    color:var(--led);
-    box-shadow:
-        0 0 25px rgba(0,0,0,.9),
-        inset 0 0 18px rgba(255,255,255,.05);
-    text-shadow:
-        0 0 10px var(--led),
-        0 0 18px rgba(244,255,0,.6);
-}
-
-/* TABLICA */
-.board-main{
-    width:780px;
-    height:440px;
-    background:linear-gradient(#000,#050505);
-    border-radius:30px;
-    border:4px solid #222;
-    padding:25px 45px;
-    box-shadow:
-        0 25px 70px rgba(0,0,0,.95),
-        inset 0 0 45px rgba(0,0,0,1);
-}
-
-/* WIERSZE */
-.row{
-    display:flex;
-    align-items:center;
-    height:66px;
-    font-size:68px;
-    border-bottom:1px solid #111;
-}
-
-.num{
-    width:55px;
-    color:#222;
-}
-
-.ans,.pts{
-    color:var(--led);
-    text-shadow:
-        0 0 6px var(--led),
-        0 0 14px rgba(244,255,0,.7);
-}
-
-.pts{
-    width:95px;
-    text-align:right;
-}
-
-/* X */
-#x-overlay{
-    position:fixed;
-    inset:0;
-    display:none;
-    align-items:center;
-    justify-content:center;
-    background:radial-gradient(rgba(0,0,0,.7),#000);
-    z-index:1000;
-}
-.x-text{
-    font-size:600px;
-    color:red;
-    text-shadow:0 0 40px red;
-}
-
-/* SETUP */
-#setup{
-    position:fixed;
-    inset:0;
-    background:#000;
-    z-index:2000;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-}
-</style>
+        /* EFEKT "X" (BŁĄD) */
+        #x-overlay {
+            position: absolute;
+            inset: 0;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0,0,0,0.8);
+            z-index: 100;
+        }
+        .x-mark {
+            color: #ff0000;
+            font-size: 400px;
+            font-family: Arial, sans-serif;
+            font-weight: bold;
+        }
+    </style>
 </head>
-
 <body>
 
-<div id="setup">
-    <div id="code" style="font-size:80px;color:var(--led);">----</div>
-    <button onclick="init()" style="padding:20px 50px;font-size:26px;background:var(--led);border:none;font-weight:bold;cursor:pointer;margin-top:20px;">
-        START TRANSMISJI
-    </button>
-</div>
+    <div class="board">
+        <div id="board-rows">
+            </div>
 
-<div class="background">
-    <div class="bg-l"></div>
-    <div class="bg-r"></div>
-</div>
-
-<div class="top-rainbow-arch">
-    <div class="black-bar">
-        <div class="inner-rainbow-lines">
-            <div class="line line-red"></div>
-            <div class="line line-blue"></div>
-        </div>
-        <div class="suma-display">
+        <div class="board-footer">
+            <span>SUMA</span>
             <span id="suma-val">0</span>
         </div>
+
+        <div id="x-overlay"><div class="x-mark" id="x-text">X</div></div>
     </div>
-</div>
 
-<div id="x-overlay"><div class="x-text" id="x-val">X</div></div>
+    <script>
+        let peer;
+        const rowsContainer = document.getElementById('board-rows');
 
-<div class="stage">
-    <div class="team-box"><span id="score-L">0</span></div>
-    <div class="board-main"><div id="board-content"></div></div>
-    <div class="team-box"><span id="score-R">0</span></div>
-</div>
-
-<script>
-let peer;
-
-function init(){
-    const id=Math.random().toString(36).substring(2,5).toUpperCase();
-    document.getElementById('code').innerText=id;
-    document.getElementById('setup').style.display='none';
-
-    peer=new Peer(id);
-    peer.on('connection',conn=>{
-        conn.on('data',d=>{
-            if(d.type.startsWith('SETUP')){
-                document.getElementById('suma-val').innerText="0";
-                let h="";
-                for(let i=1;i<=6;i++){
-                    h+=`<div class="row">
+        // Tworzenie pustych wierszy na starcie
+        function createEmptyBoard() {
+            rowsContainer.innerHTML = '';
+            for(let i=1; i<=6; i++) {
+                rowsContainer.innerHTML += `
+                    <div class="row">
                         <div class="num">${i}</div>
-                        <div class="ans" id="ans-${i}">..........</div>
+                        <div class="ans" id="ans-${i}">....................</div>
                         <div class="pts" id="pts-${i}"></div>
                     </div>`;
-                }
-                document.getElementById('board-content').innerHTML=h;
             }
-            if(d.type==="REV"){
-                document.getElementById(`ans-${d.idx+1}`).innerText=d.t;
-                document.getElementById(`pts-${d.idx+1}`).innerText=d.p;
-                const s=document.getElementById('suma-val');
-                s.innerText=parseInt(s.innerText)+parseInt(d.p);
-            }
-            if(d.type==="X"){
-                const o=document.getElementById('x-overlay');
-                document.getElementById('x-val').innerText="X".repeat(d.count);
-                o.style.display='flex';
-                setTimeout(()=>o.style.display='none',1200);
-            }
-            if(d.type==="SCORE_SYNC"){
-                document.getElementById('score-L').innerText=d.l;
-                document.getElementById('score-R').innerText=d.r;
-            }
-        });
-    });
-}
-</script>
+        }
 
+        createEmptyBoard();
+
+        function init() {
+            // Tutaj możesz dokleić swoją logikę PeerJS do sterowania
+            // d.type === 'REV' -> odkrywa odpowiedź
+            // d.type === 'X' -> pokazuje czerwony X
+        }
+
+        // Przykład pokazania X
+        function showX(count) {
+            const overlay = document.getElementById('x-overlay');
+            document.getElementById('x-text').innerText = "X".repeat(count);
+            overlay.style.display = 'flex';
+            setTimeout(() => overlay.style.display = 'none', 1500);
+        }
+    </script>
 </body>
 </html>
