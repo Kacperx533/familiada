@@ -2,165 +2,190 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA TV - RAINBOW ARCH</title>
+    <title>FAMILIADA - FINAL DESIGN</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root {
             --led-yellow: #f4ff00;
-            --fam-red: #d32f2f;
-            --fam-blue: #1976d2;
+            --fam-red: #e61e1e;
+            --fam-blue: #1e82e6;
         }
 
-        body {
+        body, html {
             margin: 0;
+            padding: 0;
             height: 100vh;
-            background-color: #000;
-            font-family: 'VT323', monospace;
+            width: 100vw;
             overflow: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            font-family: 'VT323', monospace;
+            background-color: #000;
+            text-transform: uppercase;
         }
 
-        /* TŁO: Podział pionowy */
-        .full-bg {
+        /* 1. TŁO PODZIELONE NA PÓŁ */
+        .background {
             position: absolute;
             inset: 0;
             display: flex;
             z-index: 1;
         }
-        .bg-l { flex: 1; background: var(--fam-red); }
-        .bg-r { flex: 1; background: var(--fam-blue); }
+        .bg-red { flex: 1; background: var(--fam-red); }
+        .bg-blue { flex: 1; background: var(--fam-blue); }
 
-        /* CZARNY PASEK JAK TĘCZA (WYPUKŁY) */
-        .black-rainbow-bar {
+        /* 2. CZARNY ŁUK (TĘCZA) Z TWOJEGO RYSUNKU */
+        .top-rainbow-bar {
             position: absolute;
-            top: 40px; /* Przerwa od góry, widać tło */
-            width: 115%;
-            height: 200px;
+            top: 30px; /* Przerwa od góry jak na rysunku */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            height: 180px;
             background: #000;
-            /* Kształt tęczy - zaokrąglona góra */
-            border-radius: 50% 50% 0 0; 
+            /* Wygięcie w łuk/tęczę */
+            border-radius: 500px 500px 0 0;
             z-index: 10;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
-            border-top: 5px solid #1a1a1a;
-            box-shadow: 0 -10px 30px rgba(0,0,0,0.5);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
-        /* KOLOROWE PASKI WEWNĄTRZ CZARNEJ TĘCZY */
-        .inner-decor {
+        /* KOLOROWE PASKI WEWNĄTRZ CZARNEGO ŁUKU */
+        .inner-stripes {
             position: absolute;
             width: 90%;
-            height: 100%;
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            padding: 0 5%;
+            padding: 0 40px;
         }
 
-        .stripe-set { width: 30%; display: flex; flex-direction: column; gap: 10px; }
-        .line { height: 5px; border-radius: 3px; }
-        .line-r { background: #ff3333; box-shadow: 0 0 10px #ff0000; }
-        .line-b { background: #33aaff; box-shadow: 0 0 10px #0066ff; }
+        .stripe-group { display: flex; flex-direction: column; gap: 8px; width: 30%; }
+        .line { height: 4px; border-radius: 2px; }
+        .line-red { background: #ff4d4d; box-shadow: 0 0 10px #ff0000; width: 100%; }
+        .line-red-short { background: #ff4d4d; box-shadow: 0 0 10px #ff0000; width: 70%; }
+        .line-blue { background: #4d94ff; box-shadow: 0 0 10px #0055ff; width: 100%; }
+        .line-blue-short { background: #4d94ff; box-shadow: 0 0 10px #0055ff; width: 70%; align-self: flex-end; }
 
-        /* LICZNIK SUMA (Wyżej, w łuku tęczy) */
-        .suma-container {
+        /* LICZNIK SUMA W CENTRALNYM PUNKCIE ŁUKU */
+        .suma-box {
             position: relative;
-            background: #000;
-            border: 3px solid var(--led-yellow);
-            width: 160px;
-            height: 85px;
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            padding-right: 15px;
             z-index: 20;
-            margin-bottom: -40px; /* Pozycjonowanie wewnątrz łuku */
-        }
-        #suma-val { color: var(--led-yellow); font-size: 90px; }
-
-        /* TABLICA I PUNKTY */
-        .main-stage {
-            position: relative;
-            z-index: 50;
-            display: flex;
-            gap: 25px;
-            align-items: center;
-            margin-top: 220px;
-        }
-
-        .score-side {
-            width: 180px;
-            height: 110px;
             background: #000;
-            border: 3px solid var(--led-yellow);
+            border: 2px solid #555;
+            border-bottom: 2px solid var(--fam-red); /* Akcent kolorystyczny na ramce */
+            border-left: 2px solid var(--fam-blue);
+            width: 140px;
+            height: 70px;
             display: flex;
             align-items: center;
             justify-content: flex-end;
-            padding-right: 18px;
-            font-size: 110px;
-            color: var(--led-yellow);
+            padding-right: 10px;
+            margin-top: -20px;
         }
+        #suma-val { color: var(--led-yellow); font-size: 80px; line-height: 1; }
+
+        /* 3. GŁÓWNA TABLICA I PUNKTY DRUŻYN */
+        .main-stage {
+            position: absolute;
+            bottom: 40px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 40px;
+            z-index: 30;
+        }
+
+        .team-score {
+            width: 200px;
+            height: 120px;
+            background: #000;
+            border: 3px solid white; /* Biała obwódka z rysunku */
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 20px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+        }
+        .team-score span { color: var(--led-yellow); font-size: 110px; }
 
         .game-board {
-            width: 920px;
-            height: 530px;
+            width: 900px;
+            height: 540px;
             background: #000;
-            border: 4px solid #333;
-            border-radius: 90px; /* Obłe boki */
-            padding: 35px 55px;
+            border: 3px solid #444;
+            border-radius: 80px; /* Zaokrąglona tablica */
+            padding: 40px 60px;
             box-shadow: inset 0 0 50px #000;
         }
 
-        .row { display: flex; align-items: center; height: 88px; font-size: 88px; border-bottom: 2px solid #111; }
-        .num { width: 65px; color: #1a1a1a; }
-        .ans { flex-grow: 1; color: var(--led-yellow); }
-        .pts { width: 110px; text-align: right; color: var(--led-yellow); }
+        .row {
+            display: flex;
+            align-items: center;
+            height: 85px;
+            font-size: 85px;
+            border-bottom: 2px solid #0a0a0a;
+        }
+        .num { width: 60px; color: #151515; }
+        .ans { flex-grow: 1; color: var(--led-yellow); letter-spacing: 2px; }
+        .pts { width: 100px; text-align: right; color: var(--led-yellow); }
 
-        #x-overlay { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.9); z-index: 1000; }
+        /* X SCREEN */
+        #x-overlay {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0,0,0,0.9);
+            z-index: 1000;
+        }
         .x-text { font-size: 600px; color: red; font-weight: bold; font-family: Arial; }
+
+        /* SETUP */
         #setup { position: fixed; inset: 0; background: #000; z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; }
     </style>
 </head>
 <body>
 
     <div id="setup">
-        <div id="code" style="font-size: 90px; color: var(--led-yellow);">----</div>
-        <button onclick="init()" style="padding: 20px 50px; font-size: 26px; cursor: pointer; background: var(--led-yellow); border: none; font-weight: bold; margin-top: 20px;">START</button>
+        <div id="code" style="font-size: 100px; color: var(--led-yellow); margin-bottom: 30px;">----</div>
+        <button onclick="init()" style="padding: 20px 60px; font-size: 30px; cursor: pointer; background: var(--led-yellow); border: none; font-weight: bold;">START TRANSMISJI</button>
     </div>
 
-    <div class="full-bg">
-        <div class="bg-l"></div>
-        <div class="bg-r"></div>
+    <div class="background">
+        <div class="bg-red"></div>
+        <div class="bg-blue"></div>
     </div>
 
-    <div class="black-rainbow-bar">
-        <div class="inner-decor">
-            <div class="stripe-set">
-                <div class="line line-r" style="width: 100%;"></div>
-                <div class="line line-r" style="width: 70%;"></div>
+    <div class="top-rainbow-bar">
+        <div class="inner-stripes">
+            <div class="stripe-group">
+                <div class="line line-red"></div>
+                <div class="line line-red-short"></div>
             </div>
-            <div class="stripe-set" style="align-items: flex-end;">
-                <div class="line line-b" style="width: 100%;"></div>
-                <div class="line line-b" style="width: 70%;"></div>
+            <div class="stripe-group">
+                <div class="line line-blue"></div>
+                <div class="line line-blue-short"></div>
             </div>
         </div>
-        <div class="suma-container">
+        <div class="suma-box">
             <span id="suma-val">0</span>
         </div>
     </div>
 
-    <div class="main-stage">
-        <div class="score-side"><span id="score-L">0</span></div>
-        <div class="game-board"><div id="board-content"></div></div>
-        <div class="score-side"><span id="score-R">0</span></div>
-    </div>
-
     <div id="x-overlay"><div class="x-text" id="x-val">X</div></div>
+
+    <div class="main-stage">
+        <div class="team-score"><span id="score-L">0</span></div>
+        
+        <div class="game-board">
+            <div id="board-content"></div>
+        </div>
+
+        <div class="team-score"><span id="score-R">0</span></div>
+    </div>
 
     <script>
         let peer;
