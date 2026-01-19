@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA TV - FINAL ACCURACY</title>
+    <title>FAMILIADA TV - RAINBOW ARCH</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
@@ -23,7 +23,7 @@
             align-items: center;
         }
 
-        /* TŁO ZA WSZYSTKIM - Czerwony i Niebieski do samej góry */
+        /* TŁO: Podział pionowy */
         .full-bg {
             position: absolute;
             inset: 0;
@@ -33,99 +33,93 @@
         .bg-l { flex: 1; background: var(--fam-red); }
         .bg-r { flex: 1; background: var(--fam-blue); }
 
-        /* CZARNY PAS (ŁUK) - NIE JEST DO SAMEJ GÓRY */
-        .black-floating-bar {
+        /* CZARNY PASEK JAK TĘCZA (WYPUKŁY) */
+        .black-rainbow-bar {
             position: absolute;
-            top: 50px; /* Obniżony od góry zgodnie z rysunkiem */
-            width: 110%;
-            height: 180px;
+            top: 40px; /* Przerwa od góry, widać tło */
+            width: 115%;
+            height: 200px;
             background: #000;
-            border-radius: 50% / 100% 100% 0 0; /* Wygięcie */
-            transform: rotate(180deg); /* Odwrócenie, by był wklęsły */
+            /* Kształt tęczy - zaokrąglona góra */
+            border-radius: 50% 50% 0 0; 
             z-index: 10;
             display: flex;
-            justify-content: center;
-            box-shadow: 0 0 30px rgba(0,0,0,0.5);
-            border-top: 4px solid #1a1a1a;
-        }
-
-        /* Kontener na zawartość paska (obraca tekst z powrotem) */
-        .bar-content {
-            transform: rotate(180deg);
-            width: 100%;
-            display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            position: relative;
+            border-top: 5px solid #1a1a1a;
+            box-shadow: 0 -10px 30px rgba(0,0,0,0.5);
         }
 
-        /* KOLOROWE PASKI WEWNĄTRZ CZARNEGO PASA */
-        .inner-stripes {
+        /* KOLOROWE PASKI WEWNĄTRZ CZARNEJ TĘCZY */
+        .inner-decor {
             position: absolute;
-            width: 85%;
+            width: 90%;
             height: 100%;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            pointer-events: none;
+            padding: 0 5%;
         }
-        .stripe-group { width: 35%; display: flex; flex-direction: column; gap: 8px; }
-        .s-line { height: 4px; border-radius: 2px; opacity: 0.8; }
-        .s-red { background: #ff4444; box-shadow: 0 0 8px #ff0000; }
-        .s-blue { background: #44aaff; box-shadow: 0 0 8px #0066ff; }
 
-        /* LICZNIK SUMA */
-        .suma-box {
+        .stripe-set { width: 30%; display: flex; flex-direction: column; gap: 10px; }
+        .line { height: 5px; border-radius: 3px; }
+        .line-r { background: #ff3333; box-shadow: 0 0 10px #ff0000; }
+        .line-b { background: #33aaff; box-shadow: 0 0 10px #0066ff; }
+
+        /* LICZNIK SUMA (Wyżej, w łuku tęczy) */
+        .suma-container {
+            position: relative;
             background: #000;
             border: 3px solid var(--led-yellow);
-            width: 150px;
-            height: 75px;
+            width: 160px;
+            height: 85px;
             display: flex;
             align-items: center;
             justify-content: flex-end;
             padding-right: 15px;
             z-index: 20;
-            box-shadow: 0 0 15px rgba(244,255,0,0.3) inset;
+            margin-bottom: -40px; /* Pozycjonowanie wewnątrz łuku */
         }
-        #suma-val { color: var(--led-yellow); font-size: 85px; }
+        #suma-val { color: var(--led-yellow); font-size: 90px; }
 
-        /* STREFA TABLICY */
-        .stage {
+        /* TABLICA I PUNKTY */
+        .main-stage {
             position: relative;
             z-index: 50;
             display: flex;
-            gap: 30px;
+            gap: 25px;
             align-items: center;
-            margin-top: 180px;
+            margin-top: 220px;
         }
 
-        .side-score {
-            width: 170px;
-            height: 100px;
+        .score-side {
+            width: 180px;
+            height: 110px;
             background: #000;
             border: 3px solid var(--led-yellow);
             display: flex;
             align-items: center;
             justify-content: flex-end;
-            padding-right: 15px;
-            font-size: 100px;
+            padding-right: 18px;
+            font-size: 110px;
             color: var(--led-yellow);
         }
 
-        .board {
-            width: 900px;
-            height: 520px;
+        .game-board {
+            width: 920px;
+            height: 530px;
             background: #000;
-            border: 3px solid #333;
-            border-radius: 80px;
-            padding: 30px 50px;
+            border: 4px solid #333;
+            border-radius: 90px; /* Obłe boki */
+            padding: 35px 55px;
             box-shadow: inset 0 0 50px #000;
         }
 
-        .row { display: flex; align-items: center; height: 85px; font-size: 85px; border-bottom: 2px solid #111; }
-        .num { width: 60px; color: #1a1a1a; }
+        .row { display: flex; align-items: center; height: 88px; font-size: 88px; border-bottom: 2px solid #111; }
+        .num { width: 65px; color: #1a1a1a; }
         .ans { flex-grow: 1; color: var(--led-yellow); }
-        .pts { width: 100px; text-align: right; color: var(--led-yellow); }
+        .pts { width: 110px; text-align: right; color: var(--led-yellow); }
 
         #x-overlay { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.9); z-index: 1000; }
         .x-text { font-size: 600px; color: red; font-weight: bold; font-family: Arial; }
@@ -135,8 +129,8 @@
 <body>
 
     <div id="setup">
-        <div id="code" style="font-size: 80px; color: var(--led-yellow);">----</div>
-        <button onclick="init()" style="padding: 20px 40px; font-size: 24px; cursor: pointer; background: var(--led-yellow); border: none; font-weight: bold; margin-top: 20px;">START</button>
+        <div id="code" style="font-size: 90px; color: var(--led-yellow);">----</div>
+        <button onclick="init()" style="padding: 20px 50px; font-size: 26px; cursor: pointer; background: var(--led-yellow); border: none; font-weight: bold; margin-top: 20px;">START</button>
     </div>
 
     <div class="full-bg">
@@ -144,28 +138,26 @@
         <div class="bg-r"></div>
     </div>
 
-    <div class="black-floating-bar">
-        <div class="bar-content">
-            <div class="inner-stripes">
-                <div class="stripe-group">
-                    <div class="s-line s-red" style="width: 100%;"></div>
-                    <div class="s-line s-red" style="width: 80%;"></div>
-                </div>
-                <div class="stripe-group" style="align-items: flex-end;">
-                    <div class="s-line s-blue" style="width: 100%;"></div>
-                    <div class="s-line s-blue" style="width: 80%;"></div>
-                </div>
+    <div class="black-rainbow-bar">
+        <div class="inner-decor">
+            <div class="stripe-set">
+                <div class="line line-r" style="width: 100%;"></div>
+                <div class="line line-r" style="width: 70%;"></div>
             </div>
-            <div class="suma-box">
-                <span id="suma-val">0</span>
+            <div class="stripe-set" style="align-items: flex-end;">
+                <div class="line line-b" style="width: 100%;"></div>
+                <div class="line line-b" style="width: 70%;"></div>
             </div>
+        </div>
+        <div class="suma-container">
+            <span id="suma-val">0</span>
         </div>
     </div>
 
-    <div class="stage">
-        <div class="side-score"><span id="score-L">0</span></div>
-        <div class="board"><div id="board-content"></div></div>
-        <div class="side-score"><span id="score-R">0</span></div>
+    <div class="main-stage">
+        <div class="score-side"><span id="score-L">0</span></div>
+        <div class="game-board"><div id="board-content"></div></div>
+        <div class="score-side"><span id="score-R">0</span></div>
     </div>
 
     <div id="x-overlay"><div class="x-text" id="x-val">X</div></div>
@@ -189,7 +181,8 @@
                         if(d.type === 'REV') {
                             document.getElementById(`ans-${d.idx+1}`).innerText = d.t;
                             document.getElementById(`pts-${d.idx+1}`).innerText = d.p;
-                            document.getElementById('suma-val').innerText = parseInt(document.getElementById('suma-val').innerText) + parseInt(d.p);
+                            let s = document.getElementById('suma-val');
+                            s.innerText = parseInt(s.innerText) + parseInt(d.p);
                         }
                         if(d.type === 'X') {
                             document.getElementById('x-overlay').style.display = 'flex';
