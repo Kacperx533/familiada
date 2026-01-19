@@ -7,85 +7,48 @@
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root { --led: #f4ff00; }
-
-        /* WYMUSZONE TŁO NA CAŁOŚĆ */
-        html, body { 
-            margin: 0; padding: 0; width: 100%; height: 100%; 
-            overflow: hidden; font-family: 'VT323', monospace;
-            background: linear-gradient(90deg, #ff2d55 0%, #6383ff 50%, #7592ff 100%) fixed !important;
-        }
-
-        #vid { 
-            position: fixed; inset: 0; width: 100%; height: 100%; 
-            z-index: 100; display: none; object-fit: cover; 
-        }
-
-        /* GŁÓWNA TABLICA */
-        .board { 
-            width: 85vw; height: 75vh; 
-            background: #111; /* Ciemne wnętrze tablicy */
-            border: 10px solid #333; 
-            border-radius: 40px; 
-            position: absolute; 
-            top: 50%; left: 50%; 
-            transform: translate(-50%, -50%);
-            display: flex; flex-direction: column; 
-            padding: 0 160px; box-sizing: border-box; 
-            box-shadow: 0 0 100px rgba(0,0,0,0.9);
-            z-index: 10;
-        }
-
+        html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: 'VT323', monospace; background: linear-gradient(90deg, #ff2d55 0%, #6383ff 50%, #7592ff 100%) fixed !important; }
+        #vid { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 100; display: none; object-fit: cover; }
+        .board { width: 85vw; height: 75vh; background: #111; border: 10px solid #333; border-radius: 40px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; flex-direction: column; padding: 0 160px; box-sizing: border-box; box-shadow: 0 0 100px rgba(0,0,0,0.9); z-index: 10; }
         #rows { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; }
-        
         .row { display: flex; align-items: center; font-size: 8.5vh; color: var(--led); height: 10vh; }
         .ans { flex-grow: 1; text-transform: uppercase; }
         .pts { width: 100px; text-align: right; }
-
-        .f-row { 
-            display: grid; grid-template-columns: 1fr 80px 80px 1fr; 
-            gap: 20px; font-size: 7vh; color: var(--led); 
-            height: 9.5vh; align-items: center; 
-        }
-
+        .f-row { display: grid; grid-template-columns: 1fr 80px 80px 1fr; gap: 20px; font-size: 7vh; color: var(--led); height: 9.5vh; align-items: center; }
         .footer { position: absolute; bottom: 40px; right: 100px; font-size: 9vh; color: var(--led); }
-
-        /* X - DUŻE I WYRAŹNE */
-        .x-mark { 
-            position: absolute; top: 20%; 
-            font-size: 300px; color: var(--led); 
-            display: none; font-weight: bold; 
-            text-shadow: 0 0 60px red; z-index: 200; 
-        }
-        #x-l { left: 20px; } 
-        #x-r { right: 20px; }
-
-        /* EKRAN STARTOWY */
-        #setup { 
-            position: fixed; inset: 0; background: rgba(0,0,0,0.8); 
-            z-index: 1000; display: flex; flex-direction: column; 
-            align-items: center; justify-content: center; color: white; 
-        }
+        .x-mark { position: absolute; top: 20%; font-size: 300px; color: var(--led); display: none; font-weight: bold; text-shadow: 0 0 60px red; z-index: 200; }
+        #x-l { left: 20px; } #x-r { right: 20px; }
+        #setup { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; }
     </style>
 </head>
 <body>
     <video id="vid" src="czolowka.mp4"></video>
+    <audio id="snd-runda" src="runda.mp3"></audio>
+    <audio id="snd-final" src="final.mp3"></audio>
+    <audio id="snd-intro" src="intro.mp3"></audio>
+    <audio id="snd-powtorzenie" src="powtorzenie.mp3"></audio>
+    <audio id="snd-ok" src="ok.mp3"></audio>
+    <audio id="snd-zle" src="zle.mp3"></audio>
 
     <div id="setup">
-        <h1 id="code-info" style="font-size: 50px;">GOTOWY DO GRY?</h1>
-        <button onclick="init()" style="padding: 25px 60px; font-size: 30px; cursor: pointer; background: #22c55e; color: white; border: none; border-radius: 10px;">ODPAL TABLICĘ</button>
+        <h1 id="code-info" style="font-size: 50px;">FAMILIADA TABLICA</h1>
+        <button onclick="init()" style="padding: 25px 60px; font-size: 30px; cursor: pointer; background: #22c55e; color: white; border: none; border-radius: 10px;">ODPAL SYSTEM</button>
     </div>
 
     <div class="board">
         <div id="x-l" class="x-mark">X</div>
-        <div id="rows">
-            <div style="color: grey; text-align: center; font-size: 40px; margin-top: 100px;">CZEKAM NA POŁĄCZENIE Z PANELU...</div>
-        </div>
+        <div id="rows"></div>
         <div class="footer">SUMA <span id="suma">0</span></div>
         <div id="x-r" class="x-mark">X</div>
     </div>
 
     <script>
         let peer;
+        function playSnd(id) { 
+            const s = document.getElementById('snd-'+id);
+            if(s) { s.currentTime = 0; s.play(); }
+        }
+
         function update(mode, count) {
             const r = document.getElementById('rows'); r.innerHTML = '';
             document.getElementById('x-l').style.display = 'none';
@@ -104,12 +67,13 @@
             peer.on('connection', conn => {
                 document.getElementById('setup').style.display = 'none';
                 conn.on('data', d => {
-                    if(d.type === 'SET') { update('normal', d.c); document.getElementById('suma').innerText = "0"; }
-                    if(d.type === 'FIN') { update('final'); document.getElementById('suma').innerText = "0"; }
-                    if(d.type === 'REV') { document.getElementById('a'+(d.i+1)).innerText = d.t; document.getElementById('p'+(d.i+1)).innerText = d.p; document.getElementById('suma').innerText = d.s; }
-                    if(d.type === 'R_A') document.getElementById(`f${d.pl}a${d.i+1}`).innerText = d.t;
-                    if(d.type === 'R_P') { document.getElementById(`f${d.pl}p${d.i+1}`).innerText = d.p; document.getElementById('suma').innerText = d.s; }
-                    if(d.type === 'X') { const el = document.getElementById(d.s === 'L' ? 'x-l' : 'x-r'); el.innerText = "X".repeat(d.c); el.style.display = 'block'; }
+                    if(d.type === 'SET') { update('normal', d.c); document.getElementById('suma').innerText = "0"; playSnd('runda'); }
+                    if(d.type === 'FIN') { update('final'); document.getElementById('suma').innerText = "0"; playSnd('final'); }
+                    if(d.type === 'REV') { document.getElementById('a'+(d.i+1)).innerText = d.t; document.getElementById('p'+(d.i+1)).innerText = d.p; document.getElementById('suma').innerText = d.s; playSnd('ok'); }
+                    if(d.type === 'R_A') { document.getElementById(`f${d.pl}a${d.i+1}`).innerText = d.t; }
+                    if(d.type === 'R_P') { document.getElementById(`f${d.pl}p${d.i+1}`).innerText = d.p; document.getElementById('suma').innerText = d.s; playSnd('ok'); }
+                    if(d.type === 'X') { const el = document.getElementById(d.s === 'L' ? 'x-l' : 'x-r'); el.innerText = "X".repeat(d.c); el.style.display = 'block'; playSnd('zle'); }
+                    if(d.type === 'SND') { playSnd(d.file); }
                     if(d.type === 'VID') { const v = document.getElementById('vid'); v.style.display='block'; v.play(); v.onended=()=>v.style.display='none'; }
                 });
             });
