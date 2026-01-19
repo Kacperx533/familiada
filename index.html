@@ -2,170 +2,269 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA - FINAL</title>
+    <title>FAMILIADA - MATRYCA</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root { 
-            --yellow: #fefe00; 
-            --tile-bg: #15171b;
-            --tile-border: #0a0a0c;
+            --led-yellow: #ffea00; 
+            --board-gap: #1c1c24;  /* Kolor przerw między kafelkami */
+            --tile-off: #111114;   /* Wyłączony kafelek */
+            --tile-on: #111114;    /* Tło pod literami */
         }
 
         body { 
             margin: 0; padding: 0; 
-            background: linear-gradient(90deg, #f02d6b 0%, #6081ff 50%, #7090ff 100%) fixed;
+            /* Gradient dokładnie jak na zdjęciu: Różowy lewa -> Niebieski prawa */
+            background: linear-gradient(90deg, #ff2a6d 0%, #3d6eff 100%) fixed;
             display: flex; justify-content: center; align-items: center; 
             height: 100vh; overflow: hidden;
             font-family: 'VT323', monospace;
         }
 
-        /* Główna obudowa - identyczny kształt prostokąta */
-        .board-container {
-            background-color: #0a0a0c;
-            padding: 15px;
-            border-radius: 30px;
-            box-shadow: 0 50px 100px rgba(0,0,0,0.9);
-            width: 92vw;
-            height: 80vh;
-            display: flex;
+        /* Główna obudowa - zaokrąglona, ciemnoszara */
+        .board-frame {
+            background-color: #1a1b20;
+            padding: 25px; /* Margines obudowy */
+            border-radius: 30px; /* Zaokrąglenie rogów obudowy */
+            box-shadow: 0 40px 90px rgba(0,0,0,0.6);
+            width: 90vw;
+            max-width: 1400px;
+            /* Utrzymanie proporcji tablicy */
+            aspect-ratio: 16 / 9; 
+            max-height: 90vh;
             box-sizing: border-box;
-        }
-
-        /* Siatka kafelków - wypełnia całe wnętrze */
-        .grid-main {
-            flex-grow: 1;
-            background-color: var(--tile-bg);
-            display: grid;
-            grid-template-columns: repeat(30, 1fr);
-            grid-template-rows: repeat(18, 1fr);
-            gap: 2px; /* Czarne przerwy między kafelkami */
-            padding: 2px;
-            border-radius: 20px;
             position: relative;
         }
 
-        .tile { background-color: #1a1c22; }
-
-        /* Warstwa z tekstem - idealnie nad siatką */
-        .overlay-content {
-            position: absolute;
-            inset: 0;
+        /* Właściwa siatka (Grid) */
+        .led-grid {
+            width: 100%;
+            height: 100%;
             display: grid;
-            grid-template-columns: repeat(30, 1fr);
-            grid-template-rows: repeat(18, 1fr);
-            pointer-events: none;
+            /* Siatka 32 kolumny na 16 wierszy (szacunek z Twojego zdjęcia) */
+            grid-template-columns: repeat(32, 1fr);
+            grid-template-rows: repeat(16, 1fr);
+            gap: 6px; /* Wyraźne przerwy między kafelkami */
+            background-color: var(--board-gap); /* Kolor fugi */
+            padding: 6px;
+            border-radius: 15px;
+            box-sizing: border-box;
         }
 
-        /* Napisy i X wpisane w grid */
-        .text-element {
-            color: var(--yellow);
-            font-size: 5.5vh;
+        /* Pojedynczy kafelek */
+        .tile {
+            background-color: var(--tile-off);
+            border-radius: 3px;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Warstwa z treścią (nakładana na siatkę) */
+        .content-layer {
+            position: absolute;
+            top: 25px; left: 25px; right: 25px; bottom: 25px; /* Musi pasować do paddingu .board-frame */
+            padding: 6px; /* Musi pasować do paddingu .led-grid */
+            display: grid;
+            grid-template-columns: repeat(32, 1fr);
+            grid-template-rows: repeat(16, 1fr);
+            gap: 6px;
+            pointer-events: none; /* Żeby nie przeszkadzało */
+        }
+
+        /* Elementy tekstowe */
+        .char-box {
             display: flex;
-            align-items: center;
             justify-content: center;
+            align-items: center;
+            color: var(--led-yellow);
+            /* Rozmiar czcionki dopasowany, by wypełniał kafelek */
+            font-size: 4.5vmin; 
+            line-height: 1;
+            text-shadow: 0 0 5px rgba(255, 234, 0, 0.4);
             text-transform: uppercase;
         }
 
-        .x-icon {
-            font-family: 'Arial Black', sans-serif;
-            font-size: 15vh;
-            color: var(--yellow);
-            grid-column: 26 / 30;
-            display: none;
-            justify-content: center;
-            align-items: center;
-            line-height: 0.8;
+        /* Specjalny styl dla X (Segmentowy) */
+        /* X zajmuje obszar 2x3 kafelków na zdjęciu */
+        .x-container {
+            grid-column: span 2;
+            grid-row: span 3;
+            position: relative;
+            display: none; /* Domyślnie ukryte */
         }
+        
+        /* Budowa X z pasków CSS, żeby wyglądał cyfrowo */
+        .x-segment {
+            position: absolute;
+            background-color: var(--led-yellow);
+            box-shadow: 0 0 10px var(--led-yellow);
+            border-radius: 4px;
+        }
+        /* Lewa góra -> Prawa dół */
+        .x-cross-1 { width: 15%; height: 100%; left: 42.5%; transform: rotate(45deg); }
+        /* Prawa góra -> Lewa dół */
+        .x-cross-2 { width: 15%; height: 100%; left: 42.5%; transform: rotate(-45deg); }
 
-        .suma-label {
-            grid-row: 16;
-            grid-column: 18 / 23;
-            font-size: 7vh;
-        }
-        .suma-val {
-            grid-row: 16;
-            grid-column: 24 / 27;
-            font-size: 7vh;
-        }
+        #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 999; display: flex; justify-content: center; align-items: center; }
+        button { padding: 20px 40px; font-size: 2rem; background: var(--led-yellow); border: none; border-radius: 10px; cursor: pointer; font-family: 'VT323'; }
 
-        #connect-screen { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 100; display: flex; justify-content: center; align-items: center; }
-        button { padding: 30px 60px; font-size: 30px; cursor: pointer; background: var(--yellow); border: none; border-radius: 10px; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <div id="connect-screen">
-        <button onclick="start()">URUCHOM</button>
+    <div id="overlay">
+        <button onclick="initApp()">START (Pełny Ekran)</button>
     </div>
 
-    <div class="board-container">
-        <div class="grid-main" id="bg-grid">
-            <div class="overlay-content" id="board-content">
-                <div class="text-element suma-label">SUMA</div>
-                <div class="text-element suma-val" id="total-val">0</div>
-                
-                <div class="x-icon" id="x1" style="grid-row: 3 / 7;">X</div>
-                <div class="x-icon" id="x2" style="grid-row: 7 / 11;">X</div>
-                <div class="x-icon" id="x3" style="grid-row: 11 / 15;">X</div>
+    <div class="board-frame">
+        <div class="led-grid" id="bg-grid"></div>
+
+        <div class="content-layer" id="content-grid">
+            
+            <div class="char-box" style="grid-column: 22; grid-row: 15;">S</div>
+            <div class="char-box" style="grid-column: 23; grid-row: 15;">U</div>
+            <div class="char-box" style="grid-column: 24; grid-row: 15;">M</div>
+            <div class="char-box" style="grid-column: 25; grid-row: 15;">A</div>
+            
+            <div class="char-box" id="suma-val" style="grid-column: 28; grid-row: 15;">0</div>
+
+            <div class="x-container" id="x1" style="grid-column: 30 / span 2; grid-row: 3 / span 3;">
+                <div class="x-segment x-cross-1"></div>
+                <div class="x-segment x-cross-2"></div>
             </div>
+            
+            <div class="x-container" id="x2" style="grid-column: 30 / span 2; grid-row: 7 / span 3;">
+                <div class="x-segment x-cross-1"></div>
+                <div class="x-segment x-cross-2"></div>
+            </div>
+
+            <div class="x-container" id="x3" style="grid-column: 30 / span 2; grid-row: 11 / span 3;">
+                <div class="x-segment x-cross-1"></div>
+                <div class="x-segment x-cross-2"></div>
+            </div>
+
         </div>
     </div>
 
+    <audio id="s-ok" src="ok.mp3"></audio>
+    <audio id="s-zle" src="zle.mp3"></audio>
+
     <script>
-        // Generuj tło z kafelków
-        const grid = document.getElementById('bg-grid');
-        for(let i=0; i<540; i++) {
-            const t = document.createElement('div');
-            t.className = 'tile';
-            grid.appendChild(t);
+        // 1. GENEROWANIE SIATKI TŁA (512 Kafelków)
+        const gridBox = document.getElementById('bg-grid');
+        const rows = 16;
+        const cols = 32;
+        
+        for (let i = 0; i < rows * cols; i++) {
+            const div = document.createElement('div');
+            div.className = 'tile';
+            gridBox.appendChild(div);
         }
 
+        // 2. LOGIKA
         let peer;
-        function start() {
+        function initApp() {
             const id = Math.random().toString(36).substring(2,5).toUpperCase();
             alert("KOD: " + id);
             peer = new Peer(id);
+
             peer.on('connection', conn => {
-                document.getElementById('connect-screen').style.display = 'none';
+                document.getElementById('overlay').style.display = 'none';
                 conn.on('data', data => {
+                    
                     if(data.type === 'SET') {
-                        renderRows(data.c);
+                        // Rysowanie pustych linii (kropek)
+                        renderLines(data.c);
+                        document.getElementById('suma-val').innerText = '0';
                         resetX();
                     }
                     if(data.type === 'REV') {
-                        document.getElementById('ans-'+data.i).innerText = data.t;
-                        document.getElementById('pts-'+data.i).innerText = data.p;
-                        document.getElementById('total-val').innerText = data.s;
+                        // Odsłonięcie odpowiedzi
+                        fillRowText(data.i, data.t, data.p, data.s);
+                        document.getElementById('s-ok').play();
                     }
                     if(data.type === 'X') {
                         resetX();
+                        // Pokazywanie X
                         for(let i=1; i<=data.count; i++) {
-                            document.getElementById('x'+i).style.display = 'flex';
+                            document.getElementById('x'+i).style.display = 'block';
                         }
+                        document.getElementById('s-zle').play();
                     }
                 });
             });
         }
 
-        function renderRows(count) {
-            const container = document.getElementById('board-content');
-            // Czyść stare rzędy (zachowaj Sumę i X)
-            const elements = container.querySelectorAll('.row-item');
-            elements.forEach(el => el.remove());
+        // Funkcja rysująca kropki i numery w odpowiednich kratkach
+        function renderLines(count) {
+            // Czyść stare wiersze (usuwamy elementy dynamiczne, zostawiamy SUMA i X)
+            const dynamicEls = document.querySelectorAll('.dynamic-char');
+            dynamicEls.forEach(el => el.remove());
 
+            const startRow = 3; // Pierwszy wiersz odpowiedzi (zgodnie ze zdjęciem)
+            
             for(let i=0; i<count; i++) {
-                const startRow = 2 + (i * 2);
-                container.innerHTML += `
-                    <div class="text-element row-item" style="grid-row: ${startRow}; grid-column: 4;">${i+1}</div>
-                    <div class="text-element row-item" id="ans-${i}" style="grid-row: ${startRow}; grid-column: 6 / 20; justify-content: flex-start;">................</div>
-                    <div class="text-element row-item" id="pts-${i}" style="grid-row: ${startRow}; grid-column: 22 / 24;">--</div>
-                `;
+                const r = startRow + (i * 2); // Co drugi wiersz
+                
+                // Numer (Kolumna 4)
+                createChar((i+1).toString(), 4, r);
+
+                // Kropki (Kolumny 6 do 25)
+                for(let c=6; c<=25; c++) {
+                    createChar('.', c, r, 'dot-'+i+'-'+c);
+                }
+
+                // Punkty puste (kreski) - Kolumny 27-28
+                createChar('-', 27, r, 'pts-dash1-'+i);
+                createChar('-', 28, r, 'pts-dash2-'+i);
             }
         }
 
+        function fillRowText(index, text, points, total) {
+            const r = 3 + (index * 2);
+            text = text.toUpperCase();
+
+            // Czyść kropki w tym wierszu
+            for(let c=6; c<=25; c++) {
+                const dot = document.getElementById('dot-'+index+'-'+c);
+                if(dot) dot.innerText = ''; // Pusty kafelek
+            }
+
+            // Wpisz tekst literka po literce
+            for(let j=0; j<text.length; j++) {
+                // Zaczynamy od kolumny 6
+                const charEl = document.getElementById('dot-'+index+'-'+(6+j));
+                if(charEl) charEl.innerText = text[j];
+            }
+
+            // Wpisz punkty (nadpisz kreski)
+            const pStr = points.toString();
+            // Jeśli jednocyfrowa to w kolumnie 28, dwu to 27 i 28
+            if(pStr.length === 1) {
+                document.getElementById('pts-dash1-'+index).innerText = '';
+                document.getElementById('pts-dash2-'+index).innerText = pStr;
+            } else {
+                document.getElementById('pts-dash1-'+index).innerText = pStr[0];
+                document.getElementById('pts-dash2-'+index).innerText = pStr[1];
+            }
+
+            // Aktualizuj sumę
+            document.getElementById('suma-val').innerText = total;
+        }
+
+        function createChar(char, col, row, id=null) {
+            const el = document.createElement('div');
+            el.className = 'char-box dynamic-char';
+            el.style.gridColumn = col;
+            el.style.gridRow = row;
+            el.innerText = char;
+            if(id) el.id = id;
+            document.getElementById('content-grid').appendChild(el);
+        }
+
         function resetX() {
-            document.querySelectorAll('.x-icon').forEach(x => x.style.display = 'none');
+            document.querySelectorAll('.x-container').forEach(el => el.style.display = 'none');
         }
     </script>
 </body>
