@@ -2,15 +2,13 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA - PEŁNE STUDIO</title>
+    <title>FAMILIADA - NOWOCZESNE STUDIO</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root {
             --led-yellow: #f4ff00;
-            --fam-red: #c61d1d;
-            --fam-blue: #1d60c6;
-            --grid-color: #151515;
+            --bg-grid: #1a1a24;
         }
 
         body, html {
@@ -18,165 +16,126 @@
             padding: 0;
             width: 100%;
             height: 100%;
-            background-color: #000;
             overflow: hidden;
             font-family: 'VT323', monospace;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        /* 1. TŁO PODZIELONE PIONOWO */
-        .background {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            z-index: 1;
-        }
-        .bg-l { flex: 1; background: var(--fam-red); box-shadow: inset -50px 0 100px rgba(0,0,0,0.3); }
-        .bg-r { flex: 1; background: var(--fam-blue); box-shadow: inset 50px 0 100px rgba(0,0,0,0.3); }
-
-        /* 2. CZARNY ŁUK (TĘCZA) */
-        .top-arch-area {
-            position: relative;
-            z-index: 10;
-            width: 110%;
-            height: 220px;
-            background: #000;
-            margin-top: 20px;
-            border-radius: 50% 50% 0 0;
+            /* TŁO: GRADIENT Z TWOICH ZDJĘĆ */
+            background: linear-gradient(90deg, #ff2d55 0%, #6383ff 50%, #7592ff 100%);
             display: flex;
             justify-content: center;
-            border-top: 4px solid #222;
+            align-items: center;
         }
 
-        /* Kolorowe paski wewnątrz łuku */
-        .rainbow-lines {
-            position: absolute;
-            top: 35px;
-            width: 85%;
+        /* GŁÓWNA TABLICA (CIEMNA RAMKA) */
+        .board-container {
+            width: 90vw;
+            height: 80vh;
+            background-color: #22222b;
+            border-radius: 40px;
+            padding: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* MATRYCA LED (KAFELKI) */
+        .led-matrix {
+            width: 100%;
             height: 100%;
-        }
-        .line {
-            position: absolute;
-            width: 40%;
-            height: 200px;
-            border-top: 5px solid;
-            border-radius: 50% 50% 0 0;
-        }
-        .line-red { left: 0; border-color: #ff4d4d; filter: drop-shadow(0 0 10px red); }
-        .line-blue { right: 0; border-color: #4d94ff; filter: drop-shadow(0 0 10px blue); }
-
-        /* 3. SCENA (TABLICA + WYNIKI) */
-        .stage {
+            background-color: #0f0f13;
+            border-radius: 20px;
             position: relative;
-            z-index: 50;
             display: flex;
-            align-items: center;
-            gap: 30px;
-            margin-top: -50px; /* Podciągnięcie pod łuk */
-        }
-
-        /* Wyniki drużyn (Białe ramki) */
-        .team-score {
-            width: 170px;
-            height: 110px;
-            background: #000;
-            border: 4px solid #fff;
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            padding-right: 15px;
-            color: var(--led-yellow);
-            font-size: 110px;
-            box-shadow: 0 0 30px rgba(0,0,0,0.5);
-        }
-
-        /* GŁÓWNA TABLICA LED (Z TWOICH ZDJĘĆ) */
-        .main-board {
-            width: 850px;
-            height: 520px;
-            background-color: #050505;
-            border: 6px solid #222;
-            border-radius: 50px;
-            position: relative;
-            padding: 30px 50px;
+            flex-direction: column;
+            justify-content: center;
+            padding: 0 5%;
             box-sizing: border-box;
+            
+            /* EFEKT KAFELKÓW LED */
             background-image: 
-                linear-gradient(var(--grid-color) 1px, transparent 1px),
-                linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
-            background-size: 30px 30px;
-            box-shadow: inset 0 0 80px #000;
+                linear-gradient(var(--bg-grid) 2px, transparent 2px),
+                linear-gradient(90deg, var(--bg-grid) 2px, transparent 2px);
+            background-size: 45px 45px;
         }
 
+        /* WIERSZ */
         .row {
             display: flex;
             align-items: center;
-            height: 75px;
-            font-size: 70px;
+            height: 10vh;
+            font-size: 9vh;
             color: var(--led-yellow);
             text-shadow: 0 0 10px rgba(244, 255, 0, 0.5);
-            border-bottom: 1px solid #111;
+            border-bottom: 1px solid #1a1a24;
+            z-index: 2;
         }
 
-        .num { width: 50px; color: var(--led-yellow); } /* Żółte numery */
-        .ans { flex-grow: 1; letter-spacing: 3px; }
-        .pts { width: 80px; text-align: right; }
+        .num { width: 6vw; color: var(--led-yellow); }
+        .ans { flex-grow: 1; letter-spacing: 2px; text-transform: uppercase; }
+        .pts { width: 10vw; text-align: right; }
 
-        /* SUMA WEWNĄTRZ TABLICY */
-        .board-suma {
+        /* SUMA W PRAWYM DOLNYM ROGU MATRYCY */
+        .board-footer {
             position: absolute;
-            bottom: 25px;
-            right: 60px;
+            bottom: 5%;
+            right: 8%;
             display: flex;
             align-items: center;
-            gap: 25px;
-            font-size: 75px;
+            gap: 30px;
+            font-size: 9vh;
             color: var(--led-yellow);
-            text-shadow: 0 0 15px rgba(244, 255, 0, 0.6);
         }
 
-        /* BŁĄD X */
-        #x-overlay { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.9); z-index: 1000; }
-        .x-mark { color: red; font-size: 500px; font-weight: bold; font-family: Arial; }
+        /* CZERWONY X (BŁĄD) - PO LEWEJ LUB PRAWEJ STRONIE */
+        .x-container {
+            position: absolute;
+            width: 150px;
+            height: 150px;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+        .x-container.left { left: 2%; top: 20%; }
+        .x-container.right { right: 2%; top: 20%; }
 
-        #setup { position: fixed; inset: 0; background: #000; z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; }
+        .x-mark {
+            color: #ff3333;
+            font-size: 150px;
+            font-family: Arial, sans-serif;
+            font-weight: bold;
+            text-shadow: 0 0 20px red;
+        }
+
+        /* PANEL STARTOWY */
+        #setup { 
+            position: fixed; inset: 0; background: #000; z-index: 2000; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; 
+        }
     </style>
 </head>
 <body>
 
     <div id="setup">
-        <div id="code" style="font-size: 100px; color: var(--led-yellow); margin-bottom: 20px;">----</div>
-        <button onclick="init()" style="padding: 20px 60px; font-size: 26px; cursor: pointer; background: var(--led-yellow); border: none; font-weight: bold;">ODPAL STUDIO</button>
+        <div id="code" style="font-size: 80px; color: var(--led-yellow); margin-bottom: 20px;">----</div>
+        <button onclick="init()" style="padding: 20px 50px; font-size: 24px; cursor: pointer; background: var(--led-yellow); border: none; font-weight: bold; border-radius: 10px;">POŁĄCZ TABLICĘ</button>
     </div>
 
-    <div class="background">
-        <div class="bg-l"></div>
-        <div class="bg-r"></div>
-    </div>
+    <div class="board-container">
+        <div class="led-matrix">
+            <div id="x-left" class="x-container left"><div class="x-mark">X</div></div>
+            
+            <div id="board-rows">
+                </div>
 
-    <div class="top-arch-area">
-        <div class="rainbow-lines">
-            <div class="line line-red"></div>
-            <div class="line line-blue"></div>
-        </div>
-    </div>
-
-    <div class="stage">
-        <div class="team-score"><span id="score-L">0</span></div>
-        
-        <div class="main-board">
-            <div id="board-rows"></div>
-            <div class="board-suma">
+            <div class="board-footer">
                 <span>SUMA</span>
                 <span id="suma-val">0</span>
             </div>
+
+            <div id="x-right" class="x-container right"><div class="x-mark">X</div></div>
         </div>
-
-        <div class="team-score"><span id="score-R">0</span></div>
     </div>
-
-    <div id="x-overlay"><div class="x-mark" id="x-text">X</div></div>
 
     <script>
         let peer;
@@ -189,7 +148,7 @@
                     <div class="row">
                         <div class="num">${i}</div>
                         <div class="ans" id="ans-${i}">....................</div>
-                        <div class="pts" id="pts-${i}"></div>
+                        <div class="pts" id="pts-${i}">--</div>
                     </div>`;
             }
         }
@@ -199,6 +158,7 @@
             const id = Math.random().toString(36).substring(2, 5).toUpperCase();
             document.getElementById('code').innerText = id;
             document.getElementById('setup').style.display = 'none';
+            
             peer = new Peer(id);
             peer.on('open', () => {
                 peer.on('connection', conn => {
@@ -211,17 +171,14 @@
                             document.getElementById(`ans-${d.idx+1}`).innerText = d.t;
                             document.getElementById(`pts-${d.idx+1}`).innerText = d.p;
                             let s = document.getElementById('suma-val');
-                            s.innerText = parseInt(s.innerText) + parseInt(d.p);
+                            s.innerText = (parseInt(s.innerText) || 0) + parseInt(d.p);
                         }
                         if(d.type === 'X') {
-                            const overlay = document.getElementById('x-overlay');
-                            document.getElementById('x-text').innerText = "X".repeat(d.count);
-                            overlay.style.display = 'flex';
-                            setTimeout(() => overlay.style.display = 'none', 1200);
-                        }
-                        if(d.type === 'SCORE_SYNC') {
-                            document.getElementById('score-L').innerText = d.l;
-                            document.getElementById('score-R').innerText = d.r;
+                            // Pokazuje X po lewej (jak na screenie 174ca1) lub po prawej
+                            const side = (Math.random() > 0.5) ? 'x-left' : 'x-right';
+                            const el = document.getElementById(side);
+                            el.style.display = 'flex';
+                            setTimeout(() => el.style.display = 'none', 1500);
                         }
                     });
                 });
