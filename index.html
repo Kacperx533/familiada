@@ -2,47 +2,92 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA LED - FINAL VERSION</title>
+    <title>FAMILIADA - STUDIO TV</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root { --led-yellow: #f4ff00; --bg-grid: #12121a; }
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: 'VT323', monospace; background: linear-gradient(90deg, #ff2d55 0%, #6383ff 50%, #7592ff 100%); display: flex; justify-content: center; align-items: center; }
-        
-        #setup { position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; }
-        #display-code { font-size: 150px; color: var(--led-yellow); text-shadow: 0 0 20px var(--led-yellow); }
 
-        .board-container { width: 98vw; height: 92vh; background-color: #1a1a24; border-radius: 30px; padding: 10px; display: flex; justify-content: center; align-items: center; position: relative; border: 8px solid #333; }
-        
-        .led-matrix { width: 100%; height: 100%; background-color: #050508; border-radius: 15px; position: relative; display: flex; flex-direction: column; padding: 0 10%; box-sizing: border-box; background-image: radial-gradient(var(--bg-grid) 2px, transparent 2px); background-size: 15px 15px; }
-        
-        /* UKŁAD RUNDY */
-        #board-rows { display: flex; flex-direction: column; width: 100%; height: 100%; justify-content: center; gap: 1vh; }
-        
-        /* UKŁAD FINAŁU */
-        .final-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15vw !important; align-items: center; }
+        body, html { 
+            margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; 
+            font-family: 'VT323', monospace; 
+            /* MOCNIEJSZE I BARDZIEJ WIDOCZNE TŁO */
+            background: linear-gradient(-45deg, #ff1744, #712eff, #3d5afe, #ff1744);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            display: flex; justify-content: center; align-items: center; 
+        }
 
-        .row { display: flex; align-items: center; width: 100%; height: 11vh; font-size: 10vh; color: var(--led-yellow); text-shadow: 0 0 12px rgba(244, 255, 0, 0.4); }
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .board-container { 
+            width: 96vw; height: 90vh; 
+            background-color: rgba(26, 26, 36, 0.9); 
+            border-radius: 40px; padding: 15px; 
+            box-shadow: 0 0 100px rgba(0,0,0,0.8);
+            border: 5px solid #444;
+            display: flex; justify-content: center; align-items: center; position: relative;
+        }
         
-        /* WIĘKSZE ODSTĘPY */
-        .num { width: 80px; margin-right: 60px; color: var(--led-yellow); }
-        .ans { flex-grow: 1; letter-spacing: 5px; text-transform: uppercase; white-space: nowrap; overflow: hidden; }
-        .pts { width: 120px; text-align: right; margin-left: 40px; }
+        .led-matrix { 
+            width: 100%; height: 100%; background-color: #050508; 
+            border-radius: 25px; position: relative; 
+            display: flex; flex-direction: column; 
+            padding: 0 50px; box-sizing: border-box; 
+            /* EFEKT SIATKI LED */
+            background-image: radial-gradient(rgba(244, 255, 0, 0.05) 1px, transparent 1px);
+            background-size: 10px 10px;
+        }
+        
+        /* UKŁAD RUNDY NORMALNEJ */
+        #board-rows { display: flex; flex-direction: column; width: 100%; height: 100%; justify-content: center; }
+        
+        /* UKŁAD FINAŁU - MAKSYMALNIE ROZSUNIĘTY */
+        .final-grid { 
+            display: flex !important; 
+            flex-direction: row !important;
+            justify-content: space-between !important; 
+            align-items: center;
+            height: 100%;
+            width: 100%;
+        }
+
+        .final-column { width: 42%; }
+
+        .row { 
+            display: flex; align-items: center; width: 100%; height: 10vh; 
+            font-size: 9vh; color: var(--led-yellow); 
+            text-shadow: 0 0 15px rgba(244, 255, 0, 0.7); 
+            border-bottom: 2px solid #1a1a24;
+        }
+        
+        .num { width: 70px; margin-right: 40px; color: var(--led-yellow); }
+        .ans { flex-grow: 1; letter-spacing: 4px; text-transform: uppercase; }
+        .pts { width: 110px; text-align: right; margin-left: 20px; border-left: 2px solid #1a1a24; }
         
         .board-footer { position: absolute; bottom: 3%; right: 5%; font-size: 11vh; color: var(--led-yellow); }
 
-        /* ŻÓŁTY X W STYLU LED */
-        .x-container { position: absolute; width: auto; display: none; z-index: 500; top: 50%; transform: translateY(-50%); }
-        .x-container.left { left: 40px; }
-        .x-container.right { right: 40px; }
-        .x-mark { color: var(--led-yellow); font-size: 250px; font-weight: bold; text-shadow: 0 0 30px var(--led-yellow); border: 10px solid var(--led-yellow); padding: 0 40px; border-radius: 20px; background: rgba(0,0,0,0.5); }
+        /* ŻÓŁTY X LED */
+        .x-container { position: absolute; display: none; z-index: 999; top: 50%; transform: translateY(-50%); }
+        .x-container.left { left: 30px; }
+        .x-container.right { right: 30px; }
+        .x-mark { 
+            color: var(--led-yellow); font-size: 260px; font-weight: bold; 
+            text-shadow: 0 0 40px var(--led-yellow); 
+            border: 15px solid var(--led-yellow); padding: 10px 50px; 
+            border-radius: 30px; background: rgba(0,0,0,0.8); 
+        }
     </style>
 </head>
 <body>
     <div id="setup">
-        <div id="display-code">---</div>
-        <button onclick="initPeer()" style="padding:20px 40px; font-size:24px; cursor:pointer; font-family:'VT323'; background:var(--led-yellow);">GENERUJ KOD</button>
-        <button onclick="document.getElementById('setup').style.display='none'" style="margin-top:20px; background:none; color:white; border:1px solid white; cursor:pointer;">ZAMKNIJ</button>
+        <div id="display-code" style="font-size: 100px;">---</div>
+        <button onclick="initPeer()" style="padding:20px 50px; font-size:30px; cursor:pointer; font-family:'VT323'; background:var(--led-yellow); border:none; border-radius:10px;">GENERUJ KOD</button>
+        <button onclick="document.getElementById('setup').style.display='none'" style="margin-top:20px; color:white; background:none; border:none; cursor:pointer;">[ ZAMKNIJ ]</button>
     </div>
 
     <div class="board-container">
@@ -66,7 +111,7 @@
                 }
             } else {
                 container.classList.add("final-grid");
-                let l = '<div id="f1-col">', r = '<div id="f2-col">';
+                let l = '<div class="final-column">', r = '<div class="final-column">';
                 for(let i=1; i<=5; i++) {
                     l += `<div class="row"><div class="ans" id="f1-ans-${i}">..........</div><div class="pts" id="f1-pts-${i}"></div></div>`;
                     r += `<div class="row"><div class="ans" id="f2-ans-${i}">..........</div><div class="pts" id="f2-pts-${i}"></div></div>`;
@@ -94,10 +139,11 @@
                         document.getElementById('suma-val').innerText = d.total;
                     }
                     if(d.type === 'X') {
-                        const el = document.getElementById(Math.random() > 0.5 ? 'x-left' : 'x-right');
+                        const side = Math.random() > 0.5 ? 'x-left' : 'x-right';
+                        const el = document.getElementById(side);
                         el.querySelector('.x-mark').innerText = "X".repeat(d.count);
                         el.style.display = 'block';
-                        setTimeout(() => el.style.display = 'none', 1500);
+                        setTimeout(() => el.style.display = 'none', 2000);
                     }
                 });
             });
