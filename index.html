@@ -2,56 +2,79 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA - TABLICA LED</title>
+    <title>FAMILIADA - TABLICA LED PRO</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root { --led-yellow: #f4ff00; }
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: 'VT323', monospace; background: linear-gradient(90deg, #ff2d55 0%, #6383ff 50%, #7592ff 100%); display: flex; justify-content: center; align-items: center; }
-
-        .board-outer { width: 92vw; height: 82vh; background-color: #1a1a24; border-radius: 40px; padding: 10px; box-shadow: 0 30px 100px rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center; position: relative; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: 'VT323', monospace; background: #000; }
         
-        .led-matrix { width: 100%; height: 100%; background-color: #050508; border-radius: 25px; position: relative; display: flex; flex-direction: column; padding: 0 100px; box-sizing: border-box; }
+        /* WIDEO W TLE */
+        #bg-video { position: fixed; right: 0; bottom: 0; min-width: 100%; min-height: 100%; z-index: -1; display: none; }
+        #static-bg { position: fixed; inset: 0; background: linear-gradient(90deg, #ff2d55 0%, #6383ff 50%, #7592ff 100%); z-index: -2; }
+
+        .main-wrapper { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; }
+
+        .board-outer { 
+            width: 88vw; height: 78vh; 
+            background: #1a1a24; border-radius: 40px; padding: 12px; 
+            box-shadow: 0 0 50px rgba(0,0,0,0.9), inset 0 0 20px #000;
+            border: 6px solid #333; position: relative; 
+        }
+        
+        .led-matrix { 
+            width: 100%; height: 100%; background: #050508; border-radius: 25px; 
+            display: flex; flex-direction: column; padding: 0 80px; box-sizing: border-box;
+            background-image: radial-gradient(rgba(244, 255, 0, 0.03) 1px, transparent 1px);
+            background-size: 15px 15px; position: relative;
+        }
         
         #board-rows { display: flex; flex-direction: column; width: 100%; height: 100%; justify-content: center; }
 
-        /* FINAŁ: Odpowiedź | Pkt | Pkt | Odpowiedź */
-        .final-row { display: grid; grid-template-columns: 1fr 80px 80px 1fr; gap: 10px; align-items: center; height: 10vh; font-size: 8vh; color: var(--led-yellow); }
+        /* FINAŁ */
+        .final-row { display: grid; grid-template-columns: 1fr 70px 70px 1fr; gap: 10px; align-items: center; height: 10vh; font-size: 8vh; color: var(--led-yellow); }
         .f-ans-l { text-align: left; text-transform: uppercase; }
         .f-ans-r { text-align: right; text-transform: uppercase; }
-        .f-pts { text-align: center; }
+        .f-pts { text-align: center; background: rgba(255,255,0,0.05); border-radius: 5px; }
 
-        /* RUNDA ZWYKŁA */
-        .row { display: flex; align-items: center; width: 100%; height: 10vh; font-size: 9vh; color: var(--led-yellow); }
-        .num { width: 60px; margin-right: 40px; }
-        .ans { flex-grow: 1; text-transform: uppercase; }
+        /* RUNDA */
+        .row { display: flex; align-items: center; width: 100%; height: 10vh; font-size: 8.5vh; color: var(--led-yellow); }
+        .num { width: 50px; margin-right: 30px; text-shadow: 0 0 10px var(--led-yellow); }
+        .ans { flex-grow: 1; text-transform: uppercase; letter-spacing: 2px; }
         .pts { width: 100px; text-align: right; }
 
         .board-footer { position: absolute; bottom: 5%; right: 10%; font-size: 10vh; color: var(--led-yellow); }
 
-        /* X BEZ RAMKI - PO OBU STRONACH */
-        .x-container { position: absolute; display: none; z-index: 1000; top: 20%; color: var(--led-yellow); font-size: 220px; font-weight: bold; text-shadow: 0 0 40px var(--led-yellow); }
-        .x-left { left: 40px; }
-        .x-right { right: 40px; }
+        /* X BEZ RAMKI */
+        .x-container { position: absolute; display: none; z-index: 1000; top: 20%; color: var(--led-yellow); font-size: 240px; font-weight: bold; text-shadow: 0 0 40px var(--led-yellow); }
+        .x-left { left: 30px; }
+        .x-right { right: 30px; }
     </style>
 </head>
 <body>
+    <video id="bg-video" src="czolowka.mp4"></video>
+    <div id="static-bg"></div>
+
     <div id="setup" style="position:fixed; inset:0; background:black; z-index:2000; display:flex; flex-direction:column; align-items:center; justify-content:center; color:white;">
-        <div id="display-code" style="font-size:100px; color:var(--led-yellow);">---</div>
-        <button onclick="initPeer()" style="padding:20px; font-size:24px; cursor:pointer;">URUCHOM TABLICĘ</button>
+        <div id="display-code" style="font-size:100px; color:var(--led-yellow); margin-bottom: 20px;">---</div>
+        <button onclick="initPeer()" style="padding:20px 50px; font-size:24px; cursor:pointer; font-family: 'VT323'; background: var(--led-yellow); border:none; border-radius:10px;">POŁĄCZ SYSTEM</button>
     </div>
 
-    <div class="board-outer">
-        <div class="led-matrix">
-            <div id="x-l" class="x-container x-left">X</div>
-            <div id="board-rows"></div>
-            <div class="board-footer">SUMA <span id="suma-val">0</span></div>
-            <div id="x-r" class="x-container x-right">X</div>
+    <div class="main-wrapper">
+        <div class="board-outer">
+            <div class="led-matrix">
+                <div id="x-l" class="x-container x-left">X</div>
+                <div id="board-rows"></div>
+                <div class="board-footer">SUMA <span id="suma-val">0</span></div>
+                <div id="x-r" class="x-container x-right">X</div>
+            </div>
         </div>
     </div>
 
     <script>
         let peer;
+        const video = document.getElementById('bg-video');
+
         function updateLayout(mode, rowsCount) {
             document.getElementById('x-l').style.display = 'none';
             document.getElementById('x-r').style.display = 'none';
@@ -84,6 +107,11 @@
                         const el = document.getElementById(d.side === 'L' ? 'x-l' : 'x-r');
                         el.innerText = "X".repeat(d.count);
                         el.style.display = 'block';
+                    }
+                    if(d.type === 'VIDEO') {
+                        video.style.display = 'block';
+                        video.play();
+                        video.onended = () => video.style.display = 'none';
                     }
                 });
             });
