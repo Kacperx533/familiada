@@ -6,43 +6,27 @@
     <style>
         body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #0f172a; color: white; padding: 20px; margin: 0; }
         .wrapper { max-width: 1400px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
-        
-        /* Karty */
         .card { background: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid #334155; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
         h2 { color: #facc15; font-size: 14px; margin: 0 0 15px 0; border-bottom: 2px solid #334155; padding-bottom: 8px; text-transform: uppercase; }
-        
-        /* Panel Sterowania */
         .grid-players { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .player-box { background: rgba(15, 23, 42, 0.4); padding: 15px; border-radius: 10px; border: 2px solid #334155; }
-        
+        .player-box { background: rgba(15, 23, 42, 0.4); padding: 15px; border-radius: 10px; border: 1px solid #334155; }
         .row-final { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; padding: 8px; border-radius: 6px; cursor: pointer; border: 1px solid transparent; transition: 0.2s; }
         .row-selected { background: #334155; border-color: #3b82f6; box-shadow: 0 0 10px rgba(59, 130, 246, 0.3); }
-
         .led { width: 18px; height: 18px; border-radius: 50%; background: #334155; border: 1px solid #000; }
         .led-on { background: #22c55e; box-shadow: 0 0 10px #22c55e; }
-
         input { flex: 1; padding: 10px; background: #0f172a; border: 1px solid #3b82f6; color: #fff; border-radius: 4px; font-weight: bold; font-size: 14px; }
         .input-pts { width: 55px; flex: none; text-align: center; color: #facc15; font-size: 18px; }
-
         button { padding: 10px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 11px; }
         .btn-blue { background: #3b82f6; color: white; }
         .btn-green { background: #22c55e; color: white; }
         .btn-gold { background: #eab308; color: black; }
         .btn-red { background: #ef4444; color: white; }
-
-        /* Ściąga Interaktywna */
         .cheat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 15px; }
         .cheat-card { background: #0f172a; padding: 12px; border-radius: 8px; border-top: 4px solid #facc15; }
         .q-title { font-size: 11px; font-weight: bold; color: #94a3b8; margin: 10px 0 5px 0; border-bottom: 1px solid #1e293b; text-transform: uppercase; }
-        
-        .ans-btn { 
-            display: flex; justify-content: space-between; width: 100%; 
-            background: #1e293b; color: white; border: 1px solid #334155; 
-            padding: 8px; margin-bottom: 4px; border-radius: 4px; font-size: 12px; text-align: left;
-        }
+        .ans-btn { display: flex; justify-content: space-between; width: 100%; background: #1e293b; color: white; border: 1px solid #334155; padding: 8px; margin-bottom: 4px; border-radius: 4px; font-size: 12px; text-align: left; }
         .ans-btn:hover { background: #334155; border-color: #22c55e; color: #22c55e; }
         .ans-btn b { color: #22c55e; }
-
         .total-display { font-size: 60px; text-align: center; color: #facc15; font-weight: bold; margin: 10px 0; text-shadow: 0 0 15px rgba(250, 204, 21, 0.3); }
     </style>
 </head>
@@ -76,7 +60,7 @@
     </div>
 
     <div class="card">
-        <h2>📋 KLIKNIJ ODPOWIEDŹ, ABY WPISAĆ DO ZAZNACZONEGO POLA</h2>
+        <h2>📋 BAZA PYTAŃ - KLIKNIJ, ABY WPISAĆ</h2>
         <div class="cheat-grid" id="cheat-container"></div>
     </div>
 </div>
@@ -87,76 +71,16 @@
     let curP = 1, curR = 0; 
 
     const database = [
-        { n: 1, q: [
-            {t: "Owoc", a: [["JABŁKO",35],["BANAN",25],["GRUSZKA",15],["ŚLIWKA",10],["POMARAŃCZA",5]]},
-            {t: "Kolor", a: [["NIEBIESKI",40],["CZERWONY",30],["ZIELONY",15],["ŻÓŁTY",10],["BIAŁY",5]]},
-            {t: "Zwierzę", a: [["PIES",50],["KOT",35],["KOŃ",10],["CHOMIK",3],["PTAK",2]]},
-            {t: "Miasto", a: [["PARYŻ",30],["LONDYN",25],["WARSZAWA",20],["BERLIN",15],["RZYM",10]]},
-            {t: "Sport", a: [["PIŁKA",45],["BIEGANIE",20],["TENIS",15],["PŁYWANIE",10],["SIATKÓWKA",10]]}
-        ]},
-        { n: 2, q: [
-            {t: "Zimne", a: [["LÓD",40],["LODY",30],["ŚNIEG",20],["WODA",5],["WIATR",5]]},
-            {t: "Ptak", a: [["WRÓBEL",30],["BOCIAN",25],["GOŁĄB",20],["ORZEŁ",15],["SIKORKA",10]]},
-            {t: "Auto", a: [["FIAT",35],["BMW",25],["AUDI",20],["TOYOTA",15],["FORD",5]]},
-            {t: "Kwiat", a: [["RÓŻA",50],["TULIPAN",25],["NARCYZ",15],["GOŹDZIK",5],["STOKROTKA",5]]},
-            {t: "Imię M", a: [["JAN",30],["ADAM",25],["MAREK",20],["PIOTR",15],["ANDRZEJ",10]]}
-        ]},
-        { n: 3, q: [
-            {t: "Na chleb", a: [["MASŁO",45],["SER",25],["SZYNKA",15],["DŻEM",10],["POMIDOR",5]]},
-            {t: "Napój", a: [["WODA",40],["KAWA",25],["HERBATA",20],["SOK",10],["COLA",5]]},
-            {t: "Drzewo", a: [["DĄB",35],["BRZOZA",25],["SOSNA",20],["ŚWIERK",15],["KLON",5]]},
-            {t: "Ryba", a: [["KARP",40],["ŚLEDŹ",25],["SZCZUPAK",15],["PSTRĄG",10],["DORSZ",10]]},
-            {t: "Rzeka", a: [["WISŁA",65],["ODRA",20],["WARTA",10],["BUG",3],["SAN",2]]}
-        ]},
-        { n: 4, q: [
-            {t: "Część ciała", a: [["RĘKA",30],["GŁOWA",25],["NOGA",20],["BRZUCH",15],["PLECY",10]]},
-            {t: "Mebel", a: [["KRZESŁO",30],["STÓŁ",25],["SZAFA",20],["ŁÓŻKO",15],["FOTEL",10]]},
-            {t: "Pisanie", a: [["DŁUGOPIS",45],["OŁÓWEK",30],["PIÓRO",15],["MAZAK",7],["KREDKA",3]]},
-            {t: "Stolica", a: [["WARSZAWA",55],["PARYŻ",15],["LONDYN",15],["PRAGA",10],["RZYM",5]]},
-            {t: "Planeta", a: [["ZIEMIA",40],["MARS",30],["JOWISZ",15],["WENUS",10],["SATURN",5]]}
-        ]},
-        { n: 5, q: [
-            {t: "Słodkie", a: [["CZEKOLADA",35],["CIASTKO",25],["CUKIERKI",20],["MIÓD",15],["LIZAK",5]]},
-            {t: "Warzywo", a: [["MARCHEW",40],["ZIEMNIAK",30],["POMIDOR",15],["OGÓREK",10],["CEBULA",5]]},
-            {t: "Narzędzie", a: [["MŁOTEK",45],["ŚRUBOKRĘT",25],["KLUCZ",15],["PIŁA",10],["KOMBINERKI",5]]},
-            {t: "Las", a: [["DRZEWA",50],["GRZYBY",25],["ZWIERZĘTA",15],["MECH",5],["LIŚCIE",5]]},
-            {t: "Pogoda", a: [["DESZCZ",35],["BURZA",30],["SŁOŃCE",20],["WIATR",10],["MGŁA",5]]}
-        ]},
-        { n: 6, q: [
-            {t: "Biały napój", a: [["MLEKO",60],["KEFIR",15],["MAŚLANKA",15],["JOGURT",10]]},
-            {t: "Garderoba", a: [["KURTKA",30],["SPODNIE",25],["KOSZULA",20],["BUTY",15],["CZAPKA",10]]},
-            {t: "Szkoła", a: [["ŁAWKA",35],["TABLICA",30],["ZESZYT",15],["KSIĄŻKA",10],["PLECAK",10]]},
-            {t: "Dom", a: [["OKNO",40],["DRZWI",35],["DACH",15],["ŚCIANA",10]]},
-            {t: "Elektronika", a: [["TELEFON",50],["KOMPUTER",25],["TELEWIZOR",15],["TABLET",10]]}
-        ]},
-        { n: 7, q: [
-            {t: "Transport", a: [["SAMOCHÓD",40],["POCIĄG",25],["AUTOBUS",20],["SAMOLOT",10],["ROWER",5]]},
-            {t: "Mokre", a: [["WODA",55],["DESZCZ",25],["OCEAN",10],["KAŁUŻA",10]]},
-            {t: "Muzyka", a: [["ROCK",30],["POP",30],["JAZZ",15],["DISCO POLO",15],["METAL",10]]},
-            {t: "Taniec", a: [["WALC",35],["TANGO",25],["SALSA",20],["HIP-HOP",15],["POLONEZ",5]]},
-            {t: "Niebo", a: [["SŁOŃCE",45],["KSIĘŻYC",30],["GWIAZDY",15],["CHMURY",10]]}
-        ]},
-        { n: 8, q: [
-            {t: "Praca", a: [["BIURO",35],["SZKOŁA",25],["SZPITAL",15],["BUDOWA",15],["SKLEP",10]]},
-            {t: "Hobby", a: [["SPORT",30],["CZYTANIE",25],["GRY",20],["PODRÓŻE",15],["FILMY",10]]},
-            {t: "Budynek", a: [["WIEŻOWIEC",50],["BLOK",20],["DOM",20],["KOŚCIÓŁ",10]]},
-            {t: "Gorące", a: [["OGIEŃ",40],["SŁOŃCE",30],["PIEKARNIK",15],["HERBATA",15]]},
-            {t: "Twarde", a: [["KAMIEŃ",45],["SKAŁA",25],["BETON",15],["METAL",15]]}
-        ]},
-        { n: 9, q: [
-            {t: "Pora roku", a: [["LATO",60],["WIOSNA",20],["ZIMA",15],["JESIEŃ",5]]},
-            {t: "Obiad", a: [["ZUPA",35],["KOTLET",30],["PIEROGI",20],["MAKARON",10],["RYBA",5]]},
-            {t: "Bajka", a: [["MYSZKA MIKI",30],["SHREK",25],["SMERFY",20],["KUBUŚ PUCHATEK",15],["KRÓL LEW",10]]},
-            {t: "Góry", a: [["TATRY",70],["ALPY",15],["KARPATY",10],["ANDY",5]]},
-            {t: "Drzewo leśne", a: [["SOSNA",45],["ŚWIERK",25],["JODŁA",20],["MODRZEW",10]]}
-        ]},
-        { n: 10, q: [
-            {t: "Zabawka", a: [["MIŚ",40],["LALKA",30],["AUTO",15],["KLOCKI",10],["PIŁKA",5]]},
-            {t: "Walka", a: [["BOKS",40],["KARATE",25],["JUDO",20],["ZAPASY",10],["MMA",5]]},
-            {t: "Kompozytor", a: [["CHOPIN",60],["BEETHOVEN",20],["MOZART",15],["BACH",5]]},
-            {t: "Morze", a: [["BAŁTYCKIE",75],["ŚRÓDZIEMNE",15],["CZERWONE",5],["MARTWE",5]]},
-            {t: "Szybkie", a: [["BOLID F1",40],["FERRARI",30],["SAMOLOT",20],["GEPARD",10]]}
-        ]}
+        { n: 1, q: [{t: "Owoc", a: [["JABŁKO",35],["BANAN",25],["GRUSZKA",15],["ŚLIWKA",10],["POMARAŃCZA",5]]},{t: "Kolor", a: [["NIEBIESKI",40],["CZERWONY",30],["ZIELONY",15],["ŻÓŁTY",10],["BIAŁY",5]]},{t: "Zwierzę", a: [["PIES",50],["KOT",35],["KOŃ",10],["CHOMIK",3],["PTAK",2]]},{t: "Miasto", a: [["PARYŻ",30],["LONDYN",25],["WARSZAWA",20],["BERLIN",15],["RZYM",10]]},{t: "Sport", a: [["PIŁKA",45],["BIEGANIE",20],["TENIS",15],["PŁYWANIE",10],["SIATKÓWKA",10]]}]},
+        { n: 2, q: [{t: "Zimne", a: [["LÓD",40],["LODY",30],["ŚNIEG",20],["WODA",5],["WIATR",5]]},{t: "Ptak", a: [["WRÓBEL",30],["BOCIAN",25],["GOŁĄB",20],["ORZEŁ",15],["SIKORKA",10]]},{t: "Auto", a: [["FIAT",35],["BMW",25],["AUDI",20],["TOYOTA",15],["FORD",5]]},{t: "Kwiat", a: [["RÓŻA",50],["TULIPAN",25],["NARCYZ",15],["GOŹDZIK",5],["STOKROTKA",5]]},{t: "Imię M", a: [["JAN",30],["ADAM",25],["MAREK",20],["PIOTR",15],["ANDRZEJ",10]]}]},
+        { n: 3, q: [{t: "Na chleb", a: [["MASŁO",45],["SER",25],["SZYNKA",15],["DŻEM",10],["POMIDOR",5]]},{t: "Napój", a: [["WODA",40],["KAWA",25],["HERBATA",20],["SOK",10],["COLA",5]]},{t: "Drzewo", a: [["DĄB",35],["BRZOZA",25],["SOSNA",20],["ŚWIERK",15],["KLON",5]]},{t: "Ryba", a: [["KARP",40],["ŚLEDŹ",25],["SZCZUPAK",15],["PSTRĄG",10],["DORSZ",10]]},{t: "Rzeka", a: [["WISŁA",65],["ODRA",20],["WARTA",10],["BUG",3],["SAN",2]]}]},
+        { n: 4, q: [{t: "Część ciała", a: [["RĘKA",30],["GŁOWA",25],["NOGA",20],["BRZUCH",15],["PLECY",10]]},{t: "Mebel", a: [["KRZESŁO",30],["STÓŁ",25],["SZAFA",20],["ŁÓŻKO",15],["FOTEL",10]]},{t: "Pisanie", a: [["DŁUGOPIS",45],["OŁÓWEK",30],["PIÓRO",15],["MAZAK",7],["KREDKA",3]]},{t: "Stolica", a: [["WARSZAWA",55],["PARYŻ",15],["LONDYN",15],["PRAGA",10],["RZYM",5]]},{t: "Planeta", a: [["ZIEMIA",40],["MARS",30],["JOWISZ",15],["WENUS",10],["SATURN",5]]}]},
+        { n: 5, q: [{t: "Słodkie", a: [["CZEKOLADA",35],["CIASTKO",25],["CUKIERKI",20],["MIÓD",15],["LIZAK",5]]},{t: "Warzywo", a: [["MARCHEW",40],["ZIEMNIAK",30],["POMIDOR",15],["OGÓREK",10],["CEBULA",5]]},{t: "Narzędzie", a: [["MŁOTEK",45],["ŚRUBOKRĘT",25],["KLUCZ",15],["PIŁA",10],["KOMBINERKI",5]]},{t: "Las", a: [["DRZEWA",50],["GRZYBY",25],["ZWIERZĘTA",15],["MECH",5],["LIŚCIE",5]]},{t: "Pogoda", a: [["DESZCZ",35],["BURZA",30],["SŁOŃCE",20],["WIATR",10],["MGŁA",5]]}]},
+        { n: 6, q: [{t: "Biały napój", a: [["MLEKO",60],["KEFIR",15],["MAŚLANKA",15],["JOGURT",10]]},{t: "Garderoba", a: [["KURTKA",30],["SPODNIE",25],["KOSZULA",20],["BUTY",15],["CZAPKA",10]]},{t: "Szkoła", a: [["ŁAWKA",35],["TABLICA",30],["ZESZYT",15],["KSIĄŻKA",10],["PLECAK",10]]},{t: "Dom", a: [["OKNO",40],["DRZWI",35],["DACH",15],["ŚCIANA",10]]},{t: "Elektronika", a: [["TELEFON",50],["KOMPUTER",25],["TELEWIZOR",15],["TABLET",10]]}]},
+        { n: 7, q: [{t: "Transport", a: [["SAMOCHÓD",40],["POCIĄG",25],["AUTOBUS",20],["SAMOLOT",10],["ROWER",5]]},{t: "Mokre", a: [["WODA",55],["DESZCZ",25],["OCEAN",10],["KAŁUŻA",10]]},{t: "Muzyka", a: [["ROCK",30],["POP",30],["JAZZ",15],["DISCO POLO",15],["METAL",10]]},{t: "Taniec", a: [["WALC",35],["TANGO",25],["SALSA",20],["HIP-HOP",15],["POLONEZ",5]]},{t: "Niebo", a: [["SŁOŃCE",45],["KSIĘŻYC",30],["GWIAZDY",15],["CHMURY",10]]}]},
+        { n: 8, q: [{t: "Praca", a: [["BIURO",35],["SZKOŁA",25],["SZPITAL",15],["BUDOWA",15],["SKLEP",10]]},{t: "Hobby", a: [["SPORT",30],["CZYTANIE",25],["GRY",20],["PODRÓŻE",15],["FILMY",10]]},{t: "Budynek", a: [["WIEŻOWIEC",50],["BLOK",20],["DOM",20],["KOŚCIÓŁ",10]]},{t: "Gorące", a: [["OGIEŃ",40],["SŁOŃCE",30],["PIEKARNIK",15],["HERBATA",15]]},{t: "Twarde", a: [["KAMIEŃ",45],["SKAŁA",25],["BETON",15],["METAL",15]]}]},
+        { n: 9, q: [{t: "Pora roku", a: [["LATO",60],["WIOSNA",20],["ZIMA",15],["JESIEŃ",5]]},{t: "Obiad", a: [["ZUPA",35],["KOTLET",30],["PIEROGI",20],["MAKARON",10],["RYBA",5]]},{t: "Bajka", a: [["MYSZKA MIKI",30],["SHREK",25],["SMERFY",20],["KUBUŚ PUCHATEK",15],["KRÓL LEW",10]]},{t: "Góry", a: [["TATRY",70],["ALPY",15],["KARPATY",10],["ANDY",5]]},{t: "Drzewo leśne", a: [["SOSNA",45],["ŚWIERK",25],["JODŁA",20],["MODRZEW",10]]}]},
+        { n: 10, q: [{t: "Zabawka", a: [["MIŚ",40],["LALKA",30],["AUTO",15],["KLOCKI",10],["PIŁKA",5]]},{t: "Walka", a: [["BOKS",40],["KARATE",25],["JUDO",20],["ZAPASY",10],["MMA",5]]},{t: "Kompozytor", a: [["CHOPIN",60],["BEETHOVEN",20],["MOZART",15],["BACH",5]]},{t: "Morze", a: [["BAŁTYCKIE",75],["ŚRÓDZIEMNE",15],["CZERWONE",5],["MARTWE",5]]},{t: "Szybkie", a: [["BOLID F1",40],["FERRARI",30],["SAMOLOT",20],["GEPARD",10]]}]}
     ];
 
     function connect() {
@@ -176,17 +100,18 @@
     function fillData(text, pts) {
         document.getElementById(`f${curP}t${curR}`).value = text;
         document.getElementById(`f${curP}p${curR}`).value = pts;
+        // Automatyczne wysyłanie tekstu na tablicę przy wpisywaniu
+        send('R_A', {pl: curP, i: curR, t: text});
     }
 
     function init() {
-        // Generowanie panelu sterowania
         [1, 2].forEach(p => {
             const container = document.getElementById(`g${p}-rows`);
             for(let i=0; i<5; i++) {
                 container.innerHTML += `
                     <div class="row-final" id="row-${p}-${i}" onclick="selectRow(${p},${i})">
                         <div class="led" id="led-p${p}-r${i}"></div>
-                        <input id="f${p}t${i}" placeholder="ODPOWIEDŹ" onfocus="selectRow(${p},${i})">
+                        <input id="f${p}t${i}" placeholder="ODPOWIEDŹ" onfocus="selectRow(${p},${i})" oninput="fillData(this.value, document.getElementById('f${p}p${i}').value)">
                         <button onclick="revA(${p},${i})" class="btn-blue">ODP</button>
                         <input id="f${p}p${i}" type="number" class="input-pts">
                         <button onclick="revP(${p},${i})" class="btn-green">OK</button>
@@ -194,7 +119,6 @@
             }
         });
 
-        // Generowanie ściągi
         const cheatContainer = document.getElementById('cheat-container');
         database.forEach(set => {
             let html = `<div class="cheat-card"><h3>ZESTAW ${set.n}</h3>`;
@@ -212,17 +136,21 @@
         selectRow(1, 0);
     }
 
+    // Wysyłanie tylko tekstu (bez punktów jeszcze)
     function revA(pl, i) { 
-        send('SND', {f:'ok'}); 
         send('R_A', {pl, i, t: document.getElementById(`f${pl}t${i}`).value}); 
     }
 
+    // Wysyłanie punktów + DŹWIĘK OK
     function revP(pl, i) { 
         const pVal = parseInt(document.getElementById(`f${pl}p${i}`).value) || 0; 
         totalF += pVal; 
         document.getElementById('f-total').innerText = totalF;
-        send('SND', {f:'final'}); 
+        
+        // WYSYŁKA DŹWIĘKU I PUNKTÓW
+        send('SND', {f:'ok'}); 
         send('R_P', {pl, i, p: pVal, s: totalF}); 
+        
         document.getElementById(`led-p${pl}-r${i}`).classList.add('led-on');
         
         // Auto-przejście
