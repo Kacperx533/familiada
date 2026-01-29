@@ -119,8 +119,8 @@
     <script>
         let conn, total = 0, peer = new Peer(), curQ = null;
         let activeTeam = null;
-        let scoreL = 0, scoreR = 0; // Suma całkowita
-        let currL = 0, currR = 0;   // Bieżąca runda
+        let scoreL = 0, scoreR = 0; 
+        let currL = 0, currR = 0;   
         let xCountL = 0, xCountR = 0;
 
         const questions = [
@@ -230,7 +230,7 @@
         function startR(n) {
             if(!curQ) return alert("Wybierz pytanie!");
             total = 0; xCountL = 0; xCountR = 0;
-            currL = 0; currR = 0; // Reset punktów bieżącej rundy
+            currL = 0; currR = 0; 
             document.getElementById('currL-val').innerText = "0";
             document.getElementById('currR-val').innerText = "0";
             send('SET', {c: curQ.a.length});
@@ -247,18 +247,40 @@
             total += p; send('REV', {i, t, p, s: total}); 
         }
 
+        // --- SEKCJA FINAŁOWA (ZMIENIONA) ---
+
         function startF() {
             total = 0; send('FIN');
             const box = document.getElementById('ans-box'); box.innerHTML = '';
             [1,2].forEach(p => {
                 box.innerHTML += `<h4>GRACZ ${p}</h4>`;
-                for(let i=0; i<5; i++) box.innerHTML += `<div style="display:flex; gap:2px; margin-bottom:4px"><input id="f${p}t${i}" placeholder="Odp"><button onclick="revFA(${p},${i})" class="btn-blue" style="padding:5px">ODP</button><input id="f${p}p${i}" style="width:35px" placeholder="P"><button onclick="revFP(${p},${i})" class="btn-green" style="padding:5px">PKT</button></div>`;
+                for(let i=0; i<5; i++) {
+                    box.innerHTML += `
+                        <div style="display:flex; gap:2px; margin-bottom:4px">
+                            <input id="f${p}t${i}" placeholder="Odp" oninput="revFA(${p},${i})">
+                            <button onclick="revFA(${p},${i})" class="btn-blue" style="padding:5px">ODP</button>
+                            <input id="f${p}p${i}" style="width:35px" placeholder="P">
+                            <button onclick="revFP(${p},${i})" class="btn-green" style="padding:5px">PKT</button>
+                        </div>`;
+                }
             });
             document.getElementById('inputs').style.display = 'block';
         }
 
-        function revFA(pl, i) { send('SND', {f:'ok'}); send('R_A', {pl, i, t: document.getElementById(`f${pl}t${i}`).value}); }
-        function revFP(pl, i) { const p=parseInt(document.getElementById(`f${pl}p${i}`).value)||0; total+=p; send('SND', {f:'final'}); send('R_P', {pl, i, p, s:total}); }
+        // Odsłanianie tekstu (BEZ dźwięku)
+        function revFA(pl, i) { 
+            send('R_A', {pl, i, t: document.getElementById(`f${pl}t${i}`).value}); 
+        }
+
+        // Odsłanianie punktów (Z dźwiękiem OK.MP3)
+        function revFP(pl, i) { 
+            const p = parseInt(document.getElementById(`f${pl}p${i}`).value) || 0; 
+            total += p; 
+            send('SND', {f:'ok'}); // Zmieniono na dźwięk OK
+            send('R_P', {pl, i, p, s:total}); 
+        }
+
+        // --- KONIEC ZMIAN ---
 
         questions.forEach(q => {
             const d = document.createElement('div'); d.className='q-item'; d.innerText=`${q.id}. ${q.q}`;
