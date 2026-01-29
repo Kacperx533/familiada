@@ -11,30 +11,40 @@
         h2 { color: #facc15; font-size: 16px; margin: 0 0 15px 0; border-bottom: 2px solid #334155; padding-bottom: 8px; text-transform: uppercase; }
         
         .grid-players { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
-        .player-box { background: rgba(15, 23, 42, 0.4); padding: 20px; border-radius: 10px; border: 1px solid #475569; }
-        .row-final { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; background: #1e293b; padding: 10px; border-radius: 8px; }
+        .player-box { background: rgba(15, 23, 42, 0.4); padding: 20px; border-radius: 10px; border: 2px solid #334155; transition: 0.3s; }
+        .player-active { border-color: #facc15; background: rgba(250, 204, 21, 0.05); }
+        
+        .row-final { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; background: #1e293b; padding: 10px; border-radius: 8px; border: 1px solid transparent; }
+        .row-active { border-color: #3b82f6; background: #2d3748; }
 
-        .led { width: 22px; height: 22px; border-radius: 50%; background: #334155; border: 2px solid #000; transition: 0.3s; }
+        .led { width: 22px; height: 22px; border-radius: 50%; background: #334155; border: 2px solid #000; }
         .led-on { background: #22c55e; box-shadow: 0 0 15px #22c55e; }
 
         input { flex: 1; padding: 12px; background: #0f172a; border: 1px solid #3b82f6; color: #fff; border-radius: 6px; font-size: 15px; outline: none; }
+        input:focus { border-color: #facc15; }
         .input-pts { width: 70px; flex: none; text-align: center; color: #facc15; font-weight: bold; font-size: 20px; }
 
-        button { padding: 10px 15px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 12px; transition: 0.2s; }
+        button { padding: 10px 15px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 11px; transition: 0.2s; }
         .btn-blue { background: #3b82f6; color: white; }
         .btn-green { background: #22c55e; color: white; }
         .btn-gold { background: #eab308; color: black; }
         .btn-red { background: #ef4444; color: white; }
 
-        .total-box { text-align: center; margin-top: 10px; border-top: 1px solid #334155; padding-top: 15px; }
-        .total-val { font-size: 70px; color: #facc15; font-weight: bold; }
+        .total-val { font-size: 70px; color: #facc15; font-weight: bold; text-align: center; }
 
+        /* ŚCIĄGA KLIKALNA */
         .cheat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
         .cheat-card { background: #0f172a; padding: 15px; border-radius: 10px; border-top: 5px solid #eab308; }
         .q-block { margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #1e293b; }
-        .q-title { color: #facc15; font-size: 13px; font-weight: bold; margin-bottom: 5px; }
-        .ans-line { display: block; font-size: 13px; margin-bottom: 2px; color: #cbd5e1; }
-        .ans-line b { color: #22c55e; }
+        .q-title { color: #facc15; font-size: 13px; font-weight: bold; margin-bottom: 8px; }
+        
+        .ans-btn { 
+            display: block; width: 100%; text-align: left; background: #1e293b; 
+            color: #cbd5e1; border: 1px solid #334155; padding: 6px 10px; 
+            margin-bottom: 4px; border-radius: 4px; font-size: 12px; cursor: pointer;
+        }
+        .ans-btn:hover { background: #334155; color: #22c55e; border-color: #22c55e; }
+        .ans-btn b { color: #22c55e; float: right; }
     </style>
 </head>
 <body>
@@ -43,7 +53,7 @@
     <div class="card">
         <div style="display: flex; gap: 15px;">
             <input type="text" id="code" placeholder="KOD Z TABLICY">
-            <button onclick="connect()" class="btn-green" style="width: 250px;">POŁĄCZ Z TABLICĄ</button>
+            <button onclick="connect()" class="btn-green" style="width: 250px;">POŁĄCZ SYSTEM</button>
         </div>
     </div>
 
@@ -54,24 +64,21 @@
         </div>
 
         <div class="grid-players">
-            <div class="player-box">
+            <div class="player-box" id="p1-box">
                 <h2 style="text-align: center;">GRACZ 1</h2>
                 <div id="g1-rows"></div>
             </div>
-            <div class="player-box">
+            <div class="player-box" id="p2-box">
                 <h2 style="text-align: center;">GRACZ 2</h2>
                 <div id="g2-rows"></div>
             </div>
         </div>
 
-        <div class="total-box">
-            <div style="color: #94a3b8; font-size: 14px;">SUMA PUNKTÓW FINAŁOWYCH</div>
-            <div class="total-val" id="f-total">0</div>
-        </div>
+        <div class="total-val" id="f-total">0</div>
     </div>
 
     <div class="card">
-        <h2>📋 ŚCIĄGA - 10 ZESTAWÓW FINAŁOWYCH</h2>
+        <h2>📋 KLIKNIJ ODPOWIEDŹ, ABY WPISAĆ JĄ AUTOMATYCZNIE</h2>
         <div class="cheat-grid" id="cheat-container"></div>
     </div>
 </div>
@@ -79,9 +86,10 @@
 <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 <script>
     let conn, peer = new Peer(), totalF = 0;
+    let activePlayer = 1, activeRow = 0; // Śledzenie gdzie wpisać klikniętą odpowiedź
 
     const database = [
-        { n: 1, questions: [
+    { n: 1, questions: [
             {q: "Owoc", a: ["JABŁKO (35)", "BANAN (25)", "GRUSZKA (15)", "ŚLIWKA (10)", "POMARAŃCZA (5)"]},
             {q: "Kolor", a: ["NIEBIESKI (40)", "CZERWONY (30)", "ZIELONY (15)", "ŻÓŁTY (10)", "BIAŁY (5)"]},
             {q: "Zwierzę", a: ["PIES (50)", "KOT (35)", "KOŃ (10)", "CHOMIK (3)", "PTAK (2)"]},
@@ -151,6 +159,7 @@
             {q: "Morze", a: ["BAŁTYCKIE (75)", "ŚRÓDZIEMNE (15)", "CZERWONE (5)", "MARTWE (5)"]},
             {q: "Szybkie", a: ["BOLID F1 (40)", "FERRARI (30)", "SAMOLOT (20)", "GEPARD (10)"]}
         ]}
+        // ... Pozostałe zestawy analogicznie
     ];
 
     function connect() {
@@ -161,14 +170,26 @@
 
     function send(type, data={}) { if(conn) conn.send({type, ...data}); }
 
+    function setTarget(p, r) {
+        activePlayer = p; activeRow = r;
+        document.querySelectorAll('.row-final').forEach(el => el.classList.remove('row-active'));
+        document.getElementById(`row-${p}-${r}`).classList.add('row-active');
+    }
+
+    // FUNKCJA WPISUJĄCA ODPOWIEDŹ PO KLIKNIĘCIU W ŚCIĄGĘ
+    function autoFill(text, pts) {
+        document.getElementById(`f${activePlayer}t${activeRow}`).value = text;
+        document.getElementById(`f${activePlayer}p${activeRow}`).value = pts;
+    }
+
     function init() {
         [1, 2].forEach(p => {
             const container = document.getElementById(`g${p}-rows`);
             for(let i=0; i<5; i++) {
                 container.innerHTML += `
-                    <div class="row-final">
+                    <div class="row-final" id="row-${p}-${i}" onclick="setTarget(${p},${i})">
                         <div class="led" id="led-p${p}-r${i}"></div>
-                        <input id="f${p}t${i}" placeholder="ODPOWIEDŹ">
+                        <input id="f${p}t${i}" placeholder="ODPOWIEDŹ" onfocus="setTarget(${p},${i})">
                         <button onclick="revFA(${p},${i})" class="btn-blue">ODP</button>
                         <input id="f${p}p${i}" type="number" class="input-pts" placeholder="0">
                         <button onclick="revFP(${p},${i})" class="btn-green">OK</button>
@@ -182,13 +203,14 @@
             set.questions.forEach(item => {
                 html += `<div class="q-block"><div class="q-title">${item.q}</div>`;
                 item.a.forEach(ans => {
-                    html += `<span class="ans-line">· <b>${ans}</b></span>`;
+                    html += `<button class="ans-btn" onclick="autoFill('${ans[0]}', ${ans[1]})">${ans[0]} <b>${ans[1]}</b></button>`;
                 });
                 html += `</div>`;
             });
             html += `</div>`;
             cheatContainer.innerHTML += html;
         });
+        setTarget(1, 0); // Startowy kursor
     }
 
     function revFA(pl, i) { 
@@ -203,216 +225,10 @@
         send('SND', {f:'final'}); 
         send('R_P', {pl, i, p: pVal, s: totalF}); 
         document.getElementById(`led-p${pl}-r${i}`).classList.add('led-on');
-    }
-
-    init();
-</script>
-</body>
-</html><!DOCTYPE html>
-<html lang="pl">
-<head>
-    <meta charset="UTF-8">
-    <title>PANEL FINAŁOWY - FAMILIADA PRO</title>
-    <style>
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #0f172a; color: white; padding: 20px; margin: 0; }
-        .wrapper { max-width: 1400px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
         
-        .card { background: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid #334155; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-        h2 { color: #facc15; font-size: 16px; margin: 0 0 15px 0; border-bottom: 2px solid #334155; padding-bottom: 8px; text-transform: uppercase; }
-        
-        .grid-players { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
-        .player-box { background: rgba(15, 23, 42, 0.4); padding: 20px; border-radius: 10px; border: 1px solid #475569; }
-        .row-final { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; background: #1e293b; padding: 10px; border-radius: 8px; }
-
-        .led { width: 22px; height: 22px; border-radius: 50%; background: #334155; border: 2px solid #000; transition: 0.3s; }
-        .led-on { background: #22c55e; box-shadow: 0 0 15px #22c55e; }
-
-        input { flex: 1; padding: 12px; background: #0f172a; border: 1px solid #3b82f6; color: #fff; border-radius: 6px; font-size: 15px; outline: none; }
-        .input-pts { width: 70px; flex: none; text-align: center; color: #facc15; font-weight: bold; font-size: 20px; }
-
-        button { padding: 10px 15px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 12px; transition: 0.2s; }
-        .btn-blue { background: #3b82f6; color: white; }
-        .btn-green { background: #22c55e; color: white; }
-        .btn-gold { background: #eab308; color: black; }
-        .btn-red { background: #ef4444; color: white; }
-
-        .total-box { text-align: center; margin-top: 10px; border-top: 1px solid #334155; padding-top: 15px; }
-        .total-val { font-size: 70px; color: #facc15; font-weight: bold; }
-
-        .cheat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
-        .cheat-card { background: #0f172a; padding: 15px; border-radius: 10px; border-top: 5px solid #eab308; }
-        .q-block { margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #1e293b; }
-        .q-title { color: #facc15; font-size: 13px; font-weight: bold; margin-bottom: 5px; }
-        .ans-line { display: block; font-size: 13px; margin-bottom: 2px; color: #cbd5e1; }
-        .ans-line b { color: #22c55e; }
-    </style>
-</head>
-<body>
-
-<div class="wrapper">
-    <div class="card">
-        <div style="display: flex; gap: 15px;">
-            <input type="text" id="code" placeholder="KOD Z TABLICY">
-            <button onclick="connect()" class="btn-green" style="width: 250px;">POŁĄCZ Z TABLICĄ</button>
-        </div>
-    </div>
-
-    <div class="card">
-        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 15px; margin-bottom: 20px;">
-            <button onclick="send('SND',{f:'final'})" class="btn-gold" style="height: 60px; font-size: 18px;">🎵 START FINAŁU / PRZERYWNIK</button>
-            <button onclick="send('SND',{f:'powtorzenie'})" class="btn-red" style="height: 60px;">⚠️ DŹWIĘK POWTÓRZENIA</button>
-        </div>
-
-        <div class="grid-players">
-            <div class="player-box">
-                <h2 style="text-align: center;">GRACZ 1</h2>
-                <div id="g1-rows"></div>
-            </div>
-            <div class="player-box">
-                <h2 style="text-align: center;">GRACZ 2</h2>
-                <div id="g2-rows"></div>
-            </div>
-        </div>
-
-        <div class="total-box">
-            <div style="color: #94a3b8; font-size: 14px;">SUMA PUNKTÓW FINAŁOWYCH</div>
-            <div class="total-val" id="f-total">0</div>
-        </div>
-    </div>
-
-    <div class="card">
-        <h2>📋 ŚCIĄGA - 10 ZESTAWÓW FINAŁOWYCH</h2>
-        <div class="cheat-grid" id="cheat-container"></div>
-    </div>
-</div>
-
-<script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-<script>
-    let conn, peer = new Peer(), totalF = 0;
-
-    const database = [
-        { n: 1, questions: [
-            {q: "Owoc", a: ["JABŁKO (35)", "BANAN (25)", "GRUSZKA (15)", "ŚLIWKA (10)", "POMARAŃCZA (5)"]},
-            {q: "Kolor", a: ["NIEBIESKI (40)", "CZERWONY (30)", "ZIELONY (15)", "ŻÓŁTY (10)", "BIAŁY (5)"]},
-            {q: "Zwierzę", a: ["PIES (50)", "KOT (35)", "KOŃ (10)", "CHOMIK (3)", "PTAK (2)"]},
-            {q: "Miasto", a: ["PARYŻ (30)", "LONDYN (25)", "WARSZAWA (20)", "BERLIN (15)", "RZYM (10)"]},
-            {q: "Sport", a: ["PIŁKA (45)", "BIEGANIE (20)", "TENIS (15)", "PŁYWANIE (10)", "SIATKÓWKA (10)"]}
-        ]},
-        { n: 2, questions: [
-            {q: "Zimne", a: ["LÓD (40)", "LODY (30)", "ŚNIEG (20)", "WODA (5)", "WIATR (5)"]},
-            {q: "Ptak", a: ["WRÓBEL (30)", "BOCIAN (25)", "GOŁĄB (20)", "ORZEŁ (15)", "SIKORKA (10)"]},
-            {q: "Auto", a: ["FIAT (35)", "BMW (25)", "AUDI (20)", "TOYOTA (15)", "FORD (5)"]},
-            {q: "Kwiat", a: ["RÓŻA (50)", "TULIPAN (25)", "NARCYZ (15)", "GOŹDZIK (5)", "STOKROTKA (5)"]},
-            {q: "Imię M", a: ["JAN (30)", "ADAM (25)", "MAREK (20)", "PIOTR (15)", "ANDRZEJ (10)"]}
-        ]},
-        { n: 3, questions: [
-            {q: "Na chleb", a: ["MASŁO (45)", "SER (25)", "SZYNKA (15)", "DŻEM (10)", "POMIDOR (5)"]},
-            {q: "Napój", a: ["WODA (40)", "KAWA (25)", "HERBATA (20)", "SOK (10)", "COLA (5)"]},
-            {q: "Drzewo", a: ["DĄB (35)", "BRZOZA (25)", "SOSNA (20)", "ŚWIERK (15)", "KLON (5)"]},
-            {q: "Ryba", a: ["KARP (40)", "ŚLEDŹ (25)", "SZCZUPAK (15)", "PSTRĄG (10)", "DORSZ (10)"]},
-            {q: "Rzeka", a: ["WISŁA (65)", "ODRA (20)", "WARTA (10)", "BUG (3)", "SAN (2)"]}
-        ]},
-        { n: 4, questions: [
-            {q: "Część ciała", a: ["RĘKA (30)", "GŁOWA (25)", "NOGA (20)", "BRZUCH (15)", "PLECY (10)"]},
-            {q: "Mebel", a: ["KRZESŁO (30)", "STÓŁ (25)", "SZAFA (20)", "ŁÓŻKO (15)", "FOTEL (10)"]},
-            {q: "Pisanie", a: ["DŁUGOPIS (45)", "OŁÓWEK (30)", "PIÓRO (15)", "MAZAK (7)", "KREDKA (3)"]},
-            {q: "Stolica", a: ["WARSZAWA (55)", "PARYŻ (15)", "LONDYN (15)", "PRAGA (10)", "RZYM (5)"]},
-            {q: "Planeta", a: ["ZIEMIA (40)", "MARS (30)", "JOWISZ (15)", "WENUS (10)", "SATURN (5)"]}
-        ]},
-        { n: 5, questions: [
-            {q: "Słodkie", a: ["CZEKOLADA (35)", "CIASTKO (25)", "CUKIERKI (20)", "MIÓD (15)", "LIZAK (5)"]},
-            {q: "Warzywo", a: ["MARCHEW (40)", "ZIEMNIAK (30)", "POMIDOR (15)", "OGÓREK (10)", "CEBULA (5)"]},
-            {q: "Narzędzie", a: ["MŁOTEK (45)", "ŚRUBOKRĘT (25)", "KLUCZ (15)", "PIŁA (10)", "KOMBINERKI (5)"]},
-            {q: "Las", a: ["DRZEWA (50)", "GRZYBY (25)", "ZWIERZĘTA (15)", "MECH (5)", "LIŚCIE (5)"]},
-            {q: "Pogoda", a: ["DESZCZ (35)", "BURZA (30)", "SŁOŃCE (20)", "WIATR (10)", "MIEŁA (5)"]}
-        ]},
-        { n: 6, questions: [
-            {q: "Biały napój", a: ["MLEKO (60)", "KEFIR (15)", "MAŚLANKA (15)", "JOGURT (10)"]},
-            {q: "Garderoba", a: ["KURTKA (30)", "SPODNIE (25)", "KOSZULA (20)", "BUTY (15)", "CZAPKA (10)"]},
-            {q: "Szkoła", a: ["ŁAWKA (35)", "TABLICA (30)", "ZESZYT (15)", "KSIĄŻKA (10)", "PLECAK (10)"]},
-            {q: "Dom", a: ["OKNO (40)", "DRZWI (35)", "DACH (15)", "ŚCIANA (10)"]},
-            {q: "Elektronika", a: ["TELEFON (50)", "KOMPUTER (25)", "TELEWIZOR (15)", "TABLET (10)"]}
-        ]},
-        { n: 7, questions: [
-            {q: "Transport", a: ["SAMOCHÓD (40)", "POCIĄG (25)", "AUTOBUS (20)", "SAMOLOT (10)", "RÓWER (5)"]},
-            {q: "Mokre", a: ["WODA (55)", "DESZCZ (25)", "OCEAN (10)", "KAŁUŻA (10)"]},
-            {q: "Muzyka", a: ["ROCK (30)", "POP (30)", "JAZZ (15)", "DISCO POLO (15)", "METAL (10)"]},
-            {q: "Taniec", a: ["WALC (35)", "TANGO (25)", "SALSA (20)", "HIP-HOP (15)", "POLONEZ (5)"]},
-            {q: "Niebo", a: ["SŁOŃCE (45)", "KSIĘŻYC (30)", "GWIAZDY (15)", "CHMURY (10)"]}
-        ]},
-        { n: 8, questions: [
-            {q: "Praca", a: ["BIURO (35)", "SZKOŁA (25)", "SZPITAL (15)", "BUDOWA (15)", "SKLEP (10)"]},
-            {q: "Hobby", a: ["SPORT (30)", "CZYTANIE (25)", "GRY (20)", "PODRÓŻE (15)", "FILMY (10)"]},
-            {q: "Budynek", a: ["WIEŻOWIEC (50)", "BLOK (20)", "DOM (20)", "KOŚCIÓŁ (10)"]},
-            {q: "Gorące", a: ["OGIEŃ (40)", "SŁOŃCE (30)", "PIEKARNIK (15)", "HERBATA (15)"]},
-            {q: "Twarde", a: ["KAMIEŃ (45)", "SKAŁA (25)", "BETON (15)", "METAL (15)"]}
-        ]},
-        { n: 9, questions: [
-            {q: "Pora roku", a: ["LATO (60)", "WIOSNA (20)", "ZIMA (15)", "JESIEŃ (5)"]},
-            {q: "Obiad", a: ["ZUPA (35)", "KOTLET (30)", "PIEROGI (20)", "MAKARON (10)", "RYBA (5)"]},
-            {q: "Bajka", a: ["MYSZKA MIKI (30)", "SHREK (25)", "SMERFY (20)", "KUBUŚ PUCHATEK (15)", "KRÓL LEW (10)"]},
-            {q: "Góry", a: ["TATRY (70)", "ALPY (15)", "KARPATY (10)", "ANDY (5)"]},
-            {q: "Drzewo leśne", a: ["SOSNA (45)", "ŚWIERK (25)", "JODŁA (20)", "MODRZEW (10)"]}
-        ]},
-        { n: 10, questions: [
-            {q: "Zabawka", a: ["MIŚ (40)", "LALKA (30)", "AUTO (15)", "KLOCKI (10)", "PIŁKA (5)"]},
-            {q: "Walka", a: ["BOKS (40)", "KARATE (25)", "JUDO (20)", "ZAPASY (10)", "MMA (5)"]},
-            {q: "Kompozytor", a: ["CHOPIN (60)", "BEETHOVEN (20)", "MOZART (15)", "BACH (5)"]},
-            {q: "Morze", a: ["BAŁTYCKIE (75)", "ŚRÓDZIEMNE (15)", "CZERWONE (5)", "MARTWE (5)"]},
-            {q: "Szybkie", a: ["BOLID F1 (40)", "FERRARI (30)", "SAMOLOT (20)", "GEPARD (10)"]}
-        ]}
-    ];
-
-    function connect() {
-        const code = document.getElementById('code').value.toUpperCase();
-        conn = peer.connect(code);
-        conn.on('open', () => { alert("POŁĄCZONO!"); send('FIN'); });
-    }
-
-    function send(type, data={}) { if(conn) conn.send({type, ...data}); }
-
-    function init() {
-        [1, 2].forEach(p => {
-            const container = document.getElementById(`g${p}-rows`);
-            for(let i=0; i<5; i++) {
-                container.innerHTML += `
-                    <div class="row-final">
-                        <div class="led" id="led-p${p}-r${i}"></div>
-                        <input id="f${p}t${i}" placeholder="ODPOWIEDŹ">
-                        <button onclick="revFA(${p},${i})" class="btn-blue">ODP</button>
-                        <input id="f${p}p${i}" type="number" class="input-pts" placeholder="0">
-                        <button onclick="revFP(${p},${i})" class="btn-green">OK</button>
-                    </div>`;
-            }
-        });
-
-        const cheatContainer = document.getElementById('cheat-container');
-        database.forEach(set => {
-            let html = `<div class="cheat-card"><h3>ZESTAW ${set.n}</h3>`;
-            set.questions.forEach(item => {
-                html += `<div class="q-block"><div class="q-title">${item.q}</div>`;
-                item.a.forEach(ans => {
-                    html += `<span class="ans-line">· <b>${ans}</b></span>`;
-                });
-                html += `</div>`;
-            });
-            html += `</div>`;
-            cheatContainer.innerHTML += html;
-        });
-    }
-
-    function revFA(pl, i) { 
-        send('SND', {f:'ok'}); 
-        send('R_A', {pl, i, t: document.getElementById(`f${pl}t${i}`).value}); 
-    }
-
-    function revFP(pl, i) { 
-        const pVal = parseInt(document.getElementById(`f${pl}p${i}`).value) || 0; 
-        totalF += pVal; 
-        document.getElementById('f-total').innerText = totalF;
-        send('SND', {f:'final'}); 
-        send('R_P', {pl, i, p: pVal, s: totalF}); 
-        document.getElementById(`led-p${pl}-r${i}`).classList.add('led-on');
+        // Automatyczne przejście do następnego pola
+        if (activeRow < 4) setTarget(activePlayer, activeRow + 1);
+        else if (activePlayer === 1) setTarget(2, 0);
     }
 
     init();
