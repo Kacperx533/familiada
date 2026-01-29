@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>PANEL FINAŁOWY - FAMILIADA</title>
+    <style>
+        body { font-family: sans-serif; background: #0f172a; color: white; padding: 20px; text-align: center; }
+        .card { background: #1e293b; padding: 20px; border-radius: 15px; border: 1px solid #334155; max-width: 900px; margin: 0 auto; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        
+        .row-final { 
+            display: flex; align-items: center; gap: 10px; margin-bottom: 15px; 
+            padding: 10px; background: #1e293b; border: 1px solid #334155; border-radius: 8px;
+        }
+        
+        /* Kontrolka "Zielone światło" */
+        .led { 
+            width: 20px; height: 20px; border-radius: 50%; 
+            background: #475569; /* domyślny szary */
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
+            transition: 0.3s;
+        }
+        .led-on { 
+            background: #22c55e; 
+            box-shadow: 0 0 15px #22c55e; 
+        }
+
+        input { flex: 1; padding: 10px; background: #0f172a; border: 1px solid #3b82f6; color: #facc15; border-radius: 5px; font-size: 16px; }
+        .input-pts { width: 60px; flex: none; text-align: center; }
+        
+        button { padding: 10px 15px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 12px; }
+        .btn-ans { background: #3b82f6; color: white; }
+        .btn-pts { background: #22c55e; color: white; }
+        .btn-final-snd { background: #eab308; color: black; font-size: 20px; width: 100%; height: 60px; margin-bottom: 20px; }
+        
+        h2 { color: #facc15; margin-top: 0; }
+        .total { font-size: 40px; color: #facc15; margin: 20px 0; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+            <input type="text" id="code" placeholder="KOD Z TABLICY">
+            <button onclick="connect()" style="background:#1d4ed8; color:white; width: 200px;">POŁĄCZ</button>
+        </div>
+        
+        <button onclick="send('SND',{f:'final'})" class="btn-final-snd">🎵 PRZERYWNIK / START FINAŁU</button>
+
+        <div class="grid">
+            <div id="g1-container">
+                <h2>GRACZ 1</h2>
+                <div id="g1-rows"></div>
+            </div>
+            <div id="g2-container">
+                <h2>GRACZ 2</h2>
+                <div id="g2-rows"></div>
+            </div>
+        </div>
+        
+        <div class="total">SUMA PUNKTÓW: <span id="f-total">0</span></div>
+        
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <button onclick="send('SND',{f:'powtorzenie'})" style="background:#ef4444; color:white; height: 50px;">DŹWIĘK POWTÓRZENIA (BRZDĘK)</button>
+            <button onclick="location.reload()" style="background:#475569; color:white;">RESET PANELU (NOWY FINAŁ)</button>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <script>
+        let conn, peer = new Peer(), totalF = 0;
+
+        function connect() {
+            const code = document.getElementById('code').value.toUpperCase();
+            conn = peer.connect(code);
+            conn.on('open', () => {
+                alert("POŁĄCZONO!");
+                send('FIN'); 
+            });
+        }
+
+        function send(type, data={}) { if(conn) conn.send({type, ...data}); }
+
+        function renderRows() {
+            [1, 2].forEach(p => {
+                const container = document.getElementById(`g${p}-rows`);
+                for(let i=0; i<5; i++) {
+                    container.innerHTML += `
+                        <div class="row-final">
+                            <div class="led" id="led-p${p}-r${i}"></div>
+                            <input id="f${p}t${i}" placeholder="Odpowiedź">
+                            <button onclick="revFA(${p},${i})" class="btn-ans">ODP</button>
+                            <input id="f${p}p${i}" type="number" class="input-pts" placeholder="PKT">
+                            <button onclick="revFP(${p},${i})" class="btn-pts">OK</button>
+                        </div>`;
+                }
+            });
+        }
+
+        // Odsłonięcie tekstu odpowiedzi
+        function revFA(pl, i) { 
+            send('SND', {f:'ok'}); 
+            send('R_A', {pl, i, t: document.getElementById(`f${pl}t${i}`).value}); 
+            // Zapalenie światełka po kliknięciu ODP (opcjonalnie, lub dopiero po punktach)
+            document.getElementById(`led-p${pl}-r${i}`).classList.add('led-on');
+        }
+
+        // Zatwierdzenie punktów
+        function revFP(pl, i) { 
+            const pVal = parseInt(document.getElementById(`f${pl}p${i}`).value) || 0; 
+            totalF += pVal; 
+            document.getElementById('f-total').innerText = totalF;
+            
+            send('SND', {f:'final'}); 
+            send('R_P', {pl, i, p: pVal, s: totalF}); 
+            
+            // Upewniamy się, że światełko się świeci po zatwierdzeniu punktów
+            document.getElementById(`led-p${pl}-r${i}`).classList.add('led-on');
+        }
+
+        renderRows();
+    </script>
+</body>
+</html>
