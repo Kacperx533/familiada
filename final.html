@@ -4,121 +4,151 @@
     <meta charset="UTF-8">
     <title>PANEL FINAŁOWY - FAMILIADA</title>
     <style>
-        body { font-family: sans-serif; background: #0f172a; color: white; padding: 20px; text-align: center; }
-        .card { background: #1e293b; padding: 20px; border-radius: 15px; border: 1px solid #334155; max-width: 900px; margin: 0 auto; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        body { font-family: sans-serif; background: #0f172a; color: white; padding: 15px; margin: 0; }
+        .container { max-width: 1000px; margin: 0 auto; display: grid; grid-template-columns: 1fr; gap: 15px; }
+        .card { background: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid #334155; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
         
+        .grid-players { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .player-header { color: #facc15; text-align: center; border-bottom: 2px solid #334155; padding-bottom: 10px; margin-bottom: 15px; }
+
         .row-final { 
-            display: flex; align-items: center; gap: 10px; margin-bottom: 15px; 
-            padding: 10px; background: #1e293b; border: 1px solid #334155; border-radius: 8px;
-        }
-        
-        /* Kontrolka "Zielone światło" */
-        .led { 
-            width: 20px; height: 20px; border-radius: 50%; 
-            background: #475569; /* domyślny szary */
-            box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
-            transition: 0.3s;
-        }
-        .led-on { 
-            background: #22c55e; 
-            box-shadow: 0 0 15px #22c55e; 
+            display: flex; align-items: center; gap: 8px; margin-bottom: 10px; 
+            padding: 8px; background: #0f172a; border-radius: 6px;
         }
 
-        input { flex: 1; padding: 10px; background: #0f172a; border: 1px solid #3b82f6; color: #facc15; border-radius: 5px; font-size: 16px; }
-        .input-pts { width: 60px; flex: none; text-align: center; }
-        
-        button { padding: 10px 15px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 12px; }
-        .btn-ans { background: #3b82f6; color: white; }
-        .btn-pts { background: #22c55e; color: white; }
-        .btn-final-snd { background: #eab308; color: black; font-size: 20px; width: 100%; height: 60px; margin-bottom: 20px; }
-        
-        h2 { color: #facc15; margin-top: 0; }
-        .total { font-size: 40px; color: #facc15; margin: 20px 0; font-weight: bold; }
+        /* LED */
+        .led { width: 18px; height: 18px; border-radius: 50%; background: #334155; transition: 0.3s; flex-shrink: 0; }
+        .led-active { background: #22c55e; box-shadow: 0 0 12px #22c55e; }
+
+        input { flex: 1; padding: 8px; background: #1e293b; border: 1px solid #3b82f6; color: #fff; border-radius: 4px; font-size: 14px; }
+        .input-pts { width: 50px; flex: none; text-align: center; font-weight: bold; color: #facc15; }
+
+        button { padding: 8px 12px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 11px; transition: 0.2s; }
+        button:hover { opacity: 0.8; }
+        .btn-blue { background: #3b82f6; color: white; }
+        .btn-green { background: #22c55e; color: white; }
+        .btn-gold { background: #eab308; color: black; }
+
+        /* Tabela Ściągi */
+        .cheat-sheet { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 12px; }
+        .cheat-sheet th, .cheat-sheet td { border: 1px solid #334155; padding: 8px; text-align: left; }
+        .cheat-sheet th { background: #0f172a; color: #facc15; }
+        .cheat-sheet tr:nth-child(even) { background: #1a2233; }
+        .cheat-sheet td b { color: #22c55e; }
+
+        .total-box { font-size: 32px; text-align: center; color: #facc15; padding: 15px; font-weight: bold; border: 2px solid #facc15; border-radius: 8px; margin: 10px 0; }
     </style>
 </head>
 <body>
 
+<div class="container">
     <div class="card">
-        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
             <input type="text" id="code" placeholder="KOD Z TABLICY">
-            <button onclick="connect()" style="background:#1d4ed8; color:white; width: 200px;">POŁĄCZ</button>
+            <button onclick="connect()" class="btn-green" style="width: 150px;">POŁĄCZ</button>
         </div>
         
-        <button onclick="send('SND',{f:'final'})" class="btn-final-snd">🎵 PRZERYWNIK / START FINAŁU</button>
+        <button onclick="send('SND',{f:'final'})" class="btn-gold" style="width:100%; height: 50px; font-size: 16px; margin-bottom: 15px;">🎵 OTWÓRZ FINAŁ (DŹWIĘK)</button>
 
-        <div class="grid">
-            <div id="g1-container">
-                <h2>GRACZ 1</h2>
+        <div class="grid-players">
+            <div>
+                <h2 class="player-header">GRACZ 1</h2>
                 <div id="g1-rows"></div>
             </div>
-            <div id="g2-container">
-                <h2>GRACZ 2</h2>
+            <div>
+                <h2 class="player-header">GRACZ 2</h2>
                 <div id="g2-rows"></div>
             </div>
         </div>
-        
-        <div class="total">SUMA PUNKTÓW: <span id="f-total">0</span></div>
-        
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-            <button onclick="send('SND',{f:'powtorzenie'})" style="background:#ef4444; color:white; height: 50px;">DŹWIĘK POWTÓRZENIA (BRZDĘK)</button>
-            <button onclick="location.reload()" style="background:#475569; color:white;">RESET PANELU (NOWY FINAŁ)</button>
-        </div>
+
+        <div class="total-box">SUMA: <span id="f-total">0</span> / 200</div>
+        <button onclick="send('SND',{f:'powtorzenie'})" style="background:#ef4444; color:white; width:100%; padding:10px;">DŹWIĘK POWTÓRZENIA (BRZDĘK)</button>
     </div>
 
-    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-    <script>
-        let conn, peer = new Peer(), totalF = 0;
+    <div class="card">
+        <h3 style="color: #facc15; margin-top: 0;">📋 ŚCIĄGA FINAŁOWA</h3>
+        <table class="cheat-sheet">
+            <thead>
+                <tr>
+                    <th>Nr</th>
+                    <th>Pytanie</th>
+                    <th>Najwyżej punktowane odpowiedzi</th>
+                </tr>
+            </thead>
+            <tbody id="cheat-body">
+                </tbody>
+        </table>
+    </div>
+</div>
 
-        function connect() {
-            const code = document.getElementById('code').value.toUpperCase();
-            conn = peer.connect(code);
-            conn.on('open', () => {
-                alert("POŁĄCZONO!");
-                send('FIN'); 
-            });
-        }
+<script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+<script>
+    let conn, peer = new Peer(), totalF = 0;
 
-        function send(type, data={}) { if(conn) conn.send({type, ...data}); }
+    // PRZYKŁADOWE PYTANIA DO ŚCIĄGI (MOŻESZ DOPISAĆ WIĘCEJ)
+    const finalData = [
+        {id: 1, q: "Więcej niż jedno zwierzę?", a: "Stado (40), Para (25), Klucz (15)"},
+        {id: 2, q: "Coś co rośnie na drzewie?", a: "Liście (35), Jabłka (30), Szyszki (10)"},
+        {id: 3, q: "Przedmiot w kuchni?", a: "Nóż (30), Garnek (25), Patelnia (20)"},
+        {id: 4, q: "Dyscyplina sportowa?", a: "Piłka Nożna (45), Bieganie (20), Tenis (10)"},
+        {id: 5, q: "Coś zimnego?", a: "Lód (50), Lody (30), Śnieg (15)"}
+    ];
 
-        function renderRows() {
-            [1, 2].forEach(p => {
-                const container = document.getElementById(`g${p}-rows`);
-                for(let i=0; i<5; i++) {
-                    container.innerHTML += `
-                        <div class="row-final">
-                            <div class="led" id="led-p${p}-r${i}"></div>
-                            <input id="f${p}t${i}" placeholder="Odpowiedź">
-                            <button onclick="revFA(${p},${i})" class="btn-ans">ODP</button>
-                            <input id="f${p}p${i}" type="number" class="input-pts" placeholder="PKT">
-                            <button onclick="revFP(${p},${i})" class="btn-pts">OK</button>
-                        </div>`;
-                }
-            });
-        }
+    function connect() {
+        const code = document.getElementById('code').value.toUpperCase();
+        conn = peer.connect(code);
+        conn.on('open', () => {
+            alert("POŁĄCZONO Z TABLICĄ I PANELEM!");
+            send('FIN_MODE_ON'); // Informacja dla Panelu Głównego, że finał jest aktywny
+        });
+    }
 
-        // Odsłonięcie tekstu odpowiedzi
-        function revFA(pl, i) { 
-            send('SND', {f:'ok'}); 
-            send('R_A', {pl, i, t: document.getElementById(`f${pl}t${i}`).value}); 
-            // Zapalenie światełka po kliknięciu ODP (opcjonalnie, lub dopiero po punktach)
-            document.getElementById(`led-p${pl}-r${i}`).classList.add('led-on');
-        }
+    function send(type, data={}) { if(conn) conn.send({type, ...data}); }
 
-        // Zatwierdzenie punktów
-        function revFP(pl, i) { 
-            const pVal = parseInt(document.getElementById(`f${pl}p${i}`).value) || 0; 
-            totalF += pVal; 
-            document.getElementById('f-total').innerText = totalF;
-            
-            send('SND', {f:'final'}); 
-            send('R_P', {pl, i, p: pVal, s: totalF}); 
-            
-            // Upewniamy się, że światełko się świeci po zatwierdzeniu punktów
-            document.getElementById(`led-p${pl}-r${i}`).classList.add('led-on');
-        }
+    function renderPanel() {
+        // Renderowanie wierszy graczy
+        [1, 2].forEach(p => {
+            const container = document.getElementById(`g${p}-rows`);
+            for(let i=0; i<5; i++) {
+                container.innerHTML += `
+                    <div class="row-final">
+                        <div class="led" id="led-p${p}-r${i}"></div>
+                        <input id="f${p}t${i}" placeholder="Odpowiedź">
+                        <button onclick="revFA(${p},${i})" class="btn-blue">ODP</button>
+                        <input id="f${p}p${i}" type="number" class="input-pts" placeholder="0">
+                        <button onclick="revFP(${p},${i})" class="btn-green">ZATWIERDŹ</button>
+                    </div>`;
+            }
+        });
 
-        renderRows();
-    </script>
+        // Renderowanie ściągi
+        const cheatBody = document.getElementById('cheat-body');
+        finalData.forEach(item => {
+            cheatBody.innerHTML += `<tr><td>${item.id}</td><td>${item.q}</td><td><b>${item.a}</b></td></tr>`;
+        });
+    }
+
+    function revFA(pl, i) { 
+        send('SND', {f:'ok'}); 
+        send('R_A', {pl, i, t: document.getElementById(`f${pl}t${i}`).value}); 
+    }
+
+    function revFP(pl, i) { 
+        const pVal = parseInt(document.getElementById(`f${pl}p${i}`).value) || 0; 
+        totalF += pVal; 
+        document.getElementById('f-total').innerText = totalF;
+        
+        send('SND', {f:'final'}); 
+        send('R_P', {pl, i, p: pVal, s: totalF}); 
+        
+        // Lokalna dioda w panelu finałowym
+        document.getElementById(`led-p${pl}-r${i}`).classList.add('led-active');
+        
+        // Wysłanie sygnału do PANELU GŁÓWNEGO, aby tam też zapalić diodę
+        send('LED_SYNC', {player: pl, row: i});
+    }
+
+    renderPanel();
+</script>
 </body>
 </html>
