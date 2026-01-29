@@ -45,16 +45,13 @@
                     <div id="scoreR-val" class="score-display">0</div>
                 </div>
             </div>
-            <button onclick="transferToActive()" class="btn-green" style="width:100%; margin-top:10px">PRZEKAŻ PUNKTY Z PULI DO ZAZNACZONEJ</button>
+            <button onclick="transferToActive()" class="btn-green" style="width:100%; margin-top:10px">PRZEKAŻ PUNKTY Z PULI</button>
         </div>
 
         <div class="card">
-            <h2>BŁĘDY (X) DLA ZAZNACZONEJ</h2>
-            <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:4px">
-                <button onclick="sendX(1)" class="btn-red">X</button>
-                <button onclick="sendX(2)" class="btn-red">XX</button>
-                <button onclick="sendX(3)" class="btn-red">XXX</button>
-            </div>
+            <h2>BŁĘDY (X)</h2>
+            <button onclick="cycleX()" class="btn-red" style="width:100%; font-size: 18px; height: 50px;">DODAJ BŁĄD (X / XX / XXX)</button>
+            <p style="font-size: 10px; text-align: center; margin-top: 5px; color: #94a3b8;">Klikaj, aby zwiększać liczbę X dla zaznaczonej drużyny.</p>
         </div>
 
         <div class="card">
@@ -65,7 +62,7 @@
                 <button onclick="send('SND',{f:'powtorzenie'})" class="btn-gold">POWTÓRZ</button>
                 <button onclick="send('SND',{f:'stop'})" class="btn-red">STOP</button>
                 <button onclick="send('T_START',{s:15})" class="btn-blue">15 SEK</button>
-                <button onclick="send('T_START',{s:1200})" class="btn-blue">20 MIN</button>
+                <button onclick="send('T_START',{s:20})" class="btn-blue">20 sekund</button>
             </div>
         </div>
 
@@ -87,7 +84,7 @@
 
     <div class="side">
         <h2>ŚCIĄGA / FINAŁY</h2>
-        <div id="hint" style="color:#facc15; white-space: pre-wrap; font-family: monospace; font-size:12px; background:#0f172a; padding:10px; border-radius:5px; min-height:100px">Wybierz pytanie...</div>
+        <div id="hint" style="color:#facc15; white-space: pre-wrap; font-family: monospace; font-size:11px; background:#0f172a; padding:10px; border-radius:5px; min-height:100px">Wybierz pytanie...</div>
         <hr style="border:0; border-top:1px solid #334155; margin:15px 0">
         <div id="final-sets">
             <h2>10 ZESTAWÓW FINAŁOWYCH</h2>
@@ -100,7 +97,9 @@
         let conn, total = 0, peer = new Peer(), curQ = null;
         let activeTeam = null;
         let scoreL = 0, scoreR = 0;
+        let xCountL = 0, xCountR = 0;
 
+        // BAZA PYTAŃ 1-50
         const questions = [
             {id:1, q:"Co pijemy rano?", a:["KAWA","HERBATA","WODA","SOK","MLEKO"], p:[45,25,15,10,5]},
             {id:2, q:"Więcej niż jedno zwierzę?", a:["STADO","KLUCZ","PARA","WATAHA","ŁAWICA"], p:[40,20,15,15,10]},
@@ -154,6 +153,7 @@
             {id:50, q:"Imię żeńskie?", a:["MARIA","ANNA","KATARZYNA","MAŁGORZATA","AGNIESZKA"], p:[30,25,20,15,10]}
         ];
 
+        // ZESTAWY FINAŁOWE
         const finals = [
             {n: 1, items: ["1. Owoc: Jabłko (35), Banan (25), Pomarańcza (15), Truskawka (10), Winogrono (5)", "2. Kolor: Niebieski (40), Czerwony (30), Zielony (15), Żółty (10), Biały (5)", "3. Zwierzę: Pies (50), Kot (35), Chomik (8), Kanarek (5), Rybki (2)", "4. Miasto: Paryż (30), Londyn (25), Berlin (20), Rzym (15), Madryt (10)", "5. Sport: Piłka (45), Bieganie (20), Siatkówka (15), Tenis (10), Pływanie (10)"]},
             {n: 2, items: ["1. Zimne: Lód (40), Lody (30), Śnieg (20), Woda (5), Piwo (5)", "2. Ptak: Wróbel (30), Bocian (25), Orzeł (20), Gołąb (15), Kruk (10)", "3. Auto: Fiat (35), BMW (25), Audi (20), Toyota (10), Mercedes (10)", "4. Kwiat: Róża (50), Tulipan (25), Goździk (15), Stokrotka (5), Fiołek (5)", "5. Imię M: Jan (30), Adam (25), Piotr (20), Marek (15), Tomasz (10)"]},
@@ -182,7 +182,7 @@
         }
 
         function transferToActive() {
-            if(!activeTeam) return alert("Wybierz najpierw drużynę (L lub R)!");
+            if(!activeTeam) return alert("Wybierz drużynę (L lub R)!");
             if(activeTeam === 'L') scoreL += total; else scoreR += total;
             document.getElementById('scoreL-val').innerText = scoreL;
             document.getElementById('scoreR-val').innerText = scoreR;
@@ -190,14 +190,26 @@
             total = 0; 
         }
 
-        function sendX(count) {
-            if(!activeTeam) return alert("Wybierz najpierw drużynę!");
-            send('X', {s: activeTeam, c: count});
+        // FUNKCJA JEDNEGO PRZYCISKU BŁĘDU
+        function cycleX() {
+            if(!activeTeam) return alert("Wybierz drużynę, której chcesz dać błąd!");
+            
+            let currentX;
+            if(activeTeam === 'L') {
+                xCountL = (xCountL % 3) + 1;
+                currentX = xCountL;
+            } else {
+                xCountR = (xCountR % 3) + 1;
+                currentX = xCountR;
+            }
+            
+            send('X', {s: activeTeam, c: currentX});
         }
 
         function startR(n) {
-            if(!curQ) return alert("Wybierz pytanie z listy!");
+            if(!curQ) return alert("Wybierz pytanie!");
             total = 0; 
+            xCountL = 0; xCountR = 0; // Reset błędów przy nowym pytaniu
             send('SET', {c: curQ.a.length});
             const box = document.getElementById('ans-box'); box.innerHTML = '';
             curQ.a.forEach((a, i) => {
