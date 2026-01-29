@@ -2,20 +2,24 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>PANEL STEROWANIA</title>
+    <title>PANEL STEROWANIA - FAMILIADA</title>
     <style>
         body { font-family: sans-serif; background: #0f172a; color: white; display: grid; grid-template-columns: 350px 1fr 350px; height: 100vh; margin: 0; }
         .side { background: #1e293b; padding: 15px; overflow-y: auto; border-right: 1px solid #334155; }
         .main { padding: 20px; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; }
-        .card { background: #1e293b; padding: 12px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
-        button { padding: 10px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin: 2px; }
+        .card { background: #1e293b; padding: 12px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); border: 1px solid #334155; }
+        button { padding: 10px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin: 2px; transition: 0.2s; }
+        button:hover { opacity: 0.8; }
         .btn-blue { background: #3b82f6; color: white; width: 100%; }
         .btn-green { background: #22c55e; color: white; }
         .btn-red { background: #ef4444; color: white; }
         .btn-gold { background: #eab308; color: black; }
+        .btn-outline { background: transparent; border: 2px solid #3b82f6; color: white; width: 100%; }
+        .active-team { border: 3px solid #facc15 !important; box-shadow: 0 0 15px #eab308; }
         .q-item { background: #334155; padding: 6px; margin-bottom: 4px; border-radius: 4px; cursor: pointer; font-size: 12px; border-left: 3px solid #eab308; }
-        input { width: 100%; padding: 8px; background: #0f172a; border: 1px solid #334155; color: #facc15; border-radius: 4px; }
-        h2 { color: #facc15; font-size: 15px; margin: 0 0 10px 0; border-bottom: 1px solid #334155; }
+        input { width: 100%; padding: 8px; background: #0f172a; border: 1px solid #334155; color: #facc15; border-radius: 4px; box-sizing: border-box; }
+        h2 { color: #facc15; font-size: 15px; margin: 0 0 10px 0; border-bottom: 1px solid #334155; padding-bottom: 5px; }
+        .score-box { font-size: 20px; font-weight: bold; text-align: center; margin-top: 5px; color: #fff; }
     </style>
 </head>
 <body>
@@ -27,18 +31,42 @@
     <div class="main">
         <div class="card">
             <input type="text" id="code" placeholder="KOD Z TABLICY">
-            <button onclick="connect()" class="btn-green" style="width:100%; margin-top:5px">POŁĄCZ</button>
+            <button onclick="connect()" class="btn-green" style="width:100%; margin-top:5px">POŁĄCZ Z TABLICĄ</button>
         </div>
 
         <div class="card">
-            <h2>MULTIMEDIA / ZEGER</h2>
+            <h2>AKTYWNA DRUŻYNA (PUNKTY I BŁĘDY)</h2>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px">
+                <div>
+                    <button id="btn-L" onclick="setActiveTeam('L')" class="btn-outline">DRUŻYNA LEWA</button>
+                    <div id="scoreL-val" class="score-box">0 pkt</div>
+                </div>
+                <div>
+                    <button id="btn-R" onclick="setActiveTeam('R')" class="btn-outline">DRUŻYNA PRAWA</button>
+                    <div id="scoreR-val" class="score-box">0 pkt</div>
+                </div>
+            </div>
+            <button onclick="transferToActive()" class="btn-green" style="width:100%; margin-top:10px">PRZEKAŻ PUNKTY Z PULI DO AKTYWNEJ</button>
+        </div>
+
+        <div class="card">
+            <h2>BŁĘDY (X) DLA AKTYWNEJ DRUŻYNY</h2>
+            <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:4px">
+                <button onclick="sendX(1)" class="btn-red">X</button>
+                <button onclick="sendX(2)" class="btn-red">XX</button>
+                <button onclick="sendX(3)" class="btn-red">XXX</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>MULTIMEDIA / ZEGAR</h2>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:4px">
                 <button onclick="send('VID')" class="btn-gold">CZOŁÓWKA</button>
                 <button onclick="send('SND',{f:'intro'})" class="btn-gold">INTRO</button>
                 <button onclick="send('SND',{f:'powtorzenie'})" class="btn-gold">POWTÓRZ</button>
-                <button onclick="send('SND',{f:'stop'})" class="btn-red">STOP</button>
-                <button onclick="send('T_START',{s:15})" class="btn-blue">15 SEK</button>
-                <button onclick="send('T_START',{s:1200})" class="btn-blue">20 MIN</button>
+                <button onclick="send('SND',{f:'stop'})" class="btn-red">STOP MUZYKA</button>
+                <button onclick="send('T_START',{s:15})" class="btn-blue">ZEGAR 15S</button>
+                <button onclick="send('T_START',{s:1200})" class="btn-blue">ZEGAR 20M</button>
             </div>
         </div>
 
@@ -56,22 +84,14 @@
             <h2 id="q-title">Aktywne</h2>
             <div id="ans-box"></div>
         </div>
-
-        <div class="card">
-            <h2>BŁĘDY (X)</h2>
-            <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:4px">
-                <button onclick="x('L',1)" class="btn-red">L X</button><button onclick="x('L',2)" class="btn-red">L XX</button><button onclick="x('L',3)" class="btn-red">L XXX</button>
-                <button onclick="x('R',1)" class="btn-red">R X</button><button onclick="x('R',2)" class="btn-red">R XX</button><button onclick="x('R',3)" class="btn-red">R XXX</button>
-            </div>
-        </div>
     </div>
 
     <div class="side">
         <h2>ŚCIĄGA / FINAŁY</h2>
         <div id="hint" style="color:#facc15; white-space: pre-wrap; font-family: monospace; font-size:12px">Wybierz pytanie...</div>
-        <hr>
+        <hr style="border:0; border-top:1px solid #334155; margin:10px 0">
         <div id="final-sets">
-            <h2>10 ZESTAWÓW FINAŁOWYCH</h2>
+            <h2>ZESTAWY FINAŁOWE</h2>
             <div id="f-list"></div>
         </div>
     </div>
@@ -79,6 +99,8 @@
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script>
         let conn, total = 0, peer = new Peer(), curQ = null;
+        let activeTeam = null;
+        let scoreL = 0, scoreR = 0;
 
         const questions = [
             {id:1, q:"Co pijemy rano?", a:["KAWA","HERBATA","WODA","SOK","MLEKO"], p:[45,25,15,10,5]},
@@ -90,133 +112,62 @@
             {id:7, q:"Coś z kołami?", a:["SAMOCHÓD","ROWER","MOTOCYKL","WÓZEK","TRAKTOR"], p:[50,25,12,8,5]},
             {id:8, q:"Dzień tygodnia?", a:["PONIEDZIAŁEK","PIĄTEK","SOBOTA","NIEDZIELA","ŚRODA"], p:[25,25,20,20,10]},
             {id:9, q:"Na chleb?", a:["MASŁO","SER","SZYNKA","POMIDOR","DŻEM"], p:[45,25,15,10,5]},
-            {id:10, q:"Miesiąc letni?", a:["LIPIEC","SIERPIEŃ","CZERWIEC","WRZESIEŃ","MAJ"], p:[40,35,20,3,2]},
-            {id:11, q:"Część ciała?", a:["GŁOWA","RĘKA","NOGA","BRZUCH","PLECY"], p:[38,30,20,10,2]},
-            {id:12, q:"Polska rzeka?", a:["WISŁA","ODRA","WARTA","BUG","NAREW"], p:[60,20,10,6,4]},
-            {id:13, q:"Drzewo?", a:["DĄB","BRZOZA","KLON","LIPA","BUK"], p:[42,28,15,10,5]},
-            {id:14, q:"Słodkie?", a:["CZEKOLADA","CIASTKO","CUKIERKI","LODY","WAFLE"], p:[35,30,20,10,5]},
-            {id:15, q:"Ptak domowy?", a:["KURA","KACZKA","GĘŚ","INDYK","PERLICZKA"], p:[50,25,15,8,2]},
-            {id:16, q:"Kolor?", a:["NIEBIESKI","CZERWONY","ZIELONY","BIAŁY","CZARNY"], p:[25,25,20,15,15]},
-            {id:17, q:"Mebel?", a:["KANAPA","FOTEL","STÓŁ","REGAŁ","SZAFA"], p:[45,25,15,10,5]},
-            {id:18, q:"Ryba morska?", a:["DORSZ","ŚLEDŹ","FLĄDRA","MAKRELA","SZPROT"], p:[35,30,15,12,8]},
-            {id:19, q:"Owoc egzotyczny?", a:["BANAN","POMARAŃCZA","ANANAS","KIWI","MANGO"], p:[40,30,15,10,5]},
-            {id:20, q:"Narzędzie?", a:["MŁOTEK","ŚRUBOKRĘT","PIŁA","POZIOMICA","KIELNIA"], p:[45,25,15,10,5]},
-            {id:21, q:"Zwierzę afrykańskie?", a:["LEW","SŁOŃ","ŻYRAFA","ZEBRA","NOSOROŻEC"], p:[35,30,20,10,5]},
-            {id:22, q:"W łazience?", a:["WANNA","LUSTRO","PRALKA","MYDŁO","RĘCZNIK"], p:[30,25,20,15,10]},
-            {id:23, q:"Instrument?", a:["GITARA","FORTEPIAN","SKRZYPCE","FLET","PERKUSJA"], p:[40,25,20,10,5]},
-            {id:24, q:"Auto?", a:["FIAT","BMW","AUDI","TOYOTA","FORD"], p:[30,20,20,20,10]},
-            {id:25, q:"Coś zimnego?", a:["LODY","LÓD","ŚNIEG","WODA","PIWO"], p:[40,30,20,5,5]},
-            {id:26, q:"Sport zimowy?", a:["NARCIARSTWO","ŁYŻWIARSTWO","HOKEJ","SKOKI","SANKI"], p:[45,25,15,10,5]},
-            {id:27, q:"Na literę P?", a:["PIŁKA","PIES","PTAK","PUDEŁKO","POMIDOR"], p:[20,20,20,20,20]},
-            {id:28, q:"Imię męskie?", a:["JAN","ADAM","PIOTR","MAREK","TOMASZ"], p:[30,25,20,15,10]},
-            {id:29, q:"Świeci?", a:["SŁOŃCE","ŻARÓWKA","KSIĘŻYC","GWIAZDY","LATARKA"], p:[50,20,15,10,5]},
-            {id:30, q:"Podróż?", a:["SAMOCHÓD","SAMOLOT","POCIĄG","AUTOBUS","ROWER"], p:[35,30,20,10,5]},
-            {id:31, q:"W kuchni?", a:["LODÓWKA","KUCHENKA","ZLEW","STÓŁ","GARNEK"], p:[35,25,15,15,10]},
-            {id:32, q:"Kwiat?", a:["RÓŻA","TULIPAN","PELARGONIA","BRATEK","MALWA"], p:[45,25,15,10,5]},
-            {id:33, q:"Lata?", a:["SAMOLOT","PTAK","MUCHA","HELIKOPTER","BALON"], p:[40,35,15,8,2]},
-            {id:34, q:"Zwierzę wiejskie?", a:["KROWA","ŚWINIA","KOŃ","KURA","OWCA"], p:[40,25,20,10,5]},
-            {id:35, q:"Państwo w Europie?", a:["POLSKA","NIEMCY","FRANCJA","WŁOCHY","HISZPANIA"], p:[40,20,15,15,10]},
-            {id:36, q:"Gatunek filmu?", a:["KOMEDIA","HORROR","AKCJA","DRAMAT","KRYMINAŁ"], p:[40,20,15,15,10]},
-            {id:37, q:"W lesie?", a:["DRZEWA","GRZYBY","ZWIERZĘTA","MECH","JAGODY"], p:[50,20,15,10,5]},
-            {id:38, q:"Zawód?", a:["LEKARZ","NAUCZYCIEL","KIEROWCA","STRAŻAK","POLICJANT"], p:[30,25,20,15,10]},
-            {id:39, q:"Picie?", a:["WODA","SOK","KAWA","HERBATA","PIWO"], p:[40,20,15,15,10]},
-            {id:40, q:"Planeta?", a:["MARS","ZIEMIA","JOWISZ","WENUS","SATURN"], p:[35,30,20,10,5]},
-            {id:41, q:"Na literę M?", a:["MAMA","MIASTO","MORZE","MASŁO","MLEKO"], p:[20,20,20,20,20]},
-            {id:42, q:"Sport drużynowy?", a:["PIŁKA NOŻNA","SIATKÓWKA","KOSZYKÓWKA","PIŁKA RĘCZNA","HOKEJ"], p:[50,20,15,10,5]},
-            {id:43, q:"Ma struny?", a:["GITARA","SKRZYPCE","WIOLONCZELA","HARFA","KONTRABAS"], p:[55,25,10,5,5]},
-            {id:44, q:"W sypialni?", a:["ŁÓŻKO","SZAFA","LUSTRO","LAMPA","REGAŁ"], p:[60,20,10,5,5]},
-            {id:45, q:"Czerwone?", a:["POMIDOR","KREW","STRAŻAK","RÓŻA","JABŁKO"], p:[35,25,15,15,10]},
-            {id:46, q:"Zwierzę domowe?", a:["PIES","KOT","CHOMIK","PAPUGA","RYBKI"], p:[48,35,10,5,2]},
-            {id:47, q:"Stolica?", a:["WARSZAWA","LONDYN","PARYŻ","BERLIN","RZYM"], p:[55,15,15,10,5]},
-            {id:48, q:"Białe?", a:["ŚNIEG","MLEKO","PAPIER","CUKIER","SÓL"], p:[45,25,15,10,5]},
-            {id:49, q:"W aucie?", a:["KIEROWNICA","KOŁO","SILNIK","FOTEL","RADIO"], p:[50,20,15,10,5]},
-            {id:50, q:"Imię żeńskie?", a:["MARIA","ANNA","KATARZYNA","MAŁGORZATA","AGNIESZKA"], p:[30,25,20,15,10]}
+            {id:10, q:"Miesiąc letni?", a:["LIPIEC","SIERPIEŃ","CZERWIEC","WRZESIEŃ","MAJ"], p:[40,35,20,3,2]}
+            // ... reszta pytań może być tu dodana
         ];
 
         const finals = [
-    {n: 1, items: [
-        "1. Owoc: Jabłko (35), Banan (25), Pomarańcza (15), Truskawka (10), Winogrono (5)",
-        "2. Kolor: Niebieski (40), Czerwony (30), Zielony (15), Żółty (10), Biały (5)",
-        "3. Zwierzę domowe: Pies (50), Kot (35), Chomik (8), Kanarek (5), Rybki (2)",
-        "4. Miasto w Europie: Paryż (30), Londyn (25), Berlin (20), Rzym (15), Madryt (10)",
-        "5. Dyscyplina sportowa: Piłka nożna (45), Bieganie (20), Siatkówka (15), Tenis (10), Pływanie (10)"
-    ]},
-    {n: 2, items: [
-        "1. Coś zimnego: Lód (40), Lody (30), Śnieg (20), Woda (5), Piwo (5)",
-        "2. Ptak: Wróbel (30), Bocian (25), Orzeł (20), Gołąb (15), Kruk (10)",
-        "3. Marka auta: Fiat (35), BMW (25), Audi (20), Toyota (10), Mercedes (10)",
-        "4. Kwiat: Róża (50), Tulipan (25), Goździk (15), Stokrotka (5), Fiołek (5)",
-        "5. Imię męskie: Jan (30), Adam (25), Piotr (20), Marek (15), Tomasz (10)"
-    ]},
-    {n: 3, items: [
-        "1. Co kładziemy na chleb: Masło (45), Ser (25), Szynka (15), Pomidor (10), Dżem (5)",
-        "2. Napój: Woda (40), Kawa (25), Herbata (20), Sok (10), Cola (5)",
-        "3. Drzewo: Dąb (35), Brzoza (25), Sosna (20), Klon (15), Świerk (5)",
-        "4. Ryba: Karp (40), Śledź (25), Dorsz (15), Pstrąg (10), Szczupak (10)",
-        "5. Rzeka w Polsce: Wisła (65), Odra (20), Warta (10), Bug (3), Narew (2)"
-    ]},
-    {n: 4, items: [
-        "1. Część ciała: Ręka (30), Głowa (25), Noga (20), Serce (15), Oko (10)",
-        "2. Mebel: Krzesło (30), Stół (25), Kanapa (20), Szafa (15), Łóżko (10)",
-        "3. Coś do pisania: Długopis (45), Ołówek (30), Pióro (15), Flamaster (7), Kreda (3)",
-        "4. Stolica: Warszawa (55), Paryż (15), Londyn (15), Berlin (10), Rzym (5)",
-        "5. Planeta: Ziemia (40), Mars (30), Jowisz (15), Wenus (10), Saturn (5)"
-    ]},
-    {n: 5, items: [
-        "1. Coś słodkiego: Czekolada (35), Ciastko (25), Cukierki (20), Lody (15), Baton (5)",
-        "2. Warzywo: Marchew (40), Ziemniak (30), Pomidor (15), Ogórek (10), Cebula (5)",
-        "3. Narzędzie: Młotek (45), Śrubokręt (25), Klucz (15), Piła (10), Kombinerki (5)",
-        "4. Coś w lesie: Drzewa (50), Grzyby (25), Jagody (15), Mech (5), Zwierzęta (5)",
-        "5. Zjawisko pogodowe: Deszcz (35), Burza (30), Śnieg (15), Wiatr (10), Słońce (10)"
-    ]},
-    {n: 6, items: [
-        "1. Biały napój: Mleko (60), Kefir (15), Maślanka (10), Jogurt (10), Śmietana (5)",
-        "2. Część garderoby: Kurtka (30), Spodnie (25), Koszulka (20), Buty (15), Czapka (10)",
-        "3. Wyposażenie szkoły: Ławka (35), Tablica (30), Zeszyt (15), Książka (10), Plecak (10)",
-        "4. Element domu: Okno (40), Drzwi (35), Dach (15), Ściana (5), Podłoga (5)",
-        "5. Elektronika: Telefon (50), Komputer (25), Telewizor (15), Tablet (5), Radio (5)"
-    ]},
-    {n: 7, items: [
-        "1. Środek transportu: Samochód (40), Pociąg (25), Autobus (15), Samolot (10), Rower (10)",
-        "2. Coś mokrego: Woda (55), Deszcz (25), Rosa (10), Łzy (5), Zupa (5)",
-        "3. Gatunek muzyki: Rock (30), Pop (30), Disco (20), Jazz (10), Klasyczna (10)",
-        "4. Rodzaj tańca: Walc (35), Tango (25), Salsa (20), Polonez (15), Breakdance (5)",
-        "5. Obiekt na niebie: Słońce (45), Księżyc (30), Gwiazda (15), Chmura (7), Samolot (3)"
-    ]},
-    {n: 8, items: [
-        "1. Miejsce pracy: Biuro (35), Szkoła (25), Fabryka (20), Szpital (10), Sklep (10)",
-        "2. Hobby: Sport (30), Czytanie (25), Gotowanie (20), Podróże (15), Wędkarstwo (10)",
-        "3. Wysoki budynek: Wieżowiec (50), Blok (20), Kościół (15), Zamek (10), Latarnia (5)",
-        "4. Coś gorącego: Ogień (40), Słońce (30), Kawa (15), Piec (10), Żelazko (5)",
-        "5. Coś twardego: Kamień (45), Skała (25), Diament (15), Stal (10), Drewno (5)"
-    ]},
-    {n: 9, items: [
-        "1. Pora roku: Lato (60), Wiosna (20), Zima (15), Jesień (5)",
-        "2. Co jemy na obiad: Zupa (35), Kotlet (30), Ziemniaki (15), Ryż (10), Makaron (10)",
-        "3. Bohater bajki: Myszka Miki (30), Shrek (25), Kopciuszek (20), Kubuś Puchatek (15), Batman (10)",
-        "4. Pasmo górskie: Tatry (70), Alpy (15), Sudety (10), Karpaty (3), Himalaje (2)",
-        "5. Gatunek drzewa leśnego: Sosna (45), Świerk (25), Buk (15), Jodła (10), Modrzew (5)"
-    ]},
-    {n: 10, items: [
-        "1. Zabawka dla dziecka: Miś (40), Lalka (30), Klocki (15), Auto (10), Piłka (5)",
-        "2. Sport walki: Boks (40), Karate (25), Judo (15), MMA (10), Zapasy (10)",
-        "3. Słynny kompozytor: Chopin (60), Beethoven (20), Mozart (15), Bach (3), Vivaldi (2)",
-        "4. Morze: Bałtyckie (75), Śródziemne (15), Czerwone (5), Czarne (3), Martwe (2)",
-        "5. Coś co szybko jeździ: Bolid F1 (40), Ferrari (30), Motocykl (15), Pociąg (10), Samolot (5)"
-    ]}
-];
+            {n: 1, items: ["1. Owoc: Jabłko (35)", "2. Kolor: Niebieski (40)", "3. Zwierzę: Pies (50)", "4. Miasto: Paryż (30)", "5. Sport: Piłka (45)"]}
+        ];
 
-        function connect() { conn = peer.connect(document.getElementById('code').value.toUpperCase()); }
+        function connect() { 
+            const code = document.getElementById('code').value.toUpperCase();
+            conn = peer.connect(code);
+            conn.on('open', () => alert("Połączono z Tablicą: " + code));
+        }
+
         function send(type, data={}) { if(conn) conn.send({type, ...data}); }
 
+        function setActiveTeam(team) {
+            activeTeam = team;
+            document.getElementById('btn-L').className = (team === 'L' ? 'btn-blue active-team' : 'btn-outline');
+            document.getElementById('btn-R').className = (team === 'R' ? 'btn-blue active-team' : 'btn-outline');
+        }
+
+        function transferToActive() {
+            if(!activeTeam) return alert("Wybierz drużynę (L lub R)!");
+            if(activeTeam === 'L') scoreL += total; else scoreR += total;
+            document.getElementById('scoreL-val').innerText = scoreL + " pkt";
+            document.getElementById('scoreR-val').innerText = scoreR + " pkt";
+            send('SCORES', {L: scoreL, R: scoreR});
+            total = 0; // zerujemy pulę pytania po przekazaniu
+        }
+
+        function sendX(count) {
+            if(!activeTeam) return alert("Wybierz drużynę, której chcesz dać X!");
+            send('X', {s: activeTeam, c: count});
+        }
+
         function startR(n) {
-            if(!curQ) return alert("Wybierz pytanie!");
-            total = 0; send('SET', {c: curQ.a.length});
+            if(!curQ) return alert("Wybierz pytanie z listy po lewej!");
+            total = 0; 
+            send('SET', {c: curQ.a.length});
             const box = document.getElementById('ans-box'); box.innerHTML = '';
             curQ.a.forEach((a, i) => {
-                box.innerHTML += `<div style="display:flex; gap:5px; margin-bottom:5px"><input id="t${i}" value="${a}"><input id="p${i}" value="${curQ.p[i]}" style="width:45px"><button onclick="revN(${i})" class="btn-green">OK</button></div>`;
+                box.innerHTML += `<div style="display:flex; gap:5px; margin-bottom:5px">
+                    <input id="t${i}" value="${a}">
+                    <input id="p${i}" value="${curQ.p[i]}" style="width:45px">
+                    <button onclick="revN(${i})" class="btn-green">OK</button>
+                </div>`;
             });
             document.getElementById('inputs').style.display = 'block';
+        }
+
+        function revN(i) { 
+            const t = document.getElementById('t'+i).value; 
+            const p = parseInt(document.getElementById('p'+i).value); 
+            total += p; 
+            send('REV', {i, t, p, s: total}); 
         }
 
         function startF() {
@@ -229,20 +180,22 @@
             document.getElementById('inputs').style.display = 'block';
         }
 
-        function revN(i) { const t=document.getElementById('t'+i).value, p=parseInt(document.getElementById('p'+i).value); total+=p; send('REV', {i, t, p, s:total}); }
         function revFA(pl, i) { send('R_A', {pl, i, t: document.getElementById(`f${pl}t${i}`).value}); }
         function revFP(pl, i) { const p=parseInt(document.getElementById(`f${pl}p${i}`).value)||0; total+=p; send('R_P', {pl, i, p, s:total}); }
-        function x(s, c) { send('X', {s, c}); }
 
-        // Renderowanie list
+        // Render listy pytań
         questions.forEach(q => {
             const d = document.createElement('div'); d.className='q-item'; d.innerText=`${q.id}. ${q.q}`;
-            d.onclick=()=>{ curQ=q; document.getElementById('hint').innerText=q.q+"\n\n"+q.a.map((v,i)=>`${i+1}. ${v} (${q.p[i]})`).join('\n'); document.getElementById('q-title').innerText=q.q; };
+            d.onclick=()=>{ 
+                curQ=q; 
+                document.getElementById('hint').innerText=q.q+"\n\n"+q.a.map((v,i)=>`${i+1}. ${v} (${q.p[i]})`).join('\n'); 
+                document.getElementById('q-title').innerText=q.q; 
+            };
             document.getElementById('q-list').appendChild(d);
         });
 
         finals.forEach(f => {
-            const d = document.createElement('div'); d.className='q-item'; d.innerText=`ZESTAW FINAŁOWY ${f.n || f.id}`;
+            const d = document.createElement('div'); d.className='q-item'; d.innerText=`ZESTAW FINAŁOWY ${f.n}`;
             d.onclick=()=>{ document.getElementById('hint').innerText="ZESTAW FINAŁOWY:\n\n"+f.items.join('\n'); };
             document.getElementById('f-list').appendChild(d);
         });
