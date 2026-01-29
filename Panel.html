@@ -2,24 +2,25 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>PANEL STEROWANIA - FAMILIADA PRO</title>
+    <title>PANEL STEROWANIA - FAMILIADA FINAL PRO</title>
     <style>
         body { font-family: sans-serif; background: #0f172a; color: white; display: grid; grid-template-columns: 350px 1fr 350px; height: 100vh; margin: 0; }
         .side { background: #1e293b; padding: 15px; overflow-y: auto; border-right: 1px solid #334155; }
         .main { padding: 20px; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; }
-        .card { background: #1e293b; padding: 12px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); border: 1px solid #334155; }
-        button { padding: 10px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin: 2px; }
+        .card { background: #1e293b; padding: 12px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); border: 1px solid #334155; margin-bottom: 10px; }
+        button { padding: 10px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin: 2px; transition: 0.2s; }
+        button:hover { opacity: 0.8; }
         .btn-blue { background: #3b82f6; color: white; width: 100%; }
         .btn-green { background: #22c55e; color: white; }
         .btn-red { background: #ef4444; color: white; }
         .btn-gold { background: #eab308; color: black; }
         .btn-outline { background: transparent; border: 2px solid #3b82f6; color: white; width: 100%; }
-        .active-team { border: 3px solid #facc15 !important; box-shadow: 0 0 15px #eab308; background: rgba(59, 130, 246, 0.2); }
+        .active-team { border: 2px solid #facc15 !important; background: rgba(234, 179, 8, 0.2); }
         .q-item { background: #334155; padding: 6px; margin-bottom: 4px; border-radius: 4px; cursor: pointer; font-size: 12px; border-left: 3px solid #eab308; }
         input, textarea { width: 100%; padding: 8px; background: #0f172a; border: 1px solid #334155; color: #facc15; border-radius: 4px; box-sizing: border-box; }
         h2 { color: #facc15; font-size: 14px; margin: 0 0 10px 0; border-bottom: 1px solid #334155; padding-bottom: 5px; text-transform: uppercase; }
-        .score-display { font-size: 24px; font-weight: bold; text-align: center; margin-top: 5px; color: #fff; }
-        .total-box { background: #0f172a; padding: 10px; border-radius: 8px; text-align: center; border: 2px solid #eab308; margin-top: 10px; }
+        .score-display { font-size: 32px; font-weight: bold; text-align: center; margin-top: 5px; color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.3); }
+        .total-label { font-size: 10px; text-align: center; color: #94a3b8; text-transform: uppercase; margin-top: 5px; }
     </style>
 </head>
 <body>
@@ -35,20 +36,25 @@
         </div>
 
         <div class="card">
-            <h2>NAZWY I PUNKTY DRUŻYN</h2>
+            <h2>DRUŻYNY I PUNKTY Z RUND</h2>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px">
-                <div>
-                    <input type="text" id="nameL" placeholder="Nazwa Lewej" onchange="updateNames()" style="margin-bottom:5px">
-                    <button id="btn-L" onclick="setActiveTeam('L')" class="btn-outline">WYBIERZ LEWĄ</button>
+                <div id="cont-L">
+                    <input type="text" id="nameL" placeholder="Nazwa Drużyny 1" onchange="updateNames()">
+                    <button id="btn-L" onclick="setActiveTeam('L')" class="btn-outline" style="margin-top:5px">WYBIERZ L</button>
+                    <div class="total-label">Suma rund:</div>
                     <div id="scoreL-val" class="score-display">0</div>
                 </div>
-                <div>
-                    <input type="text" id="nameR" placeholder="Nazwa Prawej" onchange="updateNames()" style="margin-bottom:5px">
-                    <button id="btn-R" onclick="setActiveTeam('R')" class="btn-outline">WYBIERZ PRAWĄ</button>
+                <div id="cont-R">
+                    <input type="text" id="nameR" placeholder="Nazwa Drużyny 2" onchange="updateNames()">
+                    <button id="btn-R" onclick="setActiveTeam('R')" class="btn-outline" style="margin-top:5px">WYBIERZ R</button>
+                    <div class="total-label">Suma rund:</div>
                     <div id="scoreR-val" class="score-display">0</div>
                 </div>
             </div>
-            <button onclick="transferToActive()" class="btn-green" style="width:100%; margin-top:10px">PRZEKAŻ PUNKTY Z PULI</button>
+            <div style="display:grid; grid-template-columns: 2fr 1fr; gap:5px; margin-top:10px">
+                <button onclick="transferToActive()" class="btn-green">PRZEKAŻ PUNKTY Z PULI</button>
+                <button onclick="losePool()" class="btn-red">UTRATA PULI</button>
+            </div>
         </div>
 
         <div class="card">
@@ -57,35 +63,40 @@
         </div>
 
         <div class="card">
-            <h2>MULTIMEDIA / ZEGAR</h2>
+            <h2>MULTIMEDIA / FINAŁ</h2>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:4px">
                 <button onclick="send('VID')" class="btn-gold">CZOŁÓWKA</button>
                 <button onclick="send('SND',{f:'intro'})" class="btn-gold">INTRO</button>
                 <button onclick="send('SND',{f:'powtorzenie'})" class="btn-gold">POWTÓRZ</button>
-                <button onclick="send('SND',{f:'stop'})" class="btn-red">STOP</button>
-                <button onclick="send('T_START',{s:15})" class="btn-blue">15 SEK</button>
-                <button onclick="send('T_START',{s:20})" class="btn-blue">20 SEK</button>
+                <button onclick="send('SND',{f:'final'})" class="btn-blue" style="border: 2px solid white;">PRZERYWNIK FINAŁ</button>
+                <button onclick="send('T_START',{s:15})" class="btn-blue">ZEGAR 15S</button>
+                <button onclick="send('SND',{f:'stop'})" class="btn-red">STOP MUZYKA</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>RUNDY</h2>
+            <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:4px">
+                <button onclick="startR(1)" class="btn-blue">R1</button>
+                <button onclick="startR(2)" class="btn-blue">R2</button>
+                <button onclick="startR(3)" class="btn-blue">R3</button>
+                <button onclick="startF()" class="btn-gold">FINAŁ</button>
             </div>
         </div>
 
         <div id="inputs" class="card" style="display:none">
-            <h2 id="q-title">Aktywne pytanie</h2>
+            <h2 id="q-title">Aktywne Pytanie</h2>
             <div id="ans-box"></div>
-        </div>
-
-        <div class="card total-box">
-            <h2 style="border:none">SUMA PUNKTÓW (WSZYSTKIE RUNDY)</h2>
-            <div id="grand-total" style="font-size: 30px; color: #eab308; font-weight: bold;">0</div>
         </div>
     </div>
 
     <div class="side">
         <h2>NOTATKI PROWADZĄCEGO</h2>
-        <textarea id="host-notes" style="height: 150px; font-size: 12px; margin-bottom: 10px;" placeholder="Miejsce na Twoje uwagi..."></textarea>
+        <textarea id="host-notes" style="height: 120px; font-size: 12px; margin-bottom: 10px;" placeholder="Miejsce na Twoje notatki..."></textarea>
         
         <h2>ŚCIĄGA / FINAŁY</h2>
-        <div id="hint" style="color:#facc15; white-space: pre-wrap; font-family: monospace; font-size:11px; background:#0f172a; padding:10px; border-radius:5px; min-height:100px">Wybierz pytanie...</div>
-        <hr style="border:0; border-top:1px solid #334155; margin:15px 0">
+        <div id="hint" style="color:#facc15; white-space: pre-wrap; font-family: monospace; font-size:11px; background:#0f172a; padding:10px; border-radius:5px; min-height:80px">Wybierz pytanie...</div>
+        <hr style="border:0; border-top:1px solid #334155; margin:10px 0">
         <div id="f-list"></div>
     </div>
 
@@ -150,22 +161,13 @@
         ];
 
         const finals = [
-            {n: 1, items: ["1. Owoc: Jabłko (35), Banan (25)", "2. Kolor: Niebieski (40)", "3. Zwierzę: Pies (50)", "4. Miasto: Paryż (30)", "5. Sport: Piłka (45)"]},
-            {n: 2, items: ["1. Zimne: Lód (40), Lody (30)", "2. Ptak: Wróbel (30)", "3. Auto: Fiat (35)", "4. Kwiat: Róża (50)", "5. Imię M: Jan (30)"]},
-            {n: 3, items: ["1. Na chleb: Masło (45)", "2. Napój: Woda (40)", "3. Drzewo: Dąb (35)", "4. Ryba: Karp (40)", "5. Rzeka: Wisła (65)"]},
-            {n: 4, items: ["1. Ciało: Ręka (30)", "2. Mebel: Krzesło (30)", "3. Pisanie: Długopis (45)", "4. Stolica: Warszawa (55)", "5. Planeta: Ziemia (40)"]},
-            {n: 5, items: ["1. Słodkie: Czekolada (35)", "2. Warzywo: Marchew (40)", "3. Narzędzie: Młotek (45)", "4. Las: Drzewa (50)", "5. Pogoda: Deszcz (35)"]},
-            {n: 6, items: ["1. Biały napój: Mleko (60)", "2. Garderoba: Kurtka (30)", "3. Szkoła: Ławka (35)", "4. Dom: Okno (40)", "5. Elektronika: Telefon (50)"]},
-            {n: 7, items: ["1. Transport: Samochód (40)", "2. Mokre: Woda (55)", "3. Muzyka: Rock (30)", "4. Taniec: Walc (35)", "5. Niebo: Słońce (45)"]},
-            {n: 8, items: ["1. Praca: Biuro (35)", "2. Hobby: Sport (30)", "3. Budynek: Wieżowiec (50)", "4. Gorące: Ogień (40)", "5. Twarde: Kamień (45)"]},
-            {n: 9, items: ["1. Pora roku: Lato (60)", "2. Obiad: Zupa (35)", "3. Bajka: Myszka Miki (30)", "4. Góry: Tatry (70)", "5. Drzewo leśne: Sosna (45)"]},
-            {n: 10, items: ["1. Zabawka: Miś (40)", "2. Walka: Boks (40)", "3. Kompozytor: Chopin (60)", "4. Morze: Bałtyckie (75)", "5. Szybkie: Bolid F1 (40)"]}
+            {n: 1, items: ["1. Owoc: Jabłko (35), Banan (25)", "2. Kolor: Niebieski (40), Czerwony (30)", "3. Zwierzę: Pies (50), Kot (35)", "4. Miasto: Paryż (30), Londyn (25)", "5. Sport: Piłka (45), Bieganie (20)"]}
         ];
 
         function connect() { 
             const code = document.getElementById('code').value.toUpperCase();
             conn = peer.connect(code);
-            conn.on('open', () => alert("Połączono z Tablicą!"));
+            conn.on('open', () => alert("POŁĄCZONO Z TABLICĄ!"));
         }
 
         function send(type, data={}) { if(conn) conn.send({type, ...data}); }
@@ -185,9 +187,13 @@
             if(activeTeam === 'L') scoreL += total; else scoreR += total;
             document.getElementById('scoreL-val').innerText = scoreL;
             document.getElementById('scoreR-val').innerText = scoreR;
-            document.getElementById('grand-total').innerText = scoreL + scoreR;
             send('SCORES', {L: scoreL, R: scoreR});
             total = 0; 
+        }
+
+        function losePool() {
+            total = 0;
+            send('REV_LOSE');
         }
 
         function cycleX() {
@@ -213,7 +219,27 @@
             total += p; send('REV', {i, t, p, s: total}); 
         }
 
-        // Renderowanie list
+        function startF() {
+            total = 0; send('FIN');
+            const box = document.getElementById('ans-box'); box.innerHTML = '';
+            [1,2].forEach(p => {
+                box.innerHTML += `<h4>GRACZ ${p}</h4>`;
+                for(let i=0; i<5; i++) box.innerHTML += `<div style="display:flex; gap:2px; margin-bottom:4px"><input id="f${p}t${i}" placeholder="Odp"><button onclick="revFA(${p},${i})" class="btn-blue" style="padding:5px">ODP</button><input id="f${p}p${i}" style="width:35px" placeholder="P"><button onclick="revFP(${p},${i})" class="btn-green" style="padding:5px">PKT</button></div>`;
+            });
+            document.getElementById('inputs').style.display = 'block';
+        }
+
+        function revFA(pl, i) { 
+            send('SND', {f:'ok'}); // ok.mp3 dla odpowiedzi
+            send('R_A', {pl, i, t: document.getElementById(`f${pl}t${i}`).value}); 
+        }
+        function revFP(pl, i) { 
+            const p=parseInt(document.getElementById(`f${pl}p${i}`).value)||0; 
+            total+=p; 
+            send('SND', {f:'final'}); // final.mp3 dla punktów
+            send('R_P', {pl, i, p, s:total}); 
+        }
+
         questions.forEach(q => {
             const d = document.createElement('div'); d.className='q-item'; d.innerText=`${q.id}. ${q.q}`;
             d.onclick=()=>{ curQ=q; document.getElementById('hint').innerText=q.q+"\n\n"+q.a.map((v,i)=>`${i+1}. ${v} (${q.p[i]})`).join('\n'); document.getElementById('q-title').innerText=q.q; };
