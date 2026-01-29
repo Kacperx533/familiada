@@ -9,7 +9,7 @@
         .card { background: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid #334155; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
         h2 { color: #facc15; font-size: 14px; margin: 0 0 15px 0; border-bottom: 2px solid #334155; padding-bottom: 8px; text-transform: uppercase; }
         .grid-players { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .player-box { background: rgba(15, 23, 42, 0.4); padding: 15px; border-radius: 10px; border: 1px solid #334155; }
+        .player-box { background: rgba(15, 23, 42, 0.4); padding: 15px; border-radius: 10px; border: 2px solid #334155; }
         .row-final { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; padding: 8px; border-radius: 6px; cursor: pointer; border: 1px solid transparent; transition: 0.2s; }
         .row-selected { background: #334155; border-color: #3b82f6; box-shadow: 0 0 10px rgba(59, 130, 246, 0.3); }
         .led { width: 18px; height: 18px; border-radius: 50%; background: #334155; border: 1px solid #000; }
@@ -70,6 +70,7 @@
     let conn, peer = new Peer(), totalF = 0;
     let curP = 1, curR = 0; 
 
+    // Pełna baza 10 zestawów (taka sama jak wcześniej)
     const database = [
         { n: 1, q: [{t: "Owoc", a: [["JABŁKO",35],["BANAN",25],["GRUSZKA",15],["ŚLIWKA",10],["POMARAŃCZA",5]]},{t: "Kolor", a: [["NIEBIESKI",40],["CZERWONY",30],["ZIELONY",15],["ŻÓŁTY",10],["BIAŁY",5]]},{t: "Zwierzę", a: [["PIES",50],["KOT",35],["KOŃ",10],["CHOMIK",3],["PTAK",2]]},{t: "Miasto", a: [["PARYŻ",30],["LONDYN",25],["WARSZAWA",20],["BERLIN",15],["RZYM",10]]},{t: "Sport", a: [["PIŁKA",45],["BIEGANIE",20],["TENIS",15],["PŁYWANIE",10],["SIATKÓWKA",10]]}]},
         { n: 2, q: [{t: "Zimne", a: [["LÓD",40],["LODY",30],["ŚNIEG",20],["WODA",5],["WIATR",5]]},{t: "Ptak", a: [["WRÓBEL",30],["BOCIAN",25],["GOŁĄB",20],["ORZEŁ",15],["SIKORKA",10]]},{t: "Auto", a: [["FIAT",35],["BMW",25],["AUDI",20],["TOYOTA",15],["FORD",5]]},{t: "Kwiat", a: [["RÓŻA",50],["TULIPAN",25],["NARCYZ",15],["GOŹDZIK",5],["STOKROTKA",5]]},{t: "Imię M", a: [["JAN",30],["ADAM",25],["MAREK",20],["PIOTR",15],["ANDRZEJ",10]]}]},
@@ -100,7 +101,7 @@
     function fillData(text, pts) {
         document.getElementById(`f${curP}t${curR}`).value = text;
         document.getElementById(`f${curP}p${curR}`).value = pts;
-        // Automatyczne wysyłanie tekstu na tablicę przy wpisywaniu
+        // Wysyłamy tekst bez dźwięku
         send('R_A', {pl: curP, i: curR, t: text});
     }
 
@@ -136,24 +137,23 @@
         selectRow(1, 0);
     }
 
-    // Wysyłanie tylko tekstu (bez punktów jeszcze)
+    // Odsłonięcie samej odpowiedzi (BEZ DŹWIĘKU)
     function revA(pl, i) { 
         send('R_A', {pl, i, t: document.getElementById(`f${pl}t${i}`).value}); 
     }
 
-    // Wysyłanie punktów + DŹWIĘK OK
+    // Zatwierdzenie punktów (Z DŹWIĘKIEM OK.MP3)
     function revP(pl, i) { 
         const pVal = parseInt(document.getElementById(`f${pl}p${i}`).value) || 0; 
         totalF += pVal; 
         document.getElementById('f-total').innerText = totalF;
         
-        // WYSYŁKA DŹWIĘKU I PUNKTÓW
+        // WYŁĄCZNIE TUTAJ ODGRYWA SIĘ OK.MP3
         send('SND', {f:'ok'}); 
         send('R_P', {pl, i, p: pVal, s: totalF}); 
         
         document.getElementById(`led-p${pl}-r${i}`).classList.add('led-on');
         
-        // Auto-przejście
         if (curR < 4) selectRow(curP, curR + 1);
         else if (curP === 1) selectRow(2, 0);
     }
