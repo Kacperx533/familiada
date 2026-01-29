@@ -18,9 +18,10 @@
         .active-team { border: 2px solid #facc15 !important; background: rgba(234, 179, 8, 0.2); }
         .q-item { background: #334155; padding: 6px; margin-bottom: 4px; border-radius: 4px; cursor: pointer; font-size: 12px; border-left: 3px solid #eab308; }
         input, textarea { width: 100%; padding: 8px; background: #0f172a; border: 1px solid #334155; color: #facc15; border-radius: 4px; box-sizing: border-box; }
-        h2 { color: #facc15; font-size: 14px; margin: 0 0 10px 0; border-bottom: 1px solid #334155; padding-bottom: 5px; text-transform: uppercase; }
-        .score-display { font-size: 32px; font-weight: bold; text-align: center; margin-top: 5px; color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.3); }
-        .total-label { font-size: 10px; text-align: center; color: #94a3b8; text-transform: uppercase; margin-top: 5px; }
+        h2 { color: #facc15; font-size: 13px; margin: 0 0 10px 0; border-bottom: 1px solid #334155; padding-bottom: 5px; text-transform: uppercase; }
+        .score-display { font-size: 28px; font-weight: bold; text-align: center; color: #fff; }
+        .total-label { font-size: 10px; text-align: center; color: #94a3b8; text-transform: uppercase; margin-bottom: 2px; }
+        .current-round-box { background: rgba(59, 130, 246, 0.1); border: 1px solid #3b82f6; margin-bottom: 10px; }
     </style>
 </head>
 <body>
@@ -35,19 +36,33 @@
             <button onclick="connect()" class="btn-green" style="width:100%; margin-top:5px">POŁĄCZ Z TABLICĄ</button>
         </div>
 
-        <div class="card">
-            <h2>DRUŻYNY I PUNKTY Z RUND</h2>
+        <div class="card current-round-box">
+            <h2>PUNKTY: BIEŻĄCA RUNDA</h2>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px">
-                <div id="cont-L">
-                    <input type="text" id="nameL" placeholder="Nazwa Drużyny 1" onchange="updateNames()">
+                <div>
+                    <div class="total-label">Drużyna 1</div>
+                    <div id="currL-val" class="score-display" style="color:#3b82f6">0</div>
+                </div>
+                <div>
+                    <div class="total-label">Drużyna 2</div>
+                    <div id="currR-val" class="score-display" style="color:#3b82f6">0</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>NAZWY I SUMA CAŁKOWITA</h2>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px">
+                <div>
+                    <input type="text" id="nameL" placeholder="Nazwa 1" onchange="updateNames()">
                     <button id="btn-L" onclick="setActiveTeam('L')" class="btn-outline" style="margin-top:5px">WYBIERZ L</button>
-                    <div class="total-label">Suma rund:</div>
+                    <div class="total-label" style="margin-top:10px">SUMA WSZYSTKICH RUND:</div>
                     <div id="scoreL-val" class="score-display">0</div>
                 </div>
-                <div id="cont-R">
-                    <input type="text" id="nameR" placeholder="Nazwa Drużyny 2" onchange="updateNames()">
+                <div>
+                    <input type="text" id="nameR" placeholder="Nazwa 2" onchange="updateNames()">
                     <button id="btn-R" onclick="setActiveTeam('R')" class="btn-outline" style="margin-top:5px">WYBIERZ R</button>
-                    <div class="total-label">Suma rund:</div>
+                    <div class="total-label" style="margin-top:10px">SUMA WSZYSTKICH RUND:</div>
                     <div id="scoreR-val" class="score-display">0</div>
                 </div>
             </div>
@@ -75,7 +90,7 @@
         </div>
 
         <div class="card">
-            <h2>RUNDY</h2>
+            <h2>RUNDY (KLIKNIĘCIE RESETUJE BIEŻĄCE PUNKTY)</h2>
             <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:4px">
                 <button onclick="startR(1)" class="btn-blue">R1</button>
                 <button onclick="startR(2)" class="btn-blue">R2</button>
@@ -85,14 +100,14 @@
         </div>
 
         <div id="inputs" class="card" style="display:none">
-            <h2 id="q-title">Aktywne Pytanie</h2>
+            <h2 id="q-title">Aktywne</h2>
             <div id="ans-box"></div>
         </div>
     </div>
 
     <div class="side">
         <h2>NOTATKI PROWADZĄCEGO</h2>
-        <textarea id="host-notes" style="height: 120px; font-size: 12px; margin-bottom: 10px;" placeholder="Miejsce na Twoje notatki..."></textarea>
+        <textarea id="host-notes" style="height: 100px; font-size: 12px; margin-bottom: 10px;" placeholder="Notatki..."></textarea>
         
         <h2>ŚCIĄGA / FINAŁY</h2>
         <div id="hint" style="color:#facc15; white-space: pre-wrap; font-family: monospace; font-size:11px; background:#0f172a; padding:10px; border-radius:5px; min-height:80px">Wybierz pytanie...</div>
@@ -104,7 +119,8 @@
     <script>
         let conn, total = 0, peer = new Peer(), curQ = null;
         let activeTeam = null;
-        let scoreL = 0, scoreR = 0;
+        let scoreL = 0, scoreR = 0; // Suma całkowita
+        let currL = 0, currR = 0;   // Bieżąca runda
         let xCountL = 0, xCountR = 0;
 
         const questions = [
@@ -161,13 +177,22 @@
         ];
 
         const finals = [
-            {n: 1, items: ["1. Owoc: Jabłko (35), Banan (25)", "2. Kolor: Niebieski (40), Czerwony (30)", "3. Zwierzę: Pies (50), Kot (35)", "4. Miasto: Paryż (30), Londyn (25)", "5. Sport: Piłka (45), Bieganie (20)"]}
+            {n:1, items:["1. Owoc: Jabłko (35), Banan (25)", "2. Kolor: Niebieski (40), Czerwony (30)", "3. Zwierzę: Pies (50), Kot (35)", "4. Miasto: Paryż (30), Londyn (25)", "5. Sport: Piłka (45)"]},
+            {n:2, items:["1. Zimne: Lód (40), Lody (30)", "2. Ptak: Wróbel (30), Bocian (25)", "3. Auto: Fiat (35), BMW (25)", "4. Kwiat: Róża (50), Tulipan (25)", "5. Imię M: Jan (30)"]},
+            {n:3, items:["1. Na chleb: Masło (45), Ser (25)", "2. Napój: Woda (40), Kawa (25)", "3. Drzewo: Dąb (35), Brzoza (25)", "4. Ryba: Karp (40), Śledź (25)", "5. Rzeka: Wisła (65)"]},
+            {n:4, items:["1. Część ciała: Ręka (30), Głowa (25)", "2. Mebel: Krzesło (30), Stół (25)", "3. Pisanie: Długopis (45), Ołówek (30)", "4. Stolica: Warszawa (55), Paryż (15)", "5. Planeta: Ziemia (40), Mars (30)"]},
+            {n:5, items:["1. Słodkie: Czekolada (35), Ciastko (25)", "2. Warzywo: Marchew (40), Ziemniak (30)", "3. Narzędzie: Młotek (45), Śrubokręt (25)", "4. Las: Drzewa (50), Grzyby (25)", "5. Pogoda: Deszcz (35), Burza (30)"]},
+            {n:6, items:["1. Biały napój: Mleko (60), Kefir (15)", "2. Garderoba: Kurtka (30), Spodnie (25)", "3. Szkoła: Ławka (35), Tablica (30)", "4. Dom: Okno (40), Drzwi (35)", "5. Elektronika: Telefon (50), Komputer (25)"]},
+            {n:7, items:["1. Transport: Samochód (40), Pociąg (25)", "2. Mokre: Woda (55), Deszcz (25)", "3. Muzyka: Rock (30), Pop (30)", "4. Taniec: Walc (35), Tango (25)", "5. Niebo: Słońce (45), Księżyc (30)"]},
+            {n:8, items:["1. Praca: Biuro (35), Szkoła (25)", "2. Hobby: Sport (30), Czytanie (25)", "3. Budynek: Wieżowiec (50), Blok (20)", "4. Gorące: Ogień (40), Słońce (30)", "5. Twarde: Kamień (45), Skała (25)"]},
+            {n:9, items:["1. Pora roku: Lato (60), Wiosna (20)", "2. Obiad: Zupa (35), Kotlet (30)", "3. Bajka: Myszka Miki (30), Shrek (25)", "4. Góry: Tatry (70), Alpy (15)", "5. Drzewo leśne: Sosna (45), Świerk (25)"]},
+            {n:10, items:["1. Zabawka: Miś (40), Lalka (30)", "2. Walka: Boks (40), Karate (25)", "3. Kompozytor: Chopin (60), Beethoven (20)", "4. Morze: Bałtyckie (75), Śródziemne (15)", "5. Szybkie: Bolid F1 (40), Ferrari (30)"]}
         ];
 
         function connect() { 
             const code = document.getElementById('code').value.toUpperCase();
             conn = peer.connect(code);
-            conn.on('open', () => alert("POŁĄCZONO Z TABLICĄ!"));
+            conn.on('open', () => alert("POŁĄCZONO!"));
         }
 
         function send(type, data={}) { if(conn) conn.send({type, ...data}); }
@@ -184,17 +209,17 @@
 
         function transferToActive() {
             if(!activeTeam) return alert("Wybierz drużynę!");
-            if(activeTeam === 'L') scoreL += total; else scoreR += total;
+            if(activeTeam === 'L') { scoreL += total; currL += total; } 
+            else { scoreR += total; currR += total; }
             document.getElementById('scoreL-val').innerText = scoreL;
             document.getElementById('scoreR-val').innerText = scoreR;
+            document.getElementById('currL-val').innerText = currL;
+            document.getElementById('currR-val').innerText = currR;
             send('SCORES', {L: scoreL, R: scoreR});
             total = 0; 
         }
 
-        function losePool() {
-            total = 0;
-            send('REV_LOSE');
-        }
+        function losePool() { total = 0; send('REV_LOSE'); }
 
         function cycleX() {
             if(!activeTeam) return alert("Wybierz drużynę!");
@@ -205,6 +230,9 @@
         function startR(n) {
             if(!curQ) return alert("Wybierz pytanie!");
             total = 0; xCountL = 0; xCountR = 0;
+            currL = 0; currR = 0; // Reset punktów bieżącej rundy
+            document.getElementById('currL-val').innerText = "0";
+            document.getElementById('currR-val').innerText = "0";
             send('SET', {c: curQ.a.length});
             const box = document.getElementById('ans-box'); box.innerHTML = '';
             curQ.a.forEach((a, i) => {
@@ -229,16 +257,8 @@
             document.getElementById('inputs').style.display = 'block';
         }
 
-        function revFA(pl, i) { 
-            send('SND', {f:'ok'}); // ok.mp3 dla odpowiedzi
-            send('R_A', {pl, i, t: document.getElementById(`f${pl}t${i}`).value}); 
-        }
-        function revFP(pl, i) { 
-            const p=parseInt(document.getElementById(`f${pl}p${i}`).value)||0; 
-            total+=p; 
-            send('SND', {f:'final'}); // final.mp3 dla punktów
-            send('R_P', {pl, i, p, s:total}); 
-        }
+        function revFA(pl, i) { send('SND', {f:'ok'}); send('R_A', {pl, i, t: document.getElementById(`f${pl}t${i}`).value}); }
+        function revFP(pl, i) { const p=parseInt(document.getElementById(`f${pl}p${i}`).value)||0; total+=p; send('SND', {f:'final'}); send('R_P', {pl, i, p, s:total}); }
 
         questions.forEach(q => {
             const d = document.createElement('div'); d.className='q-item'; d.innerText=`${q.id}. ${q.q}`;
@@ -248,7 +268,7 @@
 
         finals.forEach(f => {
             const d = document.createElement('div'); d.className='q-item'; d.innerText=`FINAŁ ${f.n}`;
-            d.onclick=()=>{ document.getElementById('hint').innerText="FINAŁ:\n\n"+f.items.join('\n'); };
+            d.onclick=()=>{ document.getElementById('hint').innerText="ZESTAW FINAŁOWY:\n\n"+f.items.join('\n'); };
             document.getElementById('f-list').appendChild(d);
         });
     </script>
