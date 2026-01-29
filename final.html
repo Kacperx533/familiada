@@ -2,76 +2,91 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>PANEL FINAŁOWY - FAMILIADA</title>
+    <title>PANEL FINAŁOWY - FAMILIADA PRO</title>
     <style>
-        body { font-family: sans-serif; background: #0f172a; color: white; padding: 15px; margin: 0; }
-        .main-wrapper { max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; gap: 15px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f172a; color: white; padding: 20px; margin: 0; line-height: 1.5; }
+        .wrapper { max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
         
-        /* Styl kart jak w panelu sterowania */
-        .card { background: #1e293b; padding: 15px; border-radius: 10px; border: 1px solid #334155; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
-        h2 { color: #facc15; font-size: 14px; margin: 0 0 12px 0; border-bottom: 1px solid #334155; padding-bottom: 5px; text-transform: uppercase; }
+        /* Karty sekcji */
+        .card { background: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid #334155; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5); }
+        h2 { color: #facc15; font-size: 16px; margin: 0 0 15px 0; border-bottom: 2px solid #334155; padding-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
         
-        .grid-players { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .row-final { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; background: #0f172a; padding: 5px; border-radius: 6px; }
+        /* Układ graczy */
+        .grid-players { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+        .player-col { background: rgba(15, 23, 42, 0.5); padding: 15px; border-radius: 10px; }
+        .row-final { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; background: #1e293b; padding: 8px; border-radius: 8px; border: 1px solid #475569; }
 
-        /* LED jak w panelu sterowania */
-        .led { width: 15px; height: 15px; border-radius: 50%; background: #334155; flex-shrink: 0; }
-        .led-active { background: #22c55e; box-shadow: 0 0 10px #22c55e; }
+        /* Diody LED */
+        .led { width: 20px; height: 20px; border-radius: 50%; background: #334155; flex-shrink: 0; border: 2px solid #0f172a; }
+        .led-active { background: #22c55e; box-shadow: 0 0 15px #22c55e; border-color: #f0fdf4; }
 
-        input { flex: 1; padding: 8px; background: #1e293b; border: 1px solid #3b82f6; color: #fff; border-radius: 4px; font-size: 13px; }
-        .input-pts { width: 45px; flex: none; text-align: center; color: #facc15; font-weight: bold; }
+        /* Formularze */
+        input { flex: 1; padding: 10px; background: #0f172a; border: 1px solid #3b82f6; color: #fff; border-radius: 6px; font-size: 14px; outline: none; }
+        input:focus { border-color: #facc15; }
+        .input-pts { width: 60px; flex: none; text-align: center; color: #facc15; font-weight: bold; font-size: 18px; }
 
-        button { padding: 8px 10px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 10px; transition: 0.2s; }
+        /* Przyciski */
+        button { padding: 10px 15px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 11px; transition: all 0.2s; }
+        button:active { transform: scale(0.95); }
         .btn-blue { background: #3b82f6; color: white; }
         .btn-green { background: #22c55e; color: white; }
         .btn-gold { background: #eab308; color: black; }
         .btn-red { background: #ef4444; color: white; }
 
-        /* Tabela pytań */
-        .cheat-table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 10px; }
-        .cheat-table th, .cheat-table td { border: 1px solid #334155; padding: 6px; text-align: left; }
-        .cheat-table th { background: #0f172a; color: #facc15; }
-        .cheat-table tr:hover { background: #2d3748; }
+        /* Tabela ściągi */
+        .cheat-table { width: 100%; border-collapse: collapse; font-size: 13px; background: #0f172a; border-radius: 8px; overflow: hidden; }
+        .cheat-table th { background: #334155; color: #facc15; padding: 12px; text-align: left; }
+        .cheat-table td { padding: 10px; border-bottom: 1px solid #334155; }
+        .cheat-table tr:hover { background: #1e293b; }
+        .top-ans { color: #22c55e; font-weight: bold; }
 
-        .total-display { font-size: 40px; text-align: center; color: #facc15; font-weight: bold; margin: 10px 0; border: 2px dashed #3b82f6; border-radius: 10px; padding: 10px; }
+        /* Licznik punktów */
+        .total-container { display: flex; justify-content: center; align-items: center; gap: 20px; margin: 10px 0; }
+        .total-display { font-size: 50px; color: #facc15; font-weight: bold; text-shadow: 0 0 10px rgba(234, 179, 8, 0.4); }
     </style>
 </head>
 <body>
 
-<div class="main-wrapper">
+<div class="wrapper">
     <div class="card">
-        <div style="display: flex; gap: 10px;">
-            <input type="text" id="code" placeholder="KOD Z TABLICY">
-            <button onclick="connect()" class="btn-green" style="width: 150px;">POŁĄCZ</button>
+        <h2>Połączenie z systemem</h2>
+        <div style="display: flex; gap: 15px;">
+            <input type="text" id="code" placeholder="WPISZ KOD WYŚWIETLONY NA TABLICY">
+            <button onclick="connect()" class="btn-green" style="width: 200px; font-size: 14px;">POŁĄCZ SYSTEMY</button>
         </div>
     </div>
 
     <div class="card">
-        <h2>STEROWANIE FINAŁEM</h2>
-        <button onclick="send('SND',{f:'final'})" class="btn-gold" style="width:100%; height: 45px; font-size: 14px; margin-bottom: 15px;">🎵 PRZERYWNIK / START FINAŁU</button>
+        <h2>Panel Sterowania Finałem</h2>
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 20px;">
+            <button onclick="send('SND',{f:'final'})" class="btn-gold" style="height: 60px; font-size: 16px;">🎵 START FINAŁU / PRZERYWNIK</button>
+            <button onclick="send('SND',{f:'powtorzenie'})" class="btn-red" style="height: 60px; font-size: 14px;">⚠️ DŹWIĘK POWTÓRZENIA</button>
+        </div>
         
         <div class="grid-players">
-            <div>
-                <h2 style="text-align:center">GRACZ 1</h2>
+            <div class="player-col">
+                <h2 style="text-align: center; border: none;">GRACZ 1</h2>
                 <div id="g1-rows"></div>
             </div>
-            <div>
-                <h2 style="text-align:center">GRACZ 2</h2>
+            <div class="player-col">
+                <h2 style="text-align: center; border: none;">GRACZ 2</h2>
                 <div id="g2-rows"></div>
             </div>
         </div>
 
-        <div class="total-display">SUMA: <span id="f-total">0</span></div>
-        <button onclick="send('SND',{f:'powtorzenie'})" class="btn-red" style="width:100%; padding: 12px;">DŹWIĘK POWTÓRZENIA (BRZDĘK)</button>
+        <div class="total-container">
+            <div style="font-size: 20px; text-transform: uppercase; color: #94a3b8;">Suma punktów finałowych:</div>
+            <div class="total-display"><span id="f-total">0</span></div>
+        </div>
     </div>
 
     <div class="card">
-        <h2>📋 BAZA 10 FINAŁÓW (ŚCIĄGA)</h2>
+        <h2>📋 Baza 10 Finałów (Ściąga Prowadzącego)</h2>
         <table class="cheat-table">
             <thead>
                 <tr>
-                    <th>Nr</th>
-                    <th>Pytania i najwyżej punktowane odpowiedzi (TOP 2)</th>
+                    <th style="width: 50px;">NR</th>
+                    <th>Pytania oraz najwyżej punktowane odpowiedzi</th>
                 </tr>
             </thead>
             <tbody id="cheat-body"></tbody>
@@ -84,35 +99,38 @@
     let conn, peer = new Peer(), totalF = 0;
 
     const finals = [
-        {id: 1, data: "1. Więcej niż jedno: STADO(40) PARA(25) | 2. Owoc: JABŁKO(35) BANAN(20) | 3. Zimne: LÓD(50) LODY(30) | 4. Ptak: WRÓBEL(30) ORZEŁ(20) | 5. Rzeka: WISŁA(60) ODRA(15)"},
-        {id: 2, data: "1. W kuchni: NÓŻ(35) GARNEK(25) | 2. Słodkie: CUKIER(40) MIÓD(20) | 3. Państwo: POLSKA(45) NIEMCY(15) | 4. Drzewo: DĄB(30) SOSNA(20) | 5. Kolor: NIEBIESKI(35) CZERWONY(25)"},
-        {id: 3, data: "1. Na śniadanie: JAJECZNICA(30) KANAPKA(25) | 2. Napój: WODA(40) KAWA(20) | 3. Kwiat: RÓŻA(45) TULIPAN(20) | 4. Ryba: KARP(35) ŚLEDŹ(25) | 5. Metal: ŻELAZO(30) ZŁOTO(20)"},
-        {id: 4, data: "1. Sport: PIŁKA NOŻNA(50) TENIS(15) | 2. Mebel: STÓŁ(35) KRZESŁO(25) | 3. Owad: MUCHA(30) PSZCZOŁA(25) | 4. Miasto: WARSZAWA(40) KRAKÓW(20) | 5. Instrument: GITARA(35) PIANINO(20)"},
-        {id: 5, data: "1. Warzywo: MARCHEW(35) ZIEMNIAK(30) | 2. Planeta: ZIEMIA(40) MARS(20) | 3. Środek lokomocji: AUTO(45) POCIĄG(20) | 4. Część ciała: RĘKA(30) GŁOWA(25) | 5. Imię męskie: JAN(30) ADAM(20)"},
-        {id: 6, data: "1. Narzędzie: MŁOTEK(40) PIŁA(20) | 2. Zwierzę domowe: PIES(50) KOT(35) | 3. Coś co świeci: SŁOŃCE(45) ŻARÓWKA(25) | 4. Szkoła: TABLICA(30) ZESZYT(20) | 5. Ubranie: SPODNIE(30) KOSZULA(25)"},
-        {id: 7, data: "1. Marka auta: FIAT(25) TOYOTA(20) | 2. Miesiąc: MAJ(30) GRUDZIEŃ(25) | 3. Pora roku: LATO(60) WIOSNA(20) | 4. Budynek: DOM(45) BLOK(25) | 5. Język: POLSKI(40) ANGIELSKI(35)"},
-        {id: 8, data: "1. Gra: SZACHY(30) KARTY(25) | 2. Las: DRZEWA(50) GRZYBY(20) | 3. Coś okrągłego: KOŁO(40) PIŁKA(30) | 4. Przyprawa: SÓL(45) PIEPRZ(35) | 5. Żywioł: OGIEŃ(35) WODA(30)"},
-        {id: 9, data: "1. Stolica: PARYŻ(30) LONDYN(25) | 2. Bajka: MYSZKA MIKI(35) SMURF(20) | 3. Praca: BIURO(30) BUDOWA(20) | 4. Pogoda: DESZCZ(35) SŁOŃCE(35) | 5. Waluta: ZŁOTY(50) EURO(30)"},
-        {id: 10, data: "1. Góry: TATRY(65) ALPY(15) | 2. Morze: BAŁTYK(70) CZERWONE(10) | 3. Napój gazowany: COLA(45) ORANŻADA(15) | 4. Kosmos: GWIAZDY(40) KSIĘŻYC(30) | 5. Płyn: WODA(55) MLEKO(20)"}
+        {id: 1, data: "1. Więcej niż jedno: <span class='top-ans'>STADO(40) PARA(25)</span> | 2. Owoc: <span class='top-ans'>JABŁKO(35) BANAN(20)</span> | 3. Zimne: <span class='top-ans'>LÓD(50) LODY(30)</span> | 4. Ptak: <span class='top-ans'>WRÓBEL(30) ORZEŁ(20)</span> | 5. Rzeka: <span class='top-ans'>WISŁA(60)</span>"},
+        {id: 2, data: "1. W kuchni: <span class='top-ans'>NÓŻ(35) GARNEK(25)</span> | 2. Słodkie: <span class='top-ans'>CUKIER(40) MIÓD(20)</span> | 3. Państwo: <span class='top-ans'>POLSKA(45)</span> | 4. Drzewo: <span class='top-ans'>DĄB(30)</span> | 5. Kolor: <span class='top-ans'>NIEBIESKI(35)</span>"},
+        {id: 3, data: "1. Na śniadanie: <span class='top-ans'>JAJECZNICA(30)</span> | 2. Napój: <span class='top-ans'>WODA(40) KAWA(20)</span> | 3. Kwiat: <span class='top-ans'>RÓŻA(45)</span> | 4. Ryba: <span class='top-ans'>KARP(35)</span> | 5. Metal: <span class='top-ans'>ZŁOTO(20)</span>"},
+        {id: 4, data: "1. Sport: <span class='top-ans'>PIŁKA NOŻNA(50)</span> | 2. Mebel: <span class='top-ans'>STÓŁ(35) KRZESŁO(25)</span> | 3. Owad: <span class='top-ans'>MUCHA(30)</span> | 4. Miasto: <span class='top-ans'>WARSZAWA(40)</span> | 5. Instrument: <span class='top-ans'>GITARA(35)</span>"},
+        {id: 5, data: "1. Warzywo: <span class='top-ans'>MARCHEW(35) ZIEMNIAK(30)</span> | 2. Planeta: <span class='top-ans'>ZIEMIA(40)</span> | 3. Auto: <span class='top-ans'>FIAT(30)</span> | 4. Część ciała: <span class='top-ans'>RĘKA(30)</span> | 5. Imię: <span class='top-ans'>JAN(30)</span>"},
+        {id: 6, data: "1. Narzędzie: <span class='top-ans'>MŁOTEK(40)</span> | 2. Zwierzę: <span class='top-ans'>PIES(50) KOT(35)</span> | 3. Świeci: <span class='top-ans'>SŁOŃCE(45)</span> | 4. Szkoła: <span class='top-ans'>TABLICA(30)</span> | 5. Ubranie: <span class='top-ans'>SPODNIE(30)</span>"},
+        {id: 7, data: "1. Marka auta: <span class='top-ans'>FIAT(25)</span> | 2. Miesiąc: <span class='top-ans'>MAJ(30)</span> | 3. Pora roku: <span class='top-ans'>LATO(60)</span> | 4. Budynek: <span class='top-ans'>DOM(45)</span> | 5. Język: <span class='top-ans'>POLSKI(40)</span>"},
+        {id: 8, data: "1. Gra: <span class='top-ans'>SZACHY(30)</span> | 2. Las: <span class='top-ans'>DRZEWA(50) GRZYBY(20)</span> | 3. Okrągłe: <span class='top-ans'>KOŁO(40)</span> | 4. Przyprawa: <span class='top-ans'>SÓL(45) PIEPRZ(35)</span> | 5. Żywioł: <span class='top-ans'>OGIEŃ(35)</span>"},
+        {id: 9, data: "1. Stolica: <span class='top-ans'>PARYŻ(30)</span> | 2. Bajka: <span class='top-ans'>MYSZKA MIKI(35)</span> | 3. Praca: <span class='top-ans'>BIURO(30)</span> | 4. Pogoda: <span class='top-ans'>SŁOŃCE(35)</span> | 5. Waluta: <span class='top-ans'>ZŁOTY(50)</span>"},
+        {id: 10, data: "1. Góry: <span class='top-ans'>TATRY(65)</span> | 2. Morze: <span class='top-ans'>BAŁTYK(70)</span> | 3. Napój: <span class='top-ans'>COLA(45)</span> | 4. Kosmos: <span class='top-ans'>GWIAZDY(40)</span> | 5. Płyn: <span class='top-ans'>WODA(55)</span>"}
     ];
 
     function connect() {
         const code = document.getElementById('code').value.toUpperCase();
         conn = peer.connect(code);
-        conn.on('open', () => { alert("POŁĄCZONO!"); send('FIN'); });
+        conn.on('open', () => { 
+            alert("POŁĄCZONO POMYŚLNIE!"); 
+            send('FIN'); 
+        });
     }
 
     function send(type, data={}) { if(conn) conn.send({type, ...data}); }
 
-    function render() {
-        // Generowanie pól graczy
+    function init() {
+        // Tworzenie wierszy dla obu graczy
         [1, 2].forEach(p => {
             const container = document.getElementById(`g${p}-rows`);
             for(let i=0; i<5; i++) {
                 container.innerHTML += `
                     <div class="row-final">
                         <div class="led" id="led-p${p}-r${i}"></div>
-                        <input id="f${p}t${i}" placeholder="Odpowiedź">
+                        <input id="f${p}t${i}" placeholder="ODPOWIEDŹ">
                         <button onclick="revFA(${p},${i})" class="btn-blue">ODP</button>
                         <input id="f${p}p${i}" type="number" class="input-pts" placeholder="0">
                         <button onclick="revFP(${p},${i})" class="btn-green">ZATWIERDŹ</button>
@@ -120,7 +138,7 @@
             }
         });
 
-        // Generowanie ściągi
+        // Wypełnianie ściągi
         const body = document.getElementById('cheat-body');
         finals.forEach(f => {
             body.innerHTML += `<tr><td>${f.id}</td><td>${f.data}</td></tr>`;
@@ -139,13 +157,13 @@
         send('SND', {f:'final'}); 
         send('R_P', {pl, i, p: pVal, s: totalF}); 
         
-        // Zapalenie diody w panelu finałowym
+        // Aktywacja LED
         document.getElementById(`led-p${pl}-r${i}`).classList.add('led-active');
-        // Synchronizacja z panelem głównym
+        // Powiadomienie panelu głównego
         send('LED_SYNC', {player: pl, row: i});
     }
 
-    render();
+    init();
 </script>
 </body>
 </html>
