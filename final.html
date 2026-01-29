@@ -4,44 +4,40 @@
     <meta charset="UTF-8">
     <title>PANEL FINAŁOWY - FAMILIADA PRO</title>
     <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; background: #0f172a; color: white; padding: 20px; margin: 0; }
-        .wrapper { max-width: 1300px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #0f172a; color: white; padding: 20px; margin: 0; }
+        .wrapper { max-width: 1400px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
         
-        /* Karty */
-        .card { background: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid #334155; box-shadow: 0 10px 20px rgba(0,0,0,0.4); }
-        h2 { color: #facc15; font-size: 16px; margin: 0 0 15px 0; border-bottom: 2px solid #334155; padding-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+        .card { background: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid #334155; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        h2 { color: #facc15; font-size: 16px; margin: 0 0 15px 0; border-bottom: 2px solid #334155; padding-bottom: 8px; text-transform: uppercase; }
         
-        /* Układ Graczy */
+        /* Panel Sterowania */
         .grid-players { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
         .player-box { background: rgba(15, 23, 42, 0.4); padding: 20px; border-radius: 10px; border: 1px solid #475569; }
-        .row-final { display: flex; align-items: center; gap: 12px; margin-bottom: 15px; padding: 10px; background: #1e293b; border-radius: 8px; border: 1px solid #334155; }
+        .row-final { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; background: #1e293b; padding: 10px; border-radius: 8px; }
 
-        /* Kontrolki LED */
-        .led { width: 22px; height: 22px; border-radius: 50%; background: #334155; flex-shrink: 0; border: 2px solid #000; }
+        .led { width: 22px; height: 22px; border-radius: 50%; background: #334155; border: 2px solid #000; transition: 0.3s; }
         .led-on { background: #22c55e; box-shadow: 0 0 15px #22c55e; }
 
-        /* Inputy */
         input { flex: 1; padding: 12px; background: #0f172a; border: 1px solid #3b82f6; color: #fff; border-radius: 6px; font-size: 15px; outline: none; }
-        input:focus { border-color: #facc15; }
         .input-pts { width: 70px; flex: none; text-align: center; color: #facc15; font-weight: bold; font-size: 20px; }
 
-        /* Przyciski */
-        button { padding: 10px 18px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 12px; transition: 0.2s; }
+        button { padding: 10px 15px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 12px; transition: 0.2s; }
         .btn-blue { background: #3b82f6; color: white; }
         .btn-green { background: #22c55e; color: white; }
         .btn-gold { background: #eab308; color: black; }
         .btn-red { background: #ef4444; color: white; }
-        button:hover { opacity: 0.8; transform: translateY(-1px); }
 
-        /* Licznik */
-        .total-box { text-align: center; padding: 20px; margin-top: 10px; }
-        .total-val { font-size: 60px; color: #facc15; font-weight: bold; text-shadow: 0 0 20px rgba(234, 179, 8, 0.5); }
+        /* Licznik Sumy */
+        .total-box { text-align: center; margin-top: 10px; border-top: 1px solid #334155; padding-top: 15px; }
+        .total-val { font-size: 70px; color: #facc15; font-weight: bold; }
 
-        /* Ściąga - KAŻDA ODPOWIEDŹ W NOWEJ LINII */
-        .cheat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 15px; margin-top: 10px; }
-        .cheat-item { background: #0f172a; padding: 15px; border-radius: 8px; border-top: 4px solid #eab308; }
-        .cheat-q-row { border-bottom: 1px solid #1e293b; padding: 6px 0; font-size: 13px; line-height: 1.4; }
-        .cheat-q-row b { color: #22c55e; display: block; margin-top: 2px; } /* Punkty pod pytaniem */
+        /* ŚCIĄGA - WYSOKA CZYTELNOŚĆ */
+        .cheat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+        .cheat-card { background: #0f172a; padding: 15px; border-radius: 10px; border-top: 5px solid #eab308; }
+        .q-block { margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #1e293b; }
+        .q-title { color: #94a3b8; font-size: 12px; text-transform: uppercase; margin-bottom: 5px; }
+        .ans-line { display: block; font-size: 14px; margin-bottom: 3px; }
+        .ans-line b { color: #22c55e; }
     </style>
 </head>
 <body>
@@ -49,36 +45,36 @@
 <div class="wrapper">
     <div class="card">
         <div style="display: flex; gap: 15px;">
-            <input type="text" id="code" placeholder="KOD Z TABLICY">
-            <button onclick="connect()" class="btn-green" style="width: 200px;">POŁĄCZ SYSTEM</button>
+            <input type="text" id="code" placeholder="WPISZ KOD Z TABLICY">
+            <button onclick="connect()" class="btn-green" style="width: 250px;">POŁĄCZ Z TABLICĄ</button>
         </div>
     </div>
 
     <div class="card">
-        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 15px; margin-bottom: 25px;">
-            <button onclick="send('SND',{f:'final'})" class="btn-gold" style="height: 60px; font-size: 18px;">🎵 PRZERYWNIK / START FINAŁU</button>
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 15px; margin-bottom: 20px;">
+            <button onclick="send('SND',{f:'final'})" class="btn-gold" style="height: 60px; font-size: 18px;">🎵 START FINAŁU / PRZERYWNIK</button>
             <button onclick="send('SND',{f:'powtorzenie'})" class="btn-red" style="height: 60px;">⚠️ DŹWIĘK POWTÓRZENIA</button>
         </div>
 
         <div class="grid-players">
             <div class="player-box">
-                <h2 style="text-align: center; border: none;">GRACZ 1</h2>
+                <h2 style="text-align: center;">GRACZ 1</h2>
                 <div id="g1-rows"></div>
             </div>
             <div class="player-box">
-                <h2 style="text-align: center; border: none;">GRACZ 2</h2>
+                <h2 style="text-align: center;">GRACZ 2</h2>
                 <div id="g2-rows"></div>
             </div>
         </div>
 
         <div class="total-box">
-            <div style="text-transform: uppercase; color: #94a3b8; font-size: 14px;">Aktualna suma punktów:</div>
+            <div style="color: #94a3b8; font-size: 14px;">SUMA PUNKTÓW FINAŁOWYCH</div>
             <div class="total-val" id="f-total">0</div>
         </div>
     </div>
 
     <div class="card">
-        <h2>📋 BAZA FINAŁÓW (CZYTELNA LISTA)</h2>
+        <h2>📋 BAZA PYTAŃ I ODPOWIEDZI (PEŁNA LISTA)</h2>
         <div class="cheat-grid" id="cheat-container"></div>
     </div>
 </div>
@@ -87,17 +83,28 @@
 <script>
     let conn, peer = new Peer(), totalF = 0;
 
-    const finalsBase = [
-        {n:1, q:["Owoc: Jabłko(35), Banan(25)", "Kolor: Niebieski(40), Czerwony(30)", "Zwierzę: Pies(50), Kot(35)", "Miasto: Paryż(30), Londyn(25)", "Sport: Piłka(45)"]},
-        {n:2, q:["Zimne: Lód(40), Lody(30)", "Ptak: Wróbel(30), Bocian(25)", "Auto: Fiat(35), BMW(25)", "Kwiat: Róża(50), Tulipan(25)", "Imię: Jan(30)"]},
-        {n:3, q:["Na chleb: Masło(45), Ser(25)", "Napój: Woda(40), Kawa(25)", "Drzewo: Dąb(35), Brzoza(25)", "Ryba: Karp(40), Śledź(25)", "Rzeka: Wisła(65)"]},
-        {n:4, q:["Część ciała: Ręka(30), Głowa(25)", "Mebel: Krzesło(30), Stół(25)", "Pisanie: Długopis(45), Ołówek(30)", "Stolica: Warszawa(55)", "Planeta: Ziemia(40)"]},
-        {n:5, q:["Słodkie: Czekolada(35), Ciastko(25)", "Warzywo: Marchew(40), Ziemniak(30)", "Narzędzie: Młotek(45)", "Las: Drzewa(50)", "Pogoda: Deszcz(35)"]},
-        {n:6, q:["Biały napój: Mleko(60), Kefir(15)", "Garderoba: Kurtka(30), Spodnie(25)", "Szkoła: Ławka(35)", "Dom: Okno(40)", "Elektronika: Telefon(50)"]},
-        {n:7, q:["Transport: Samochód(40), Pociąg(25)", "Mokre: Woda(55)", "Muzyka: Rock(30)", "Taniec: Walc(35)", "Niebo: Słońce(45)"]},
-        {n:8, q:["Praca: Biuro(35), Szkoła(25)", "Hobby: Sport(30)", "Budynek: Wieżowiec(50)", "Gorące: Ogień(40)", "Twarde: Kamień(45)"]},
-        {n:9, q:["Pora roku: Lato(60), Wiosna(20)", "Obiad: Zupa(35)", "Bajka: Myszka Miki(30)", "Góry: Tatry(70)", "Drzewo leśne: Sosna(45)"]},
-        {n:10, q:["Zabawka: Miś(40), Lalka(30)", "Walka: Boks(40)", "Kompozytor: Chopin(60)", "Morze: Bałtyckie(75)", "Szybkie: Bolid F1(40)"]}
+    const database = [
+        {
+            n: 1,
+            questions: [
+                {q: "Więcej niż jedno zwierzę", a: ["STADO (40)", "PARA (25)", "KLUCZ (15)", "WATAHA (10)", "RÓJ (5)"]},
+                {q: "Owoc z drzewa", a: ["JABŁKO (35)", "GRUSZKA (25)", "ŚLIWKA (15)", "BANAN (10)", "CZEREŚNIA (5)"]},
+                {q: "Coś zimnego", a: ["LÓD (45)", "LODY (30)", "ŚNIEG (15)", "WODA (5)", "POWIETRZE (2)"]},
+                {q: "Ptak miejski", a: ["GOŁĄB (40)", "WRÓBEL (30)", "KAWKA (15)", "SROKA (10)", "SIKORKA (5)"]},
+                {q: "Rzeka w Polsce", a: ["WISŁA (60)", "ODRA (20)", "WARTA (10)", "BUG (5)", "NAREW (5)"]}
+            ]
+        },
+        {
+            n: 2,
+            questions: [
+                {q: "W kuchni", a: ["NÓŻ (30)", "GARNEK (25)", "PATELNIA (20)", "TALERZ (15)", "ŁYŻKA (10)"]},
+                {q: "Coś słodkiego", a: ["CUKIER (35)", "MIÓD (25)", "CZEKOLADA (20)", "CIASTKO (15)", "CUKIERKI (5)"]},
+                {q: "Państwo sąsiad", a: ["NIEMCY (40)", "CZECHY (25)", "SŁOWACJA (15)", "UKRAINA (10)", "LITWA (5)"]},
+                {q: "Drzewo liściaste", a: ["DĄB (35)", "BRZOZA (30)", "KLON (15)", "LIPA (10)", "BUK (5)"]},
+                {q: "Kolor tęczy", a: ["CZERWONY (30)", "NIEBIESKI (25)", "ŻÓŁTY (20)", "ZIELONY (15)", "FIOLET (10)"]}
+            ]
+        }
+        // ... (dodaj kolejne zestawy analogicznie do powyższych)
     ];
 
     function connect() {
@@ -109,7 +116,7 @@
     function send(type, data={}) { if(conn) conn.send({type, ...data}); }
 
     function init() {
-        // Generowanie pól sterowania
+        // Generowanie panelu graczy
         [1, 2].forEach(p => {
             const container = document.getElementById(`g${p}-rows`);
             for(let i=0; i<5; i++) {
@@ -119,24 +126,24 @@
                         <input id="f${p}t${i}" placeholder="ODPOWIEDŹ">
                         <button onclick="revFA(${p},${i})" class="btn-blue">ODP</button>
                         <input id="f${p}p${i}" type="number" class="input-pts" placeholder="0">
-                        <button onclick="revFP(${p},${i})" class="btn-green">ZATWIERDŹ</button>
+                        <button onclick="revFP(${p},${i})" class="btn-green">OK</button>
                     </div>`;
             }
         });
 
-        // Generowanie ściągi - KAŻDA ODPOWIEDŹ W SWOJEJ LINII
+        // Generowanie ściągi - każda odpowiedź w nowej linii
         const cheatContainer = document.getElementById('cheat-container');
-        finalsBase.forEach(f => {
-            let questionsHtml = f.q.map(line => {
-                const parts = line.split(':');
-                return `<div class="cheat-q-row">${parts[0]}: <b>${parts[1]}</b></div>`;
-            }).join('');
-            
-            cheatContainer.innerHTML += `
-                <div class="cheat-item">
-                    <h3 style="margin:0 0 10px 0; color:#eab308; font-size:14px;">ZESTAW ${f.n}</h3>
-                    ${questionsHtml}
-                </div>`;
+        database.forEach(set => {
+            let html = `<div class="cheat-card"><h3>ZESTAW ${set.n}</h3>`;
+            set.questions.forEach(item => {
+                html += `<div class="q-block"><div class="q-title">${item.q}</div>`;
+                item.a.forEach(ans => {
+                    html += `<span class="ans-line">· <b>${ans}</b></span>`;
+                });
+                html += `</div>`;
+            });
+            html += `</div>`;
+            cheatContainer.innerHTML += html;
         });
     }
 
