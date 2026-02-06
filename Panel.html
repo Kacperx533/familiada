@@ -10,7 +10,7 @@
         .card { background: #1e293b; padding: 12px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); border: 1px solid #334155; }
         button { padding: 10px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin: 2px; transition: 0.2s; }
         button:hover { opacity: 0.8; }
-        .btn-blue { background: #3b82f6; color: white; width: 100%; }
+        .btn-blue { background: #3b82f6; color: white; }
         .btn-green { background: #22c55e; color: white; }
         .btn-red { background: #ef4444; color: white; }
         .btn-gold { background: #eab308; color: black; }
@@ -19,37 +19,37 @@
         .q-item { background: #334155; padding: 8px; margin-bottom: 6px; border-radius: 4px; cursor: pointer; font-size: 13px; border-left: 4px solid #eab308; }
         .q-item:hover { background: #475569; }
         input { width: 100%; padding: 8px; background: #0f172a; border: 1px solid #334155; color: #facc15; border-radius: 4px; box-sizing: border-box; }
-        h2 { color: #facc15; font-size: 15px; margin: 0 0 10px 0; border-bottom: 1px solid #334155; padding-bottom: 5px; text-transform: uppercase; }
+        h2 { color: #facc15; font-size: 14px; margin: 0 0 10px 0; border-bottom: 1px solid #334155; padding-bottom: 5px; text-transform: uppercase; }
         .score-box { font-size: 20px; font-weight: bold; text-align: center; margin-top: 5px; color: #fff; }
-        .final-grid { display: grid; grid-template-columns: 1fr auto auto auto; gap: 5px; align-items: center; margin-bottom: 5px; }
+        .final-grid { display: grid; grid-template-columns: 1fr 45px 45px 45px; gap: 5px; align-items: center; margin-bottom: 5px; }
         h4 { margin: 10px 0 5px 0; color: #94a3b8; font-size: 12px; border-top: 1px solid #334155; padding-top: 10px; }
     </style>
 </head>
 <body>
     <div class="side">
-        <h2>BAZA PYTAŃ</h2>
+        <h2>BAZA PYTAŃ (50)</h2>
         <div id="q-list"></div>
     </div>
 
     <div class="main">
         <div class="card">
-            <input type="text" id="code" placeholder="WPISZ KOD Z TABLICY">
+            <input type="text" id="code" placeholder="KOD Z TABLICY">
             <button onclick="connect()" class="btn-green" style="width:100%; margin-top:5px">POŁĄCZ Z TABLICĄ</button>
         </div>
 
         <div class="card">
-            <h2>PUNKTY DRUŻYN</h2>
+            <h2>AKTYWNA DRUŻYNA</h2>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px">
                 <div>
-                    <button id="btn-L" onclick="setActiveTeam('L')" class="btn-outline">DRUŻYNA LEWA</button>
+                    <button id="btn-L" onclick="setActiveTeam('L')" class="btn-outline">LEWA</button>
                     <div id="scoreL-val" class="score-box">0 pkt</div>
                 </div>
                 <div>
-                    <button id="btn-R" onclick="setActiveTeam('R')" class="btn-outline">DRUŻYNA PRAWA</button>
+                    <button id="btn-R" onclick="setActiveTeam('R')" class="btn-outline">PRAWA</button>
                     <div id="scoreR-val" class="score-box">0 pkt</div>
                 </div>
             </div>
-            <button onclick="transferToActive()" class="btn-green" style="width:100%; margin-top:10px">PRZEKAŻ PULĘ DO AKTYWNEJ</button>
+            <button onclick="transferToActive()" class="btn-green" style="width:100%; margin-top:10px">PRZEKAŻ PUNKTY Z PULI</button>
         </div>
 
         <div class="card">
@@ -62,31 +62,37 @@
         </div>
 
         <div class="card">
-            <h2>RUNDY I MEDIA</h2>
-            <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:4px; margin-bottom: 10px;">
-                <button onclick="startR(1)" class="btn-blue">R1</button>
-                <button onclick="startR(2)" class="btn-blue">R2</button>
-                <button onclick="startR(3)" class="btn-blue">R3</button>
-                <button onclick="startF()" class="btn-gold">FINAŁ</button>
-            </div>
+            <h2>MULTIMEDIA / ZEGAR</h2>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:4px">
                 <button onclick="send('VID')" class="btn-gold">WIDEO CZOŁÓWKA</button>
-                <button onclick="send('SND',{f:'intro'})" class="btn-gold">MUZYKA INTRO</button>
+                <button onclick="send('SND',{f:'intro'})" class="btn-gold">INTRO MUZYKA</button>
+                <button onclick="send('SND',{f:'powtorzenie'})" class="btn-gold">POWTÓRZ ODPOWIEDŹ</button>
+                <button onclick="send('SND',{f:'stop'})" class="btn-red">STOP MUZYKA</button>
                 <button onclick="send('T_START',{s:15})" class="btn-blue">ZEGAR 15S</button>
-                <button onclick="send('SND',{f:'stop'})" class="btn-red">STOP AUDIO</button>
+                <button onclick="send('T_START',{s:1200})" class="btn-blue">ZEGAR 20M</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>RUNDY</h2>
+            <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:4px">
+                <button onclick="startR(1)" class="btn-blue">R1 (x1)</button>
+                <button onclick="startR(2)" class="btn-blue">R2 (x2)</button>
+                <button onclick="startR(3)" class="btn-blue">R3 (x3)</button>
+                <button onclick="startF()" class="btn-gold">FINAŁ</button>
             </div>
         </div>
 
         <div id="inputs" class="card" style="display:none">
-            <h2 id="q-title">Aktywne Pytanie</h2>
+            <h2 id="q-title">Aktywne</h2>
             <div id="ans-box"></div>
         </div>
     </div>
 
     <div class="side">
         <h2>ŚCIĄGA / FINAŁ</h2>
-        <div id="hint" style="color:#facc15; white-space: pre-wrap; font-family: monospace; font-size:13px; background: #0f172a; padding: 10px; border-radius: 5px;">Wybierz pytanie...</div>
-        <hr style="border:0; border-top:1px solid #334155; margin:15px 0">
+        <div id="hint" style="color:#facc15; white-space: pre-wrap; font-family: monospace; font-size:12px">Wybierz pytanie...</div>
+        <hr style="border:0; border-top:1px solid #334155; margin:10px 0">
         <div id="final-sets">
             <h2>ZESTAWY FINAŁOWE</h2>
             <div id="f-list"></div>
@@ -104,7 +110,13 @@
             {id:2, q:"Więcej niż jedno zwierzę?", a:["STADO","KLUCZ","PARA","WATAHA","ŁAWICA"], p:[40,20,15,15,10]},
             {id:3, q:"Zwierzę na K?", a:["KOT","KOŃ","KROWA","KURA","KANGUR"], p:[35,25,20,12,8]},
             {id:4, q:"W piórniku?", a:["DŁUGOPIS","OŁÓWEK","GUMKA","LINIJKA","CYRKIEL"], p:[42,28,15,10,5]},
-            {id:5, q:"Do zupy?", a:["MARCHEW","PIETRUSZKA","SELER","POR","ZIEMNIAK"], p:[30,22,18,15,15]}
+            {id:5, q:"Do zupy?", a:["MARCHEW","PIETRUSZKA","SELER","POR","ZIEMNIAK"], p:[30,22,18,15,15]},
+            {id:6, q:"Dyscyplina olimpijska?", a:["BIEGANIE","PŁYWANIE","SIATKÓWKA","TENIS","SKOKI"], p:[35,25,20,10,10]},
+            {id:7, q:"Coś z kołami?", a:["SAMOCHÓD","ROWER","MOTOCYKL","WÓZEK","TRAKTOR"], p:[50,25,12,8,5]},
+            {id:8, q:"Dzień tygodnia?", a:["PONIEDZIAŁEK","PIĄTEK","SOBOTA","NIEDZIELA","ŚRODA"], p:[25,25,20,20,10]},
+            {id:9, q:"Na chleb?", a:["MASŁO","SER","SZYNKA","POMIDOR","DŻEM"], p:[45,25,15,10,5]},
+            {id:10, q:"Miesiąc letni?", a:["LIPIEC","SIERPIEŃ","CZERWIEC","WRZESIEŃ","MAJ"], p:[40,35,20,3,2]}
+            // Tutaj możesz dopisać kolejne 40 pytań...
         ];
 
         const finals = [
@@ -115,7 +127,6 @@
             const code = document.getElementById('code').value.toUpperCase();
             conn = peer.connect(code);
             conn.on('open', () => alert("Połączono z Tablicą: " + code));
-            conn.on('error', (err) => alert("Błąd połączenia: " + err));
         }
 
         function send(type, data={}) { if(conn) conn.send({type, ...data}); }
@@ -136,19 +147,19 @@
         }
 
         function sendX(count) {
-            if(!activeTeam) return alert("Wybierz drużynę dla X!");
+            if(!activeTeam) return alert("Najpierw wybierz drużynę!");
             send('X', {s: activeTeam, c: count});
         }
 
         function startR(n) {
-            if(!curQ) return alert("Wybierz pytanie z listy!");
+            if(!curQ) return alert("Wybierz pytanie!");
             total = 0; 
             send('SET', {c: curQ.a.length});
             const box = document.getElementById('ans-box'); box.innerHTML = '';
             curQ.a.forEach((a, i) => {
                 box.innerHTML += `<div style="display:flex; gap:5px; margin-bottom:5px">
                     <input id="t${i}" value="${a}">
-                    <input id="p${i}" value="${curQ.p[i]}" style="width:50px">
+                    <input id="p${i}" value="${curQ.p[i]}" style="width:45px">
                     <button onclick="revN(${i})" class="btn-green">OK</button>
                 </div>`;
             });
@@ -163,8 +174,7 @@
         }
 
         function startF() {
-            total = 0; 
-            send('FIN');
+            total = 0; send('FIN');
             const box = document.getElementById('ans-box'); box.innerHTML = '';
             [1,2].forEach(p => {
                 box.innerHTML += `<h4>GRACZ ${p}</h4>`;
@@ -172,22 +182,20 @@
                     box.innerHTML += `
                     <div class="final-grid">
                         <input id="f${p}t${i}" placeholder="Odpowiedź">
-                        <button onclick="revFA(${p},${i})" class="btn-blue">O</button>
-                        <input id="f${p}p${i}" style="width:40px" placeholder="Pkt">
-                        <button onclick="revFP(${p},${i})" class="btn-green">P</button>
+                        <button onclick="revFA(${p},${i})" class="btn-blue" title="Odsłoń Tekst">O</button>
+                        <input id="f${p}p${i}" placeholder="Pkt">
+                        <button onclick="revFP(${p},${i})" class="btn-green" title="Odsłoń Punkty">P</button>
                     </div>`;
                 }
             });
             document.getElementById('inputs').style.display = 'block';
         }
 
-        // FINAŁ: Odsłanianie samej odpowiedzi
         function revFA(pl, i) { 
-            const val = document.getElementById(`f${pl}t${i}`).value;
-            send('R_A', {pl, i, t: val}); 
+            const t = document.getElementById(`f${pl}t${i}`).value;
+            send('R_A', {pl, i, t}); 
         }
 
-        // FINAŁ: Odsłanianie punktów i aktualizacja sumy
         function revFP(pl, i) { 
             const pVal = document.getElementById(`f${pl}p${i}`).value;
             if(pVal === "") return alert("Wpisz punkty!");
@@ -196,7 +204,7 @@
             send('R_P', {pl, i, p, s: total}); 
         }
 
-        // Inicjalizacja listy pytań
+        // Renderowanie list
         questions.forEach(q => {
             const d = document.createElement('div'); d.className='q-item'; d.innerText=`${q.id}. ${q.q}`;
             d.onclick=()=>{ 
