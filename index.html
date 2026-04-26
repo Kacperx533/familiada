@@ -26,7 +26,6 @@
         .f-row { display: grid; grid-template-columns: 1fr 80px 80px 1fr; gap: 20px; font-size: 7vh; color: var(--led); height: 9.5vh; align-items: center; }
         .footer { position: absolute; bottom: 40px; right: 100px; font-size: 9vh; color: var(--led); }
 
-        /* PIONOWE X */
         .x-mark { 
             position: absolute; top: 50%; transform: translateY(-50%);
             font-size: 18vh; color: #ff0000; display: none; 
@@ -42,12 +41,6 @@
 </head>
 <body>
     <video id="vid" src="czolowka.mp4"></video>
-    <audio id="snd-runda" src="runda.mp3"></audio>
-    <audio id="snd-final" src="final.mp3"></audio>
-    <audio id="snd-intro" src="intro.mp3"></audio>
-    <audio id="snd-powtorzenie" src="powtorzenie.mp3"></audio>
-    <audio id="snd-ok" src="ok.mp3"></audio>
-    <audio id="snd-zle" src="zle.mp3"></audio>
 
     <div id="setup">
         <h1 id="code-info" style="font-size: 40px;">TABLICA FAMILIADA</h1>
@@ -64,9 +57,7 @@
 
     <script>
         let peer, tInt;
-        function playS(id) { const s = document.getElementById('snd-'+id); if(s){ s.currentTime=0; s.play(); } }
         function stopAll() { 
-            document.querySelectorAll('audio').forEach(a=>{a.pause(); a.currentTime=0;}); 
             clearInterval(tInt); 
             document.getElementById('timer-display').style.display='none'; 
             document.getElementById('x-l').style.display='none';
@@ -81,7 +72,7 @@
                 t--;
                 let m = Math.floor(t/60), s = t%60;
                 d.innerText = (m>0?m+":":"")+(s<10?"0"+s:s);
-                if(t<=0){ clearInterval(tInt); playS('zle'); setTimeout(()=>d.style.display='none', 2000); }
+                if(t<=0){ clearInterval(tInt); setTimeout(()=>d.style.display='none', 2000); }
             }, 1000);
         }
 
@@ -95,23 +86,23 @@
                     if(d.type==='SET'){ 
                         document.getElementById('rows').innerHTML='';
                         for(let i=1;i<=d.c;i++) document.getElementById('rows').innerHTML+=`<div class="row"><div style="width:60px">${i}</div><div class="ans" id="a${i}">................</div><div class="pts" id="p${i}">--</div></div>`;
-                        document.getElementById('suma').innerText="0"; playS('runda');
+                        document.getElementById('suma').innerText="0";
                         document.getElementById('x-l').style.display='none'; document.getElementById('x-r').style.display='none';
                     }
                     if(d.type==='FIN'){ 
                         document.getElementById('rows').innerHTML='';
                         for(let i=1;i<=5;i++) document.getElementById('rows').innerHTML+=`<div class="f-row"><div id="f1a${i}">........</div><div id="f1p${i}">░░</div><div id="f2p${i}">░░</div><div id="f2a${i}" style="text-align:right">........</div></div>`;
-                        document.getElementById('suma').innerText="0"; playS('final');
+                        document.getElementById('suma').innerText="0";
                     }
-                    if(d.type==='REV'){ document.getElementById('a'+(d.i+1)).innerText=d.t; document.getElementById('p'+(d.i+1)).innerText=d.p; document.getElementById('suma').innerText=d.s; playS('ok'); }
+                    if(d.type==='REV'){ document.getElementById('a'+(d.i+1)).innerText=d.t; document.getElementById('p'+(d.i+1)).innerText=d.p; document.getElementById('suma').innerText=d.s; }
                     if(d.type==='R_A'){ document.getElementById(`f${d.pl}a${d.i+1}`).innerText=d.t; }
-                    if(d.type==='R_P'){ document.getElementById(`f${d.pl}p${d.i+1}`).innerText=d.p; document.getElementById('suma').innerText=d.s; playS('ok'); }
+                    if(d.type==='R_P'){ document.getElementById(`f${d.pl}p${d.i+1}`).innerText=d.p; document.getElementById('suma').innerText=d.s; }
                     if(d.type==='X'){ 
                         const el=document.getElementById(d.s==='L'?'x-l':'x-r'); 
-                        el.innerHTML = "X<br>".repeat(d.c); // Pionowe ustawienie
-                        el.style.display='block'; playS('zle'); 
+                        el.innerHTML = "X<br>".repeat(d.c);
+                        el.style.display='block';
                     }
-                    if(d.type==='SND'){ if(d.f==='stop') stopAll(); else playS(d.f); }
+                    if(d.type==='SND'){ if(d.f==='stop') stopAll(); }
                     if(d.type==='T_START') runTimer(d.s);
                     if(d.type==='VID'){ const v=document.getElementById('vid'); v.style.display='block'; v.play(); v.onended=()=>v.style.display='none'; }
                 });
