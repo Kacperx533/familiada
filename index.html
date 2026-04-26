@@ -8,45 +8,31 @@
     <style>
         :root { --led: #f4ff00; }
         html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: 'VT323', monospace; background: linear-gradient(90deg, #ff2d55 0%, #6383ff 50%, #7592ff 100%) fixed !important; }
-        
         #vid { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 100; display: none; object-fit: cover; }
-        
         .board { 
             width: 85vw; height: 75vh; background: #111; border: 10px solid #333; border-radius: 40px; 
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
             display: flex; flex-direction: column; padding: 0 140px; box-sizing: border-box; 
             box-shadow: 0 0 100px rgba(0,0,0,0.9); z-index: 10; 
         }
-
         #rows { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; }
-        .row { display: flex; align-items: center; font-size: 8.5vh; color: var(--led); height: 10vh; }
-        .ans { flex-grow: 1; text-transform: uppercase; }
+        .row { display: flex; align-items: center; font-size: 8.5vh; color: var(--led); height: 10vh; border-bottom: 1px solid #222; }
+        .ans { flex-grow: 1; text-transform: uppercase; white-space: nowrap; overflow: hidden; }
         .pts { width: 100px; text-align: right; }
-        
         .f-row { display: grid; grid-template-columns: 1fr 80px 80px 1fr; gap: 20px; font-size: 7vh; color: var(--led); height: 9.5vh; align-items: center; }
         .footer { position: absolute; bottom: 40px; right: 100px; font-size: 9vh; color: var(--led); }
-
-        .x-mark { 
-            position: absolute; top: 50%; transform: translateY(-50%);
-            font-size: 18vh; color: #ff0000; display: none; 
-            font-weight: bold; text-shadow: 0 0 30px #000; z-index: 200;
-            line-height: 0.9; text-align: center;
-        }
-        #x-l { left: 30px; } 
-        #x-r { right: 30px; }
-
+        .x-mark { position: absolute; top: 50%; transform: translateY(-50%); font-size: 18vh; color: #ff0000; display: none; font-weight: bold; text-shadow: 0 0 30px #000; z-index: 200; line-height: 0.9; text-align: center; }
+        #x-l { left: 30px; } #x-r { right: 30px; }
         #timer-display { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 25vh; color: var(--led); background: #000; padding: 20px 50px; border: 5px solid var(--led); display: none; z-index: 500; }
         #setup { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; }
     </style>
 </head>
 <body>
     <video id="vid" src="czolowka.mp4"></video>
-
     <div id="setup">
         <h1 id="code-info" style="font-size: 40px;">TABLICA FAMILIADA</h1>
         <button onclick="init()" style="padding: 20px 50px; font-size: 25px; cursor: pointer;">URUCHOM TABLICĘ</button>
     </div>
-
     <div class="board">
         <div id="x-l" class="x-mark"></div>
         <div id="timer-display">00:00</div>
@@ -54,7 +40,6 @@
         <div class="footer">SUMA <span id="suma">0</span></div>
         <div id="x-r" class="x-mark"></div>
     </div>
-
     <script>
         let peer, tInt;
         function stopAll() { 
@@ -63,7 +48,6 @@
             document.getElementById('x-l').style.display='none';
             document.getElementById('x-r').style.display='none';
         }
-        
         function runTimer(sec) {
             clearInterval(tInt);
             const d = document.getElementById('timer-display'); d.style.display='block';
@@ -75,7 +59,6 @@
                 if(t<=0){ clearInterval(tInt); setTimeout(()=>d.style.display='none', 2000); }
             }, 1000);
         }
-
         function init() {
             const id = Math.random().toString(36).substring(2,5).toUpperCase();
             document.getElementById('code-info').innerText = "KOD PANELU: " + id;
@@ -84,25 +67,33 @@
                 document.getElementById('setup').style.display='none';
                 c.on('data', d => {
                     if(d.type==='SET'){ 
-                        document.getElementById('rows').innerHTML='';
-                        for(let i=1;i<=d.c;i++) document.getElementById('rows').innerHTML+=`<div class="row"><div style="width:60px">${i}</div><div class="ans" id="a${i}">................</div><div class="pts" id="p${i}">--</div></div>`;
+                        const r = document.getElementById('rows');
+                        r.innerHTML='';
+                        for(let i=1;i<=d.c;i++) r.innerHTML+=`<div class="row"><div style="width:60px">${i}</div><div class="ans" id="a${i}">................</div><div class="pts" id="p${i}">--</div></div>`;
                         document.getElementById('suma').innerText="0";
                         document.getElementById('x-l').style.display='none'; document.getElementById('x-r').style.display='none';
                     }
+                    if(d.type==='REV'){ 
+                        document.getElementById('a'+(d.i+1)).innerText = d.t; 
+                        document.getElementById('p'+(d.i+1)).innerText = d.p; 
+                        document.getElementById('suma').innerText = d.s; 
+                    }
                     if(d.type==='FIN'){ 
-                        document.getElementById('rows').innerHTML='';
-                        for(let i=1;i<=5;i++) document.getElementById('rows').innerHTML+=`<div class="f-row"><div id="f1a${i}">........</div><div id="f1p${i}">░░</div><div id="f2p${i}">░░</div><div id="f2a${i}" style="text-align:right">........</div></div>`;
+                        const r = document.getElementById('rows');
+                        r.innerHTML='';
+                        for(let i=1;i<=5;i++) r.innerHTML+=`<div class="f-row"><div id="f1a${i}">........</div><div id="f1p${i}">░░</div><div id="f2p${i}">░░</div><div id="f2a${i}" style="text-align:right">........</div></div>`;
                         document.getElementById('suma').innerText="0";
                     }
-                    if(d.type==='REV'){ document.getElementById('a'+(d.i+1)).innerText=d.t; document.getElementById('p'+(d.i+1)).innerText=d.p; document.getElementById('suma').innerText=d.s; }
                     if(d.type==='R_A'){ document.getElementById(`f${d.pl}a${d.i+1}`).innerText=d.t; }
                     if(d.type==='R_P'){ document.getElementById(`f${d.pl}p${d.i+1}`).innerText=d.p; document.getElementById('suma').innerText=d.s; }
                     if(d.type==='X'){ 
                         const el=document.getElementById(d.s==='L'?'x-l':'x-r'); 
                         el.innerHTML = "X<br>".repeat(d.c);
                         el.style.display='block';
+                        setTimeout(() => { if(d.c < 3) el.style.display='none'; }, 3000);
                     }
-                    if(d.type==='SND'){ if(d.f==='stop') stopAll(); }
+                    if(d.type==='RESET_X'){ document.getElementById('x-l').style.display='none'; document.getElementById('x-r').style.display='none'; }
+                    if(d.type==='SND' && d.f==='stop') stopAll();
                     if(d.type==='T_START') runTimer(d.s);
                     if(d.type==='VID'){ const v=document.getElementById('vid'); v.style.display='block'; v.play(); v.onended=()=>v.style.display='none'; }
                 });
