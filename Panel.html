@@ -27,6 +27,13 @@
     </style>
 </head>
 <body>
+    <audio id="snd-runda" src="runda.mp3"></audio>
+    <audio id="snd-final" src="final.mp3"></audio>
+    <audio id="snd-intro" src="intro.mp3"></audio>
+    <audio id="snd-powtorzenie" src="powtorzenie.mp3"></audio>
+    <audio id="snd-ok" src="ok.mp3"></audio>
+    <audio id="snd-zle" src="zle.mp3"></audio>
+
     <div class="side">
         <h2>PYTANIA (1-50)</h2>
         <div id="q-list"></div>
@@ -67,11 +74,11 @@
             <h2>MULTIMEDIA</h2>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px">
                 <button onclick="send('VID')" class="btn-gold">CZOŁÓWKA</button>
-                <button onclick="send('SND',{f:'intro'})" class="btn-gold">MUZYKA INTRO</button>
-                <button onclick="send('SND',{f:'powtorzenie'})" class="btn-gold">POWTÓRZ ODP.</button>
-                <button onclick="send('SND',{f:'stop'})" class="btn-red">STOP AUDIO</button>
-                <button onclick="send('T_START',{s:15})" class="btn-blue">ZEGAR 15S</button>
-                <button onclick="send('T_START',{s:20})" class="btn-blue">ZEGAR 20M</button>
+                <button onclick="sendSnd('intro')" class="btn-gold">MUZYKA INTRO</button>
+                <button onclick="sendSnd('powtorzenie')" class="btn-gold">POWTÓRZ ODP.</button>
+                <button onclick="stopSnd()" class="btn-red">STOP AUDIO</button>
+                <button onclick="sendTimer(15)" class="btn-blue">ZEGAR 15S</button>
+                <button onclick="sendTimer(20)" class="btn-blue">ZEGAR 20S</button>
             </div>
         </div>
 
@@ -101,7 +108,24 @@
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script>
         let conn, total = 0, peer = new Peer(), curQ = null;
-        let activeTeam = null, scoreL = 0, scoreR = 0;
+        let activeTeam = null, scoreL = 0, scoreR = 0, tTimer;
+
+        // LOGIKA DŹWIĘKU W PANELU
+        function playS(id) { 
+            const s = document.getElementById('snd-'+id); 
+            if(s){ s.currentTime=0; s.play(); } 
+        }
+        function stopSnd() {
+            document.querySelectorAll('audio').forEach(a=>{a.pause(); a.currentTime=0;});
+            send('SND', {f:'stop'});
+            clearTimeout(tTimer);
+        }
+        function sendSnd(f) { playS(f); send('SND', {f}); }
+        function sendTimer(s) { 
+            send('T_START', {s}); 
+            clearTimeout(tTimer);
+            tTimer = setTimeout(() => playS('zle'), s * 1000);
+        }
 
         const questions = [
             {id:1, q:"Co pijemy rano?", a:["KAWA","HERBATA","WODA","SOK","MLEKO"], p:[45,25,15,10,5]},
@@ -156,7 +180,6 @@
             {id:50, q:"Zwierzę afrykańskie?", a:["LEW","SŁOŃ","ŻYRAFA","ZEBRA","NOSOROŻEC"], p:[35,25,20,15,5]}
         ];
 
-        // 20 Zestawów Finałowych
         const finals = [
             {n:1, items:["OWOC: Jabłko(35), Banan(25)","KOLOR: Nieb(40), Czerw(20)","ZWIERZĘ: Pies(50), Kot(30)","MIASTO: Paryż(30)","SPORT: Nożna(45)"]},
             {n:2, items:["WARZYWO: Pomid(40)","NAPÓJ: Woda(45)","POJAZD: Auto(50)","IMIĘ: Anna(35)","MEBEL: Szafa(30)"]},
@@ -199,20 +222,20 @@
             if(activeTeam === 'L') scoreL += total; else scoreR += total;
             document.getElementById('scoreL-val').innerText = scoreL;
             document.getElementById('scoreR-val').innerText = scoreR;
-            send('SCORES', {L: scoreL, R: scoreR});
             total = 0;
         }
 
         function sendX(count) {
             if(!activeTeam) return alert("Wybierz drużynę!");
+            playS('zle');
             send('X', {s: activeTeam, c: count});
         }
 
-        function resetX(target) { send('RESET_X', {target: target}); }
-
         function startR(n) {
             if(!curQ) return alert("Wybierz pytanie!");
-            total = 0; send('SET', {c: curQ.a.length});
+            total = 0; 
+            playS('runda');
+            send('SET', {c: curQ.a.length});
             const box = document.getElementById('ans-box'); box.innerHTML = '';
             curQ.a.forEach((a, i) => {
                 box.innerHTML += `<div style="display:flex; gap:5px; margin-bottom:5px">
@@ -227,11 +250,15 @@
         function revN(i) { 
             const t = document.getElementById('t'+i).value;
             const p = parseInt(document.getElementById('p'+i).value);
-            total += p; send('REV', {i, t, p, s: total}); 
+            total += p; 
+            playS('ok');
+            send('REV', {i, t, p, s: total}); 
         }
 
         function startF() {
-            total = 0; send('FIN');
+            total = 0; 
+            playS('final');
+            send('FIN');
             const box = document.getElementById('ans-box'); box.innerHTML = '';
             [1,2].forEach(p => {
                 box.innerHTML += `<h4>GRACZ ${p}</h4>`;
@@ -250,7 +277,9 @@
         function revFA(pl, i) { send('R_A', {pl, i, t: document.getElementById(`f${pl}t${i}`).value}); }
         function revFP(pl, i) { 
             const p = parseInt(document.getElementById(`f${pl}p${i}`).value) || 0;
-            total += p; send('R_P', {pl, i, p, s: total}); 
+            total += p; 
+            playS('ok');
+            send('R_P', {pl, i, p, s: total}); 
         }
 
         questions.forEach(q => {
@@ -271,5 +300,3 @@
     </script>
 </body>
 </html>
-
-
