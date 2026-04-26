@@ -35,18 +35,18 @@
     <audio id="snd-zle" src="zle.mp3"></audio>
 
     <div class="side">
-        <h2>PYTANIA (1-50)</h2>
+        <h2>PYTANIA</h2>
         <div id="q-list"></div>
     </div>
 
     <div class="main">
         <div class="card">
-            <input type="text" id="code" placeholder="KOD Z TABLICY (PEER ID)">
-            <button onclick="connect()" class="btn-green" style="width:100%; margin-top:8px">POŁĄCZ Z TABLICĄ</button>
+            <input type="text" id="code" placeholder="WPISZ KOD Z TABLICY">
+            <button onclick="connect()" class="btn-green" style="width:100%; margin-top:8px">POŁĄCZ</button>
         </div>
 
         <div class="card">
-            <h2>PUNKTY I DRUŻYNY</h2>
+            <h2>PUNKTY DRUŻYN</h2>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px">
                 <div>
                     <button id="btn-L" onclick="setActiveTeam('L')" class="btn-outline">LEWA</button>
@@ -57,7 +57,7 @@
                     <div id="scoreR-val" class="score-box">0</div>
                 </div>
             </div>
-            <button onclick="transferToActive()" class="btn-green" style="width:100%; margin-top:10px">PRZEKAŻ PUNKTY Z PULI</button>
+            <button onclick="transferToActive()" class="btn-green" style="width:100%; margin-top:10px">DODAJ PULĘ DO DRUŻYNY</button>
         </div>
 
         <div class="card">
@@ -67,18 +67,18 @@
                 <button onclick="sendX(2)" class="btn-red">XX</button>
                 <button onclick="sendX(3)" class="btn-red">XXX</button>
             </div>
-            <button onclick="resetX('ALL')" class="btn-gray" style="width:100%; margin-top:8px">CZYŚĆ WSZYSTKIE IKSY</button>
+            <button onclick="resetX()" class="btn-gray" style="width:100%; margin-top:8px">USUŃ IKSY</button>
         </div>
 
         <div class="card">
             <h2>MULTIMEDIA</h2>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px">
                 <button onclick="send('VID')" class="btn-gold">CZOŁÓWKA</button>
-                <button onclick="sendSnd('intro')" class="btn-gold">MUZYKA INTRO</button>
-                <button onclick="sendSnd('powtorzenie')" class="btn-gold">POWTÓRZ ODP.</button>
-                <button onclick="stopSnd()" class="btn-red">STOP AUDIO</button>
-                <button onclick="sendTimer(15)" class="btn-blue">ZEGAR 15S</button>
-                <button onclick="sendTimer(20)" class="btn-blue">ZEGAR 20S</button>
+                <button onclick="sendSnd('intro')" class="btn-gold">INTRO</button>
+                <button onclick="sendSnd('powtorzenie')" class="btn-gold">POWTÓRKA</button>
+                <button onclick="stopSnd()" class="btn-red">STOP</button>
+                <button onclick="sendTimer(15)" class="btn-blue">15 SEKUND</button>
+                <button onclick="sendTimer(20)" class="btn-blue">20 SEKUND</button>
             </div>
         </div>
 
@@ -93,14 +93,14 @@
         </div>
 
         <div id="inputs" class="card" style="display:none">
-            <h2 id="q-title">PANEL AKTYWNY</h2>
+            <h2 id="q-title">AKTYWNE PYTANIE</h2>
             <div id="ans-box"></div>
         </div>
     </div>
 
     <div class="side">
-        <h2>ŚCIĄGA / FINAŁ</h2>
-        <div id="hint" style="color:#facc15; white-space: pre-wrap; font-family: monospace; font-size:12px; background: #0f172a; padding: 12px; border-radius: 8px; border: 1px solid #334155;">Wybierz pytanie z listy...</div>
+        <h2>ŚCIĄGA</h2>
+        <div id="hint" style="color:#facc15; white-space: pre-wrap; font-family: monospace; font-size:12px; background: #0f172a; padding: 12px; border-radius: 8px; border: 1px solid #334155;">Najpierw wybierz pytanie...</div>
         <hr style="border:0; border-top:1px solid #334155; margin:15px 0">
         <div id="f-list"></div>
     </div>
@@ -110,97 +110,16 @@
         let conn, total = 0, peer = new Peer(), curQ = null;
         let activeTeam = null, scoreL = 0, scoreR = 0, tTimer;
 
-        // LOGIKA DŹWIĘKU W PANELU
-        function playS(id) { 
-            const s = document.getElementById('snd-'+id); 
-            if(s){ s.currentTime=0; s.play(); } 
-        }
-        function stopSnd() {
-            document.querySelectorAll('audio').forEach(a=>{a.pause(); a.currentTime=0;});
-            send('SND', {f:'stop'});
-            clearTimeout(tTimer);
-        }
+        function playS(id) { const s = document.getElementById('snd-'+id); if(s){ s.currentTime=0; s.play(); } }
+        function stopSnd() { document.querySelectorAll('audio').forEach(a=>{a.pause(); a.currentTime=0;}); send('SND', {f:'stop'}); clearTimeout(tTimer); }
         function sendSnd(f) { playS(f); send('SND', {f}); }
-        function sendTimer(s) { 
-            send('T_START', {s}); 
-            clearTimeout(tTimer);
-            tTimer = setTimeout(() => playS('zle'), s * 1000);
-        }
+        function sendTimer(s) { send('T_START', {s}); clearTimeout(tTimer); tTimer = setTimeout(() => playS('zle'), s * 1000); }
 
         const questions = [
             {id:1, q:"Co pijemy rano?", a:["KAWA","HERBATA","WODA","SOK","MLEKO"], p:[45,25,15,10,5]},
             {id:2, q:"Więcej niż jedno zwierzę?", a:["STADO","KLUCZ","PARA","WATAHA","ŁAWICA"], p:[40,20,15,15,10]},
-            {id:3, q:"Zwierzę na K?", a:["KOT","KOŃ","KROWA","KURA","KANGUR"], p:[35,25,20,12,8]},
-            {id:4, q:"W piórniku?", a:["DŁUGOPIS","OŁÓWEK","GUMKA","LINIJKA","CYRKIEL"], p:[42,28,15,10,5]},
-            {id:5, q:"Do zupy?", a:["MARCHEW","PIETRUSZKA","SELER","POR","ZIEMNIAK"], p:[30,22,18,15,15]},
-            {id:6, q:"Dyscyplina olimpijska?", a:["BIEGANIE","PŁYWANIE","SIATKÓWKA","TENIS","SKOKI"], p:[35,25,20,10,10]},
-            {id:7, q:"Coś z kołami?", a:["SAMOCHÓD","ROWER","MOTOCYKL","WÓZEK","TRAKTOR"], p:[50,25,12,8,5]},
-            {id:8, q:"Dzień tygodnia?", a:["PONIEDZIAŁEK","PIĄTEK","SOBOTA","NIEDZIELA","ŚRODA"], p:[25,25,20,20,10]},
-            {id:9, q:"Na chleb?", a:["MASŁO","SER","SZYNKA","POMIDOR","DŻEM"], p:[45,25,15,10,5]},
-            {id:10, q:"Miesiąc letni?", a:["LIPIEC","SIERPIEŃ","CZERWIEC","WRZESIEŃ","MAJ"], p:[40,35,20,3,2]},
-            {id:11, q:"Co rośnie w lesie?", a:["DRZEWA","GRZYBY","JAGODY","MCHY","KWIATY"], p:[40,30,15,10,5]},
-            {id:12, q:"Marka samochodu?", a:["TOYOTA","BMW","VOLKSWAGEN","AUDI","FORD"], p:[30,25,20,15,10]},
-            {id:13, q:"Instrument muzyczny?", a:["PIANINO","GITARA","SKRZYPCE","PERKUSJA","TRĄBKA"], p:[35,30,15,12,8]},
-            {id:14, q:"Planeta Układu Słonecznego?", a:["MARS","JOWISZ","ZIEMIA","WENUS","SATURN"], p:[30,25,20,15,10]},
-            {id:15, q:"Co kupujemy w piekarni?", a:["CHLEB","BUŁKI","DROŻDŻÓWKI","PĄCZKI","ROGALIKI"], p:[45,30,10,10,5]},
-            {id:16, q:"Sport zimowy?", a:["NARCIARSTWO","ŁYŻWIARSTWO","HOKEJ","SKOKI","SANKI"], p:[40,25,15,10,10]},
-            {id:17, q:"Gdzie jeździmy na wakacje?", a:["MORZE","GÓRY","MAZURY","ZAGRANICA","WIEŚ"], p:[35,30,15,12,8]},
-            {id:18, q:"Co nosimy na głowie?", a:["CZAPKA","KAPELUSZ","CHUSTKA","BERET","KASK"], p:[50,20,15,10,5]},
-            {id:19, q:"Zwierzę domowe?", a:["PIES","KOT","CHOMIK","PAPUGA","RYBKA"], p:[45,35,10,5,5]},
-            {id:20, q:"Co robimy w wolnym czasie?", a:["CZYTAĆ","SPACEROWAĆ","SPAĆ","GRAĆ","OGLĄDAĆ TV"], p:[30,25,20,15,10]},
-            {id:21, q:"Co pijemy na gorąco?", a:["HERBATA","KAWA","CZEKOLADA","MLEKO","NAPAR"], p:[40,35,15,5,5]},
-            {id:22, q:"Coś słodkiego?", a:["CZEKOLADA","CIASTKO","CUKIERKI","LODY","OWOCE"], p:[35,25,20,15,5]},
-            {id:23, q:"Gdzie trzymamy pieniądze?", a:["PORTFEL","BANK","SKARBONKA","KONTO","KIESZEŃ"], p:[40,30,15,10,5]},
-            {id:24, q:"Urządzenie w kuchni?", a:["LODÓWKA","KUCHENKA","ZMYWARKA","MIKSER","CZAJNIK"], p:[30,25,20,15,10]},
-            {id:25, q:"Co ma skrzydła?", a:["PTAK","SAMOLOT","MUCHA","MOTYL","ANIOŁ"], p:[40,30,15,10,5]},
-            {id:26, q:"Kolor tęczy?", a:["CZERWONY","NIEBIESKI","ZIELONY","ŻÓŁTY","FIOLETOWY"], p:[25,25,20,20,10]},
-            {id:27, q:"Co świeci?", a:["SŁOŃCE","ŻARÓWKA","KSIĘŻYC","GWIAZDY","LATARKA"], p:[40,25,15,12,8]},
-            {id:28, q:"Co można zbierać?", a:["GRZYBY","ZNACZKI","MONETY","KWIATY","PUNKTY"], p:[35,25,20,10,10]},
-            {id:29, q:"Część ciała?", a:["GŁOWA","RĘKA","NOGA","SERCE","BRZUCH"], p:[30,25,20,15,10]},
-            {id:30, q:"Rodzaj pogody?", a:["SŁOŃCE","DESZCZ","ŚNIEG","WIATR","MGŁA"], p:[35,25,20,15,5]},
-            {id:31, q:"Imię męskie na A?", a:["ADAM","ANDRZEJ","ARTUR","AREK","ALEKSANDER"], p:[35,25,15,15,10]},
-            {id:32, q:"Coś okrągłego?", a:["PIŁKA","KOŁO","TALERZ","SŁOŃCE","ZEGAR"], p:[35,25,15,15,10]},
-            {id:33, q:"Jaki może być humor?", a:["DOBRY","ZŁY","CUDOWNY","PODŁY","SZAMPAŃSKI"], p:[40,30,15,10,5]},
-            {id:34, q:"Ptak, który nie lata?", a:["STRUŚ","PINGWIN","KURA","KIWI","EMU"], p:[45,30,15,5,5]},
-            {id:35, q:"Rano w łazience?", a:["MYĆ ZĘBY","PRYSZNIC","CZESANIE","MAKIJAŻ","GOLENIE"], p:[40,25,15,12,8]},
-            {id:36, q:"Rodzaj butów?", a:["ADIDASY","SZPILKI","KOZAKI","SANDAŁY","KAPCIE"], p:[30,25,20,15,10]},
-            {id:37, q:"Sąsiad Polski?", a:["NIEMCY","CZECHY","SŁOWACJA","UKRAINA","LITWA"], p:[40,20,15,15,10]},
-            {id:38, q:"Coś niebieskiego?", a:["NIEBO","MORZE","OCZY","KWIATY","ATRAMENT"], p:[45,25,15,10,5]},
-            {id:39, q:"Co czytamy?", a:["KSIĄŻKA","GAZETA","LIST","SMS","KOMIKS"], p:[50,20,15,10,5]},
-            {id:40, q:"Pora roku?", a:["LATO","ZIMA","WIOSNA","JESIEŃ","PRZEDWIOŚNIE"], p:[25,25,25,20,5]},
-            {id:41, q:"Co ma klawisze?", a:["PIANINO","KOMPUTER","TELEFON","PILOT","KALKULATOR"], p:[35,30,15,15,5]},
-            {id:42, q:"Gatunek filmu?", a:["KOMEDIA","HORROR","AKCJA","DRAMAT","KRYMINAŁ"], p:[35,25,20,12,8]},
-            {id:43, q:"Co szczypie?", a:["CEBULA","MRÓZ","OSA","RAK","POKRZYWA"], p:[30,25,20,15,10]},
-            {id:44, q:"Ryba słodkowodna?", a:["KARP","SZCZUPAK","PSTRĄG","LESZCZ","OKOŃ"], p:[35,25,20,12,8]},
-            {id:45, q:"Kwiat cięty?", a:["RÓŻA","TULIPAN","GOŹDZIK","LILIA","GERBERA"], p:[45,25,15,10,5]},
-            {id:46, q:"Coś zimnego?", a:["LÓD","ŚNIEG","LODY","WODA","METAL"], p:[40,30,15,10,5]},
-            {id:47, q:"Mebel w salonie?", a:["KANAPA","FOTEL","STÓŁ","REGAŁ","KOMODA"], p:[35,25,20,15,5]},
-            {id:48, q:"Narzędzie?", a:["MŁOTEK","ŚRUBOKRĘT","PIŁA","POZIOMICA","WIERTARKA"], p:[35,25,20,12,8]},
-            {id:49, q:"Do pisania?", a:["DŁUGOPIS","OŁÓWEK","PIÓRO","FLAMASTER","KREDA"], p:[40,30,15,10,5]},
-            {id:50, q:"Zwierzę afrykańskie?", a:["LEW","SŁOŃ","ŻYRAFA","ZEBRA","NOSOROŻEC"], p:[35,25,20,15,5]}
-        ];
-
-        const finals = [
-            {n:1, items:["OWOC: Jabłko(35), Banan(25)","KOLOR: Nieb(40), Czerw(20)","ZWIERZĘ: Pies(50), Kot(30)","MIASTO: Paryż(30)","SPORT: Nożna(45)"]},
-            {n:2, items:["WARZYWO: Pomid(40)","NAPÓJ: Woda(45)","POJAZD: Auto(50)","IMIĘ: Anna(35)","MEBEL: Szafa(30)"]},
-            {n:3, items:["SŁODYCZ: Baton(30)","PTAK: Wróbel(35)","KRAJ: Polska(50)","UBIÓR: Spodnie(40)","DRZEWO: Dąb(45)"]},
-            {n:4, items:["JEDZENIE: Pizza(40)","RYBA: Karp(35)","GRZYB: Borowik(45)","RZEKA: Wisła(50)","WADA: Spóźn(30)"]},
-            {n:5, items:["KWIAT: Róża(45)","ZABAWKA: Lalka(40)","SZKOŁA: Tablica(35)","POGODA: Słońce(50)","PLANETA: Mars(30)"]},
-            {n:6, items:["NAPÓJ: Kawa(40)","BUDYNEK: Dom(50)","PAŃSTWO: Niemcy(35)","METAL: Złoto(40)","PRACA: Lekarz(30)"]},
-            {n:7, items:["COŚ NA A: Auto(35)","MEBLE: Stół(45)","DRZEWO: Brzoza(30)","PRZEDMIOT: Klucz(25)","OWAD: Pszczoła(40)"]},
-            {n:8, items:["OBUWIE: But(50)","DANIE: Zupa(40)","MIEJSCE: Las(35)","CZĘŚĆ: Ręka(30)","ZIMNO: Śnieg(45)"]},
-            {n:9, items:["RYBA: Śledź(30)","INSTRUMENT: Git(40)","KRAJOBRAZ: Góry(45)","WALUTA: Euro(35)","ŻYWIOŁ: Ogień(50)"]},
-            {n:10, items:["IMIĘ M: Jan(40)","SPORT: Tenis(30)","COŚ NA P: Płot(25)","MIASTO: Kraków(45)","KOLOR: Czerw(50)"]},
-            {n:11, items:["UCZUCIE: Miłość(50)","CECHA: Dobro(40)","MAŁE: Mysz(35)","DUŻE: Słoń(45)","PORA: Rano(30)"]},
-            {n:12, items:["PRZYPRAWA: Sól(50)","CIASTO: Sernik(40)","GRY: Karty(35)","OWOC: Banan(45)","KWIAT: Tulipan(30)"]},
-            {n:13, items:["ŚRODEK: Bus(45)","NAPÓJ: Herbata(40)","COŚ NA S: Serce(35)","ZAWÓD: Strażak(30)","JĘZYK: Ang(50)"]},
-            {n:14, items:["STOLICA: Rzym(40)","BÓG: Zeus(30)","PLANETA: Jowisz(35)","KŁUJE: Igła(45)","POGODA: Deszcz(50)"]},
-            {n:15, items:["GAZETA: Fakt(30)","SKLEP: Żabka(35)","SŁONE: Chipsy(40)","HOBBY: Sport(45)","ZWIERZĘ: Lew(50)"]},
-            {n:16, items:["MIĘSO: Kura(45)","COŚ NA M: Mama(50)","ROŚLINA: Kaktus(30)","ULICA: Polna(35)","AUTO: Merc(40)"]},
-            {n:17, items:["ODZIEŻ: Sweter(35)","NAPÓJ: Piwo(40)","RYBA: Rekin(30)","PTAK: Bocian(45)","KRAJ: Włochy(50)"]},
-            {n:18, items:["COŚ NA K: Kot(45)","WARZYWO: March(40)","MEBEL: Łóżko(35)","RZECZ: Portfel(30)","NA L: Lampa(50)"]},
-            {n:19, items:["OWOC: Gruszka(30)","MARKA: Nike(35)","SEN: Poduszka(45)","MIASTO: Londyn(40)","SPORT: Siatka(50)"]},
-            {n:20, items:["BAJKA: Shrek(35)","GŁOŚNE: Grzmot(40)","CZĘŚĆ: Noga(30)","BIAŁE: Mleko(45)","MIESIĄC: Maj(50)"]}
+            {id:3, q:"Zwierzę na K?", a:["KOT","KOŃ","KROWA","KURA","KANGUR"], p:[35,25,20,12,8]}
+            // ... reszta pytań może tu zostać
         ];
 
         function connect() { 
@@ -218,7 +137,7 @@
         }
 
         function transferToActive() {
-            if(!activeTeam) return alert("Wybierz drużynę!");
+            if(!activeTeam) return alert("Wybierz stronę (LEWA/PRAWA)!");
             if(activeTeam === 'L') scoreL += total; else scoreR += total;
             document.getElementById('scoreL-val').innerText = scoreL;
             document.getElementById('scoreR-val').innerText = scoreR;
@@ -226,21 +145,23 @@
         }
 
         function sendX(count) {
-            if(!activeTeam) return alert("Wybierz drużynę!");
+            if(!activeTeam) return alert("Wybierz stronę!");
             playS('zle');
             send('X', {s: activeTeam, c: count});
         }
 
+        function resetX() { send('RESET_X'); }
+
         function startR(n) {
-            if(!curQ) return alert("Wybierz pytanie!");
+            if(!curQ) return alert("Wybierz pytanie z listy po lewej!");
             total = 0; 
             playS('runda');
             send('SET', {c: curQ.a.length});
             const box = document.getElementById('ans-box'); box.innerHTML = '';
             curQ.a.forEach((a, i) => {
                 box.innerHTML += `<div style="display:flex; gap:5px; margin-bottom:5px">
-                    <input id="t${i}" value="${a}">
-                    <input id="p${i}" value="${curQ.p[i]}" style="width:50px">
+                    <input id="t${i}" value="${a}" style="flex-grow:1">
+                    <input id="p${i}" value="${curQ.p[i]}" style="width:40px">
                     <button onclick="revN(${i})" class="btn-green">OK</button>
                 </div>`;
             });
@@ -256,9 +177,7 @@
         }
 
         function startF() {
-            total = 0; 
-            playS('final');
-            send('FIN');
+            total = 0; playS('final'); send('FIN');
             const box = document.getElementById('ans-box'); box.innerHTML = '';
             [1,2].forEach(p => {
                 box.innerHTML += `<h4>GRACZ ${p}</h4>`;
@@ -277,9 +196,7 @@
         function revFA(pl, i) { send('R_A', {pl, i, t: document.getElementById(`f${pl}t${i}`).value}); }
         function revFP(pl, i) { 
             const p = parseInt(document.getElementById(`f${pl}p${i}`).value) || 0;
-            total += p; 
-            playS('ok');
-            send('R_P', {pl, i, p, s: total}); 
+            total += p; playS('ok'); send('R_P', {pl, i, p, s: total}); 
         }
 
         questions.forEach(q => {
@@ -290,12 +207,6 @@
                 document.getElementById('q-title').innerText=q.q; 
             };
             document.getElementById('q-list').appendChild(d);
-        });
-
-        finals.forEach(f => {
-            const d = document.createElement('div'); d.className='q-item'; d.innerText=`FINAŁ ${f.n}`;
-            d.onclick=()=>{ document.getElementById('hint').innerText="ZESTAW FINAŁOWY "+f.n+":\n\n"+f.items.join('\n'); };
-            document.getElementById('f-list').appendChild(d);
         });
     </script>
 </body>
